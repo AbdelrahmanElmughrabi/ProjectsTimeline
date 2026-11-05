@@ -1,0 +1,36 @@
+# Dependencies, generated builds and local caches
+node_modules/
+dist/
+out/
+.cache/
+artifacts/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+*.log
+
+# Local databases, journals and backups
+*.sqlite
+*.sqlite-*
+*.sqlite.*
+*.db
+*.db-*
+*.db.*
+*.bak
+
+# Local environment values and private signing keys
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.pfx
+*.p12
+
+# Machine-specific editor and OS files
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini

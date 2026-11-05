@@ -1,0 +1,35 @@
+{
+  "name": "projects-timeline",
+  "productName": "ProjectsTimeline",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A local workspace for project actions and development checkpoints.",
+  "author": "ProjectsTimeline",
+  "license": "UNLICENSED",
+  "main": "dist/main/index.js",
+  "type": "commonjs",
+  "engines": { "node": ">=24.15.0 <25" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.renderer.json",
+    "start": "npm run build && electron .",
+    "test": "npm run build && node --test tests/unit/*.test.mjs",
+    "test:e2e": "npm run build && node --test tests/e2e/*.test.mjs",
+    "package": "npm run build && electron-forge package",
+    "test:packaged": "node --test tests/packaged/*.test.mjs"
+  },
+  "dependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "8.0.1",
+    "@types/node": "24.10.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "electron": "45.2.3",
+    "playwright": "1.64.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.6"
+  }
+}

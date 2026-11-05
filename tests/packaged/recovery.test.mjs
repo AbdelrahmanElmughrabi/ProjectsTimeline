@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { existsSync, mkdirSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { temporaryDirectory } from '../helpers.mjs';
+import { launchWorkspace, createProject, openProject, saveCheckpoint } from '../electron-flow.mjs';
+
+test('packaged executable uses bundled SQLite and recovers committed data without Vite', { timeout: 90000 }, async (t) => {
+  const executable = resolve(process.env.PROJECTS_TIMELINE_EXECUTABLE ?? 'out/ProjectsTimeline-win32-x64/ProjectsTimeline.exe');
+  assert.ok(existsSync(executable), 'Run npm run package first, or set PROJECTS_TIMELINE_EXECUTABLE.');
+  let application;
+  const directory = join(temporaryDirectory(t, () => application?.close()), 'new-profile');
+  application = await launchWorkspace(directory, executable);
+  let page = await application.firstWindow();
+  assert.equal(await application.evaluate(({ app }) => app.isPackaged), true);
+  await createProject(page, 'Packaged recovery');
+  await openProject(page, 'Packaged recovery');
+  await page.getByLabel('Action title', { exact: true }).fill('Verify packaged SQLite');
+  await page.getByRole('button', { name: 'Add action', exact: true }).click();
+  await page.getByRole('button', { name: 'Complete Verify packaged SQLite', exact: true }).click();
+  await page.getByText('Completed', { exact: true }).waitFor();
+  await saveCheckpoint(page, 'Packaged executable runs', 'Review the foundation');
+  await application.close();
+  application = undefined;
+  application = await launchWorkspace(directory, executable);
+  page = await application.firstWindow();
+  await openProject(page, 'Packaged recovery');
+  await page.getByText('Completed', { exact: true }).waitFor();
+  await page.getByText('Packaged executable runs', { exact: true }).waitFor();
+  await page.getByText('Review the foundation', { exact: true }).waitFor();
+  assert.equal(await page.locator('.action-row').count(), 1);
+  assert.equal(await page.locator('.checkpoint-card').count(), 1);
+  assert.equal(new URL(page.url()).protocol, 'app:');
+  mkdirSync(resolve('artifacts'), { recursive: true });
+  await page.screenshot({ path: resolve('artifacts/packaged-workspace.png'), fullPage: true });
+});

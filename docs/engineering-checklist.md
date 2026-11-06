@@ -1,5 +1,7 @@
 # ProjectsTimeline — Engineering checklist
 
+Current analysis gate, 2026-11-06: [Product & Architecture Alignment](product-architecture-alignment.md) and the Antigravity review prompt are prepared. PTB intake, independent development scopes/workflows, source authority and delivery snapshots remain proposed; no new feature/migration/dependency or manual acceptance is claimed.
+
 Updated: 2026-11-06. Foundation, Resume, Visual Foundation, Development Stages & Progress and the approved workflow milestone are implemented. Final workflow suite: **47 Node + 12 Electron + 3 packaged = 62/62 passed**, including build/typechecks, rebuilt Windows package, migration/restart recovery and compact UI checks. Manual acceptance remains open. Workflow decisions are recorded in ADR 0005; prior ownership authorization is recorded in ADR 0004.
 
 States: **Undecided → Designed → Implemented → Verified**. Undecided includes AI proposals awaiting the user's decision. Designed means agreed, not merely written. Verified requires recorded results; generated code or a test file is insufficient.
@@ -75,3 +77,4 @@ These supplement preserved M1 evidence. The Continue Implementation brief approv
 | Workflow acceptance | Template CRUD/order/duplication, copy isolation, release-local details/stages/order, legacy/frozen guards and responsive UI | Implemented | Automated criteria verified by 47 Node + 12 Electron + 3 packaged; actual user-content/manual acceptance remains pending |
 | Workflow first vertical slice | Duplicate/select/copy/render/isolation | Verified | Commit 7263c75; 40 Node + 10 Electron checks passed before completing the editor |
 | Workflow final verification | Completed editor, packaged recovery and final result record | Verified | All 62 checks pass; rebuilt executable upgrades populated v2 and recovers edited masters, independent/frozen release copies, legacy work and Resume after full restart. Manual acceptance is separate |
+| Product alignment | PTB contract, development-first journeys, additive ownership and slice acceptance criteria | Undecided | Analysis completed against v3 code; five proposed decision groups await user review before implementation. Last recorded 62 checks not rerun in this documentation-only phase |

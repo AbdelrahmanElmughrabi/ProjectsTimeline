@@ -1,5 +1,7 @@
 # ProjectsTimeline — Feature alignment and incremental roadmap
 
+Current planning phase, 2026-11-06: [Product & Architecture Alignment](product-architecture-alignment.md) compares the draft PTB package with actual v3 code and proposes a development-first evolution. Its slice order and five decisions await review; the implementation inventory and prior approvals below remain historical/current evidence, not approval of the new schema. [Antigravity handoff](antigravity-collaboration-prompt.md) is review-first.
+
 Status: **Reusable Engineering Workflows implemented and automatically verified; manual acceptance pending.** Updated: 2026-11-06. Earlier Resume, Visual Foundation and Development Stages & Progress slices remain implemented. Workflow decisions are accepted in [ADR 0005](adr/0005-reusable-workflows.md). Schema v3; dependencies unchanged. Final suite: **47 Node + 12 Electron + 3 packaged = 62/62 passed**, with rebuilt Windows recovery and 800/1160/1440 UI checks. Stop before the next milestone.
 
 Current workflow milestone: the approved [model, starter content, screen and acceptance criteria](workflow-library-plan.md) are implemented and automatically verified. The built-in contains eight ordinary starter actions, not an exhaustive checklist. Its app-managed confirmation remains in the seventh default stage; custom workflows keep exactly one protected closing stage last. Stages Only remains available. Await manual acceptance before starting another milestone.

@@ -1,5 +1,11 @@
 # ProjectsTimeline — Verification record
 
+## Product & Architecture Alignment — analysis only, 2026-11-06
+
+Read PTB contract/roadmap first, nested README and all eight example documents; root/nested contract and roadmap hashes match. Reviewed actual source at `f1c8b76`, schemas 001–003, store/workflow/progress/Resume behavior, typed bridge/security, UI/hooks, test cases, roadmap and ADRs. Three lighter-model agents independently reviewed data ownership, PTB ambiguities and journeys/test dependencies. Prepared [alignment](product-architecture-alignment.md) with five unresolved decision groups and [Antigravity prompt](antigravity-collaboration-prompt.md); no Antigravity session was launched. Added planning pointers/checkpoint without changing prior accepted decisions or results.
+
+This pass does **not** rerun the 62-check baseline, launch/repackage the app, parse PTB using an implemented validator, or validate real small/complex project packages. Example consistency is a manual source review. Checked new local document links and Git whitespace. No source, tests, migrations, dependencies, supplied PTB files or production profile changed. PTB stays untracked; proposed schema/progress/import rules await approval. Stop for review before implementation.
+
 ## Reusable Engineering Workflows — implementation and verification, 2026-11-06
 
 The user approved all five design decisions, migration 003 and the complete implementation, clarifying the built-in's starter scope, single confirmation in the existing seventh stage, committed copies, Stages Only option and independent active-release customization. [ADR 0005](adr/0005-reusable-workflows.md) records the consequential choices. First complete duplicate → select → copy → details → independent-progress path was saved as **7263c75**, after 40 Node and 10 Electron checks passed. Completed editing and regression coverage is saved as **6b6fbed**. Documentation is checkpointed separately; no push was performed.

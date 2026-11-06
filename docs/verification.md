@@ -1,5 +1,13 @@
 # ProjectsTimeline — Verification record
 
+## Progress calculation contract review — 2026-11-06
+
+Repository started clean at bac15e9; local main matched its recorded origin/main tracking reference (no network fetch performed). Reviewed current action/project/checkpoint contracts, domain error handling, schema v1 and Resume tests. A lighter-model agent provided an independent read-only review of contract boundaries and essential cases; no agent wrote implementation.
+
+The user selected release scope, applicable committed checklist actions, equal included-stage weights, protected final confirmation and visible legacy Unassigned backlog. The follow-up empty-stage decision is **withhold overall percentage until scope is resolved**. Prepared [contract/invariants and seven essential policy test groups](progress-policy-contract.md), separating main-side ownership/confirmation validation from pure arithmetic. These are proposed specifications, not executable/passing tests. The core remains user-written; integration is pending approval of their calculation design and availability of their implementation.
+
+Documentation/checkpoint changes only; no source, migration, bridge, dependency or executable test changes. Local document links and git diff --check passed; reviewed eligibility under excluded stages and retained inapplicable records' original links. Application tests were not rerun; last actual result remains the recorded 25/25 below. Manual acceptance remains pending unless the user records it separately.
+
 ## Development Stages & Progress planning — 2026-11-06
 
 Planning only. Inspected current UI/query ownership, schema v1, migration runner, action/checkpoint contracts and previous records. The [decision brief](stages-progress-design.md) restores the user's seven original stages/equal weights, compares three scope models and proposes invariants plus **21 black-box acceptance scenarios**. Those scenarios are not executable tests or verified application behavior. Data model, counting unit, empty/custom stage rules and confirmation/evidence boundaries remain approval-gated; the user personally designs/writes the core policy.

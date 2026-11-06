@@ -1,6 +1,6 @@
 # Development Stages & Progress Tracking — design alternatives
 
-Status: **Planning only; data model and policy approval pending.** Updated: 2026-11-06. No application, migration, contract or test implementation changes. The user personally designs/writes the core progress policy; this is a decision brief and proposed black-box acceptance specification, not an algorithm or pseudocode.
+Status: **Direction selected; calculation contract/design review pending.** Updated: 2026-11-06. The user selected release scope, applicable committed checklist actions, equal weighting across included stages, protected confirmation and visible legacy Unassigned backlog. Empty included stages now withhold the overall percentage until scope review is resolved. The current [contract and essential test proposal](progress-policy-contract.md) supersedes unresolved alternatives below. No application, migration, bridge or executable test changes. The user personally designs/writes the core policy; integration is authorized after approval of their calculation design and availability of their implementation.
 
 Current baseline: projects, project-owned actions and append-only project checkpoints in schema v1. No releases, stages, applicability, commitment or transition history exist yet. Resume, Visual Foundation, SQLite and Electron boundaries stay intact. Existing verified work is saved in Git checkpoint **78a7758**; last recorded application result is 25/25 passing, with remaining user manual checks still pending.
 
@@ -26,7 +26,7 @@ Three complete stages and four zero-progress stages produce **42.857142…%, dis
 
 Confirmed rules: later stages may progress early; current stage is the earliest ordered stage containing unfinished applicable committed work; scope additions/reopening recalculate progress; irrelevant items require recorded exclusion reasons; suggestions do not count until committed to a release; MVP reduces feature scope rather than necessary verification; 100% requires all applicable committed work and final release confirmation. Ideas have no percentage until promoted and given an assessed work scope.
 
-**Terminology still requiring confirmation:** the formula names actions, while some requirements use “requirements.” Recommendation: count committed checklist actions using the existing action model; future product/engineering requirement records link to them rather than becoming a second denominator. Counting distinct requirements instead is a valid different model, but requires requirement records and a satisfaction policy before this milestone. The examples below use the action-based interpretation without declaring that ambiguity settled.
+**Counting unit confirmed:** committed, applicable checklist actions. Future product/engineering requirement records can link to them without becoming a second denominator. The earlier action-versus-requirement clarification is resolved.
 
 ## Scope alternatives and database implications
 
@@ -36,7 +36,7 @@ Confirmed rules: later stages may progress early; current stage is the earliest 
 | B. Release-owned stage instances — recommended | A long-lived project contains separate planned releases, each with its own scope, stage instances and item states | Add a minimal release container, release_stages and explicit action membership/assignment; enforce same-project/release relationships | More initial modelling and migration work; release selection must be explicit, and confirmation needs a real record rather than an unchecked boolean |
 | C. Mutable project workflow + release snapshots | Keep one live project workflow, snapshot it when confirming a release | Project stages plus immutable release snapshots and snapshot item/configuration membership | Supports historical records but creates two progress contexts and makes overlapping releases awkward; new development still needs a defined draft scope, not a snapshot of unrelated global state |
 
-**Recommendation B:** release-owned instances, with reusable project/template defaults copied into them later. This matches the user's original intention that a confirmed release stays at 100% while a new release begins. A planned-release container is not a complete publishing platform. Templates are configuration sources, not live stage references whose edits rewrite older releases. Do not add a generic polymorphic workflow-owner abstraction now.
+**Direction B selected by the user:** release-owned instances, with reusable project/template defaults copied into them later. This matches the user's original intention that a confirmed release stays at 100% while a new release begins. The alternatives table records the earlier comparison, not an open request to choose project scope again. A planned-release container is not a complete publishing platform. Templates are configuration sources, not live stage references whose edits rewrite older releases. Do not add a generic polymorphic workflow-owner abstraction now. Concrete constraints/migration and the user's calculation design still need review.
 
 Display the selected release's checklist readiness, not an average of all releases as “project completion.” With no selected/defined release, show **Not assessed** and the existing project actions/Resume. Future work on release B never mutates release A's stage/item scope or evidence. Automatic inheritance of completed items into B is inappropriate; any reused work/evidence needs explicit review for B.
 
@@ -59,10 +59,10 @@ Resume stays project-owned and continues selecting the latest real project check
 | Topic | Recommended initial rule / alternative needing approval |
 | --- | --- |
 | Stage configuration | Instantiate the original seven defaults per release. Stable IDs retain assignments during rename/reorder. Review additions/exclusions/removals explicitly; do not delete populated history or silently move its work. Keep the final-confirmation obligation in the closing stage in the initial model |
-| Equal weight with custom workflows | For an explicitly selected set of m included stages, generalize the average to m; original seven-stage formula is the m=7 case. Adding/excluding a stage changes weights and must be visible as a scope change. Alternative: retain exactly seven fixed weighted buckets and defer arbitrary counted stages; do not divide by seven after changing the stage count |
-| Included stage with no counted actions | Recommended: 0% plus **Needs scope review**. Alternative: withhold overall numeric progress until empties are resolved. Automatic omission/100% is not recommended because deleting or excluding the last unfinished action could silently inflate progress |
+| Equal weight with custom workflows | User selected equal weight across included stages; original seven-stage formula is the m=7 case. Adding/excluding a stage changes weights and must be visible as a scope change. Do not divide by seven after changing the included count. This does not require a complete workflow-template/customization system now |
+| Included stage with no counted actions | User selected **withhold overall numeric progress** until scope is resolved, with visible Needs scope review. The empty stage's percentage is null; populated stages retain their own results. Automatic omission/100% and the earlier 0%-stage recommendation are superseded |
 | Explicitly excluded stage | Omit from the averaging set only with a recorded non-applicability reason and preserved history. Necessary engineering obligations must remain represented in included stages; excluding a container must not erase required verification or confirmation |
-| All stages excluded / no defined workflow | Not assessed, no division by zero or automatic 100%. Invalid mandatory-obligation configuration cannot be confirmed |
+| No selected release / no included stages | No selected release is Not assessed without calling policy. A selected release with zero included stages is invalid mandatory-obligation configuration: reject before evaluation, never divide by zero or imply 100% |
 | Action commitment | A suggestion/backlog action contributes nothing until explicitly committed to this release. A simple model may treat release membership as commitment; if membership and commitment are independent, store an explicit state. Choose before implementing either |
 | Applicability | Excluded items leave both numerator and denominator; retain their record, prior completion and reason. Excluding completed work may lower a stage percentage. Reinstatement recalculates; no hidden deletion as a substitute for exclusion |
 | Unassigned committed actions | Treat as incomplete scope definition, show the unassigned count and withhold a complete overall assessment until assigned or explicitly excluded. Per-stage results can remain visible. Do not give these items a hidden eighth-stage weight or silently ignore them at 100% |
@@ -109,10 +109,10 @@ Unless stated otherwise: seven included stages, at least one counted item in eac
 | P05 | An uncommitted suggestion is added or completed | No progress/current-stage change |
 | P06 | Stage 1 at 1/2; exclude its pending item with a reason | Stage 1 becomes 1/1; overall 7.142857…% → 14.285714…%; history preserved |
 | P07 | Exclude with blank reason or exclude a protected required obligation | Reject atomically; previous state/progress unchanged |
-| P08 | Exclude all counted items in an included stage, or stage has only suggestions | Empty-stage policy applies; never automatic 100%. Scope attention is separate from current stage |
+| P08 | Exclude all counted items in an included stage, or stage has only suggestions | Needs scope review; stage and overall percentage null. Scope attention is separate from current stage |
 | P09 | Add an eighth counted stage with pending work when three original stages are complete | Under m-stage generalization: 37.5%; explicitly exclude it with approved reason → 42.857142…% |
-| P10 | No included stages, or only project backlog with no release/workflow | Not assessed; no fabricated percentage |
-| P11 | A committed applicable item has no stage | Show coverage/scope attention; cannot obtain a complete overall assessment by ignoring it |
+| P10 | No selected release, or a selected release has no included stages | No selected release: Not assessed without calling policy. No included stages in a selected release: invalid configuration rejected by domain; no fabricated percentage |
+| P11 | A committed applicable item has no stage | Show scope review and withhold overall percentage; cannot obtain an assessment by ignoring it |
 | P12 | Six stages complete, closing stage has publication done but final confirmation pending (1/2) | 92.857142…%, not confirmed. Generic completion of the protected confirmation item is rejected |
 | P13 | All other scope/evidence complete and a valid final confirmation is recorded | Exactly 100%, no unfinished current stage, immutable confirmed context |
 | P14 | An incomplete ratio would round to 100.00% | Display <100%/explicitly incomplete; no complete/confirmed result |
@@ -137,15 +137,14 @@ The existing UI/state/IPC/SQLite boundaries are retained. A release-aware query 
 
 ## Two different histories
 
-The user requested both: **Git checkpoints per reviewable engineering increment**, and **in-app history per action/scope change**. Git checkpoint 78a7758 preserves the already tested Resume/Visual Foundation work. This planning pass will have its own documentation commit; no retroactive per-action commits are fabricated.
+The user requested both: **Git checkpoints per reviewable engineering increment**, and **in-app history per action/scope change**. Git checkpoint 78a7758 preserves the tested Resume/Visual Foundation work, and bac15e9 saves the original scope comparison. The current contract review is a separate documentation increment; no retroactive per-action commits are fabricated.
 
 In-app history is planned, not implemented: validated action/scope mutations append events in the same SQLite transaction. Existing checkpoints already preserve append-only journal entries, but have no per-action association. Proposed action/checkpoint links make that association explicit; any unified activity feed references the real saved checkpoint rather than inventing a transition. Checkpoint text remains user-written, with no auto-authored accomplishments or inferred next steps. Source Git history and application history remain separate responsibilities.
 
-## Decisions still requiring approval
+## Remaining review gates
 
-- A/B/C ownership model (recommend B) and confirmed-release freezing versus an explicit later correction/withdrawal policy.
-- Counting unit: committed checklist actions versus distinct requirement records; the asynchronous clarification remains open.
-- Seven fixed weights versus equal weight over explicitly included custom stages; empty-stage, unassigned-work and exclusion/mandatory-obligation treatment.
-- Minimal confirmation/evidence boundary needed for 100%, legacy action opt-in migration, and the proposed acceptance cases.
+- Review the [minimal input/output contract and seven essential test groups](progress-policy-contract.md); user approves their calculation design and personally supplies the core implementation.
+- Review concrete release/stage/action/history constraints and migration, including explicit legacy commitment and stage exclusion/mandatory-obligation protection. Scope/counting/empty-stage choices are no longer open questions.
+- Review the minimal confirmation command/frozen context; correction/withdrawal remains a future explicit policy, not an editing shortcut.
 
-No stage/progress data model, algorithm, migration, UI or executable tests are implemented/approved by this document. Visual manual checks remain pending as the user stated; positive appearance feedback does not mark them complete.
+The selected direction does not supply or implement the user's algorithm. Once their calculation design is approved and core available, integrate one complete slice and stop for review. Visual manual checks remain pending unless the user records completion; positive appearance feedback does not mark them complete.

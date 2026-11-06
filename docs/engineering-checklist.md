@@ -1,6 +1,6 @@
 # ProjectsTimeline — Engineering checklist
 
-Updated: 2026-11-06. Milestones: foundation, Resume and approved Visual Foundation implemented; automated checks pass. User manual acceptance/review pending. Stages/progress and release implementation are not authorized.
+Updated: 2026-11-06. Milestones: foundation, Resume and Visual Foundation implemented; recorded automated checks pass, user manual acceptance/review pending. Stages/progress direction selected; integration follows the user's calculation-design approval and personal implementation of its core.
 
 States: **Undecided → Designed → Implemented → Verified**. Undecided includes AI proposals awaiting the user's decision. Designed means agreed, not merely written. Verified requires recorded results; generated code or a test file is insufficient.
 
@@ -39,7 +39,7 @@ States: **Undecided → Designed → Implemented → Verified**. Undecided inclu
 
 Latest evidence: [verification.md](verification.md) records baseline 23/23 before visual edits and final 25/25 (17 Node + 7 Electron + 1 packaged). Build/typechecks and packaging pass. Inspected 800/1160/1440, empty, keyboard and real error/stale captures. Eleven protected source/dependency files match pre-visual SHA-256 hashes; main changes only its startup background. Verified states refer to recorded automation/inspection, not user acceptance or a full accessibility/security audit.
 
-Next gates: user completes remaining Visual Foundation/Resume manual checks, and reviews the planning-only [stage/progress alternatives and acceptance cases](stages-progress-design.md). The original seven stage names/equal weights are restored; release scope was intended but its data model is not approved. No stage code, migrations, UI or executable tests are authorized. The user personally designs/writes the core policy; full release publishing remains future E.
+Next gate: user reviews/revises the [calculation contract, invariants and seven essential test groups](progress-policy-contract.md), approves their calculation design and personally writes the core. Release scope, action counting, included-stage equal weights, protected confirmation and legacy backlog are selected direction. Empty included stages withhold overall percentage until explicit scope review is resolved. Concrete schema/commands receive review before integration; then deliver one complete verified slice and stop. Keep remaining Visual/Resume manual gates open; full publishing remains future E.
 
 ## New roadmap decisions
 
@@ -61,8 +61,10 @@ These supplement preserved M1 evidence. The Continue Implementation brief approv
 | Visual verification | Preserve baseline; keyboard/overflow/long-content/state/layout inspection | Verified | All previous 23 checks retained; 2 added Electron scenarios; 25/25 pass with 800/1160/1440 and error-state screenshots |
 | Manual visual acceptance | User reviews density, contrast, focus/keyboard and real-project interactions | Designed | Pending user; automated checks and agent screenshot inspection do not complete this gate |
 | Stage requirements | Original seven-stage lifecycle and equal-stage-weight readiness intent | Designed | User supplied exact names/formula and overlap/current-stage/exclusion/commitment/final-confirmation rules; recorded in stages-progress-design.md |
-| Stage scope/data model | Project-owned versus release-owned stages versus release snapshots | Undecided | Recommend release-owned instances to preserve confirmed releases; schema and legacy opt-in migration need approval |
-| Stage policy details | Counting unit, custom stage weights, empties, exclusions, unassigned scope, rounding | Undecided | Recommendations/alternatives and P01–P21 are proposed specifications, not approved or executed tests; counting-unit clarification remains open |
-| Release readiness | Protected final confirmation, required evidence and frozen release context | Undecided | Propose minimal manual-confirmation boundary; full publishing/E and freshness/withdrawal policy remain separate decisions |
+| Stage scope | Release-scoped stages/progress, committed applicable checklist actions and equal included-stage weights | Designed | User selected direction; original seven defaults retained; no implementation yet |
+| Stage data model | Concrete release/stage/action/history constraints and legacy opt-in migration | Undecided | Review exact schema/commands before integration; preserve all existing IDs/times/checkpoints, no invented historical membership/events |
+| Stage scope review | Empty included stages withhold overall percentage | Designed | User explicitly chose null overall percentage until scope is resolved; empty-stage warning stays separate from current stage |
+| Stage calculation contract | Pure input/output shape, scope warnings, invariants and seven essential test groups | Undecided | progress-policy-contract.md is a proposal; user reviews/designs/writes core before integration; no function/executable tests supplied |
+| Release readiness | Protected final confirmation required for 100% | Designed | User selected direction; exact manual-confirmation/freeze command/evidence constraints still require review; full publishing and freshness/withdrawal stay future scope |
 | History | Git checkpoints per reviewable engineering increment | Implemented | User requested both histories; 78a7758 saves tested Resume/Visual Foundation. Planning documentation gets a separate commit; no remote push |
 | History | In-app action/checkpoint association and transition history | Undecided | User requested capability; event schema/command boundaries not approved. Preserve explicit append-only checkpoint journal; no auto-authored accomplishments or fabricated old events |

@@ -1,6 +1,23 @@
 # ProjectsTimeline — Engineering checklist
 
-Current activity: **V2 implemented/automatically verified; user acceptance pending.** Final source bb2fd95 integrates reviewed AG fb49a4e/489c9c7 and closes AG-UI-001–003 through rebuilt-UI evidence. **78 Node + 21 Electron/UI + 4 rebuilt-packaged = 103 passing cases, zero skips**, both TS targets/build/package pass. Production audit zero; full audit retains 12 moderate inherited build-tool chain findings (no flagged package code in ASAR). Schema v3/security/legacy history unchanged. [Final report/manual checklist](v2-verification-report.md), [queue](agent-handoffs/v2-review-queue.md). Stop before V3a.
+## Current phase — V3 Visual Engineering Workspace design, 2026-11-07
+
+**Design assessment and isolated prototypes only.** Preservation baseline 47f73c6 contains the installed tooling and paused drafts. No production source/config/dependency/test/migration/ADR change in this phase. [Contract/VD1–VD5](design/v3-product-experience-contract.md), [study/screenshots](design/v3-visual-prototype/README.md), [inventory](design/v3-ui-component-inventory.md), [roadmap](design/product-implementation-roadmap.md), [Antigravity prompt](agent-handoffs/antigravity-v3-workspace-design.md).
+
+| Category | Work / state | Evidence / next gate |
+| --- | --- | --- |
+| UX direction | Two graph-first concepts produced; final composition **Undecided** | Atlas versus Focus Workbench rendered with real Vivarium definitions; independent user/Antigravity review before selecting production layout. Paused board-first composition superseded, historical checkpoint retained. |
+| Source/domain integrity | Approved foundations retained; new adapter/map policy **Undecided** | Deterministic PTB, independent development/release ownership, explicit approval, counts/Not assessed. VD1–VD5 plus concrete command/SQL review gate implementation. |
+| Tooling | Exercised study path **Verified, prototype only** | Installed/lock versions match; actual React Flow/ELK/Tailwind/Base UI dialog build/render under current strict CSP. shadcn configured, no generated app components adopted. Build warnings/scale limits recorded. |
+| Verification | Actual checks **Verified within stated scope** | Fresh app build/typechecks + 78/78 Node, zero skips; read-only real-source validation; pure projection and actual isolated Electron/Playwright journey, source/focus, simulated complete/reopen/context and 800/1160/1540 screenshots. Not full app Electron/packaged rerun. |
+| Ownership | External design review **pending** | Two lighter Codex read-only reviews completed; Antigravity manual prompt/isolated ownership prepared, not launched. No implementation agent or production BEGIN. |
+
+Next gate: user reviews the two concepts, source/authority boundaries and VD1–VD5; manually deliver the design-only Antigravity prompt. Existing manual V1/V2 acceptance and inherited dev-tool maintenance remain separate. No production implementation/migration from documenting the backlog.
+
+## Historical implementation records
+
+
+V2 checkpoint: **V2 implemented/automatically verified; user acceptance pending.** Final source bb2fd95 integrates reviewed AG fb49a4e/489c9c7 and closes AG-UI-001–003 through rebuilt-UI evidence. **78 Node + 21 Electron/UI + 4 rebuilt-packaged = 103 passing cases, zero skips**, both TS targets/build/package pass. Production audit zero; full audit retains 12 moderate inherited build-tool chain findings (no flagged package code in ASAR). Schema v3/security/legacy history unchanged. [Final report/manual checklist](v2-verification-report.md), [queue](agent-handoffs/v2-review-queue.md). Stop before V3a.
 
 Prior V1 checkpoint, 2026-11-06: the design package/five decisions are approved with refinements, and **V1 Home** is implemented/automatically verified. Final **49 Node + 14 Electron + 3 rebuilt-packaged = 66/66 pass**, with build/typechecks and compact/wide screenshots. No migration/dependency change or implementation agents at that checkpoint. V1 acceptance remains open; the current V2 Phase A authorization is recorded above.
 

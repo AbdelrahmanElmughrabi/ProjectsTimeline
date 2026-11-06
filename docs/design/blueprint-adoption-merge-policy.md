@@ -1,11 +1,12 @@
 # Blueprint Adoption & Merge Policy — V3 review draft
 
-2026-11-06 · **Proposed behavior, not SQL/commands already implemented.** Preserves [PTB v0.2](ptb-v0.2-contract.md), source capture and the approved development/release separation. Approval requested through D1/D3 of the [experience contract](v3-product-experience-contract.md). No migration is authorized by this document.
+2026-11-07 · **Proposed behavior, not SQL/commands already implemented.** Preserves [PTB v0.2](ptb-v0.2-contract.md), source capture and approved development/release separation. The visual redirection changes workspace composition, not these integrity rules. [Experience/VD3–VD5](v3-product-experience-contract.md) · [multi-format boundary](multi-format-ingestion-design.md). No migration is authorized here.
 
 ## Identities and authority
 
 - Internal project/entity identity is permanent. External PTB ID is a bound source identity, never a filename/title or V2 occurrence key. Repackaging changes locations, not entity identity.
 - Recommend **one canonical PTB project ID per workspace project initially**. A legacy project can remain unbound indefinitely. First attachment deliberately binds a chosen unbound project after target confirmation; a different existing binding blocks automatic attachment. Multiple unrelated blueprint namespaces/federation are deferred, not silently merged.
+- Future adapters namespace their native bindings and require explicit reviewed crosswalks; extra source documents do not automatically replace the canonical PTB binding. Ordinary Markdown headings/links do not become engineering entities or dependencies. See the multi-format boundary before authorizing another adapter.
 - Source captures are immutable exact documents/hashes/narratives/locations. Local working definitions and revisions are separate; editing in-app does not rewrite Markdown or pretend the source originally said something else.
 - Definition approval, action commitment/placement, operational work state, accepted decisions and actual evidence are separate dimensions. Structural creation never implies those transitions.
 
@@ -21,7 +22,7 @@
 
 ## New-project formation without rebuilding the plan
 
-1. Reuse V2's captured graph/session and strict diagnostics. A human summary is a projection, not a second parser or AI summary. Blocking syntax/ownership/link errors prevent apply; unresolved workflow editions require explicit resolution or removal of that proposed plan (no automatic release-template substitute).
+1. Reuse V2's captured graph/session and strict diagnostics. A human summary/map is a projection, not a second parser or AI summary. Blocking syntax/ownership/link errors prevent apply. Unresolved/incompatible workflow references can remain Draft/Needs review, but cannot activate or receive scoped commitments until explicitly resolved to a valid independent development plan. No silent release-template substitute, discarded source or fabricated stage.
 2. Choose New project and a name; bind its external project identity. If that ID already exists, offer Open existing / Review update, never another automatic project. Title collision alone is informational.
 3. Preserve **all validated definitions, source and relationships** as the proposed engineering plan. This is not acceptance of all work. Default requirement/action/activation selections are empty.
 4. Multi-select a named group or exact subset, preview its concrete IDs/titles/count and effects, then final Apply reviewed choices. “Select all matching” means the entire declared filtered set, not only rendered rows; user must see the selection scope and exclusions. Grouping/order never infer priority.

@@ -42,7 +42,7 @@ test('workspace query derives project-scoped Resume with timestamp tie-breaking 
   store.saveCheckpoint({ projectId: other.id, accomplished: 'Different project', nextSteps: 'Never show in Resume' });
   const raw = new DatabaseSync(filename);
   raw.prepare('UPDATE checkpoints SET created_at = ? WHERE project_id = ?').run('2026-11-05T10:00:00.000Z', projectId);
-  assert.equal(raw.prepare('PRAGMA user_version').get().user_version, 1);
+  assert.equal(raw.prepare('PRAGMA user_version').get().user_version, 2);
   raw.close();
   const detail = store.openProject({ projectId });
   assert.equal(detail.resume.id, latest.id);
@@ -116,23 +116,24 @@ test('migration batch backs up existing data and rolls schema/version back on fa
   const migrations = join(directory, 'migrations');
   mkdirSync(migrations);
   copyFileSync(resolve('src/main/data/migrations/001_initial.sql'), join(migrations, '001_initial.sql'));
-  writeFileSync(join(migrations, '002_extra.sql'), 'CREATE TABLE extra (id INTEGER PRIMARY KEY);');
-  writeFileSync(join(migrations, '003_broken.sql'), 'INSERT INTO missing_table VALUES (1);');
+  copyFileSync(resolve('src/main/data/migrations/002_release_progress.sql'), join(migrations, '002_release_progress.sql'));
+  writeFileSync(join(migrations, '003_extra.sql'), 'CREATE TABLE extra (id INTEGER PRIMARY KEY);');
+  writeFileSync(join(migrations, '004_broken.sql'), 'INSERT INTO missing_table VALUES (1);');
   await assert.rejects(openStore(filename, migrations), /missing_table/);
   const raw = new DatabaseSync(filename);
   try {
-    assert.equal(raw.prepare('PRAGMA user_version').get().user_version, 1);
+    assert.equal(raw.prepare('PRAGMA user_version').get().user_version, 2);
     assert.equal(raw.prepare("SELECT name FROM sqlite_master WHERE name='extra'").get(), undefined);
     assert.equal(raw.prepare('SELECT name FROM projects').get().name, 'Preserve me');
     await assert.rejects(migrate(raw, join(filename, 'nonexistent', 'db'), migrations));
-    assert.equal(raw.prepare('PRAGMA user_version').get().user_version, 1);
+    assert.equal(raw.prepare('PRAGMA user_version').get().user_version, 2);
   } finally { raw.close(); }
-  const backups = readdirSync(directory).filter((file) => file.includes('.before-v3.') && file.endsWith('.bak'));
+  const backups = readdirSync(directory).filter((file) => file.includes('.before-v4.') && file.endsWith('.bak'));
   assert.equal(backups.length, 1);
   const backupDb = new DatabaseSync(join(directory, backups[0]));
   assert.equal(backupDb.prepare('SELECT name FROM projects').get().name, 'Preserve me');
   backupDb.close();
-  writeFileSync(join(migrations, '003_broken.sql'), 'CREATE TABLE extra_two (id INTEGER PRIMARY KEY);');
+  writeFileSync(join(migrations, '004_broken.sql'), 'CREATE TABLE extra_two (id INTEGER PRIMARY KEY);');
   const upgraded = await openStore(filename, migrations);
   upgraded.close();
   await assert.rejects(openStore(filename), /newer/);

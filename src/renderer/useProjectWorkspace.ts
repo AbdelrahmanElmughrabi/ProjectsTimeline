@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Project, ProjectDetail, Result } from '../shared/contracts';
 
-type Operation = 'create' | 'open' | 'action' | 'complete' | 'checkpoint' | 'refresh' | null;
+type Operation = 'create' | 'open' | 'action' | 'complete' | 'checkpoint' | 'release' | 'refresh' | null;
 type Notice = { kind: 'success' | 'error' | 'warning'; text: string } | null;
 
 function unwrap<T>(result: Result<T>): T {
@@ -154,6 +154,13 @@ export function useProjectWorkspace() {
     createProject: (name: string) => execute('create', () => api.createProject({ name }), 'Project created.'),
     addAction: (title: string) => execute('action', () => api.addAction({ projectId: selected.current!, title }), 'Action added.'),
     completeAction: (actionId: number) => execute('complete', () => api.completeAction({ projectId: selected.current!, actionId }), 'Action completed.'),
+    reopenAction: (actionId: number) => execute('release', () => api.reopenAction({ projectId: selected.current!, actionId }), 'Action reopened.'),
+    createRelease: (name: string) => execute('release', () => api.createRelease({ projectId: selected.current!, name }), 'Release created.'),
+    assignAction: (actionId: number, releaseId: number, stageId: number | null) => execute('release', () => api.assignAction({ projectId: selected.current!, actionId, releaseId, stageId }), 'Action scope saved.'),
+    setActionExclusion: (actionId: number, reason: string | null) => execute('release', () => api.setActionExclusion({ projectId: selected.current!, actionId, reason }), reason ? 'Action exclusion saved.' : 'Action restored to scope.'),
+    setStageExclusion: (releaseId: number, stageId: number, reason: string | null) => execute('release', () => api.setStageExclusion({ projectId: selected.current!, releaseId, stageId, reason }), reason ? 'Stage exclusion saved.' : 'Stage restored to scope.'),
+    recordReleaseVerification: (releaseId: number, artifactIdentity: string, evidenceReference: string, summary: string, outcome: 'passed' | 'failed') => execute('release', () => api.recordReleaseVerification({ projectId: selected.current!, releaseId, artifactIdentity, evidenceReference, summary, outcome }), 'Manual verification recorded.'),
+    confirmRelease: (releaseId: number, verificationId: number) => execute('release', () => api.confirmRelease({ projectId: selected.current!, releaseId, verificationId }), 'Release confirmed.'),
     saveCheckpoint: (accomplished: string, nextSteps: string) => execute('checkpoint', () => api.saveCheckpoint({ projectId: selected.current!, accomplished, nextSteps }), 'Checkpoint saved.'),
   };
 }

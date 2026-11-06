@@ -5,6 +5,7 @@ import { ResumePanel } from './ResumePanel';
 import { Panel } from './Panel';
 import { ProjectSidebar } from './ProjectSidebar';
 import { WorkspaceHeader } from './WorkspaceHeader';
+import { ReleaseWorkspace } from './ReleaseWorkspace';
 
 export default function App() {
   const workspace = useProjectWorkspace();
@@ -13,10 +14,11 @@ export default function App() {
   const [actionTitle, setActionTitle] = useState('');
   const [accomplished, setAccomplished] = useState('');
   const [nextSteps, setNextSteps] = useState('');
+  const [selectedReleaseId, setSelectedReleaseId] = useState<number | null>(null);
   const disabled = busy !== null || stale;
 
   useEffect(() => {
-    if (detail) { setActionTitle(''); setAccomplished(''); setNextSteps(''); }
+    if (detail) { setActionTitle(''); setAccomplished(''); setNextSteps(''); setSelectedReleaseId(null); }
   }, [detail?.project.id]);
 
   async function createProject(event: FormEvent) {
@@ -37,6 +39,7 @@ export default function App() {
   }
 
   const checkpoints = detail?.checkpoints ?? [];
+  const backlogActions = detail?.actions.filter(action => action.releaseId === null) ?? [];
 
   return (
     <div className="shell">
@@ -62,13 +65,17 @@ export default function App() {
           <div className="workspace-grid">
             <ResumePanel resume={detail.resume} stale={stale} disabled={disabled} />
             <div className="workspace-body">
-          <Panel className="action-panel" id="actions-heading" title="Actions" eyebrow="Development actions" accessory={<span className="count-pill" aria-label={`Action count: ${detail.actions.length}`}>{detail.actions.length}</span>}>
+          <Panel className="action-panel" id="actions-heading" title="Actions" eyebrow="Project backlog" accessory={<span className="count-pill" aria-label={`Action count: ${backlogActions.length}`}>{backlogActions.length}</span>}>
             <form className="inline-form" onSubmit={addAction}>
               <div className="field grow"><label htmlFor="action-title">Action title</label><input id="action-title" maxLength={300} required value={actionTitle} onChange={event => setActionTitle(event.target.value)} disabled={disabled} placeholder="What needs to happen?" /></div>
               <button className="button button-primary" type="submit" disabled={disabled}>{busy === 'action' ? 'Adding…' : 'Add action'}</button>
             </form>
-            {detail.actions.length ? <ul className="action-list">{detail.actions.map(action => <li key={action.id} className="action-row"><span className={`state-dot${action.completedAt ? ' done' : ''}`} aria-hidden="true"/><span className={`action-name${action.completedAt ? ' completed' : ''}`}>{action.title}</span>{action.completedAt ? <span className="done-label">Completed</span> : <button className="complete-button" onClick={() => void workspace.completeAction(action.id)} disabled={disabled} aria-label={`Complete ${action.title}`}>{busy === 'complete' ? 'Saving…' : 'Mark complete'}</button>}</li>)}</ul> : <p className="empty-copy">No actions yet. Add the first step above.</p>}
+            {backlogActions.length ? <ul className="action-list">{backlogActions.map(action => <li key={action.id} className="action-row"><span className={`state-dot${action.completedAt ? ' done' : ''}`} aria-hidden="true"/><span className={`action-name${action.completedAt ? ' completed' : ''}`}>{action.title}</span>{action.completedAt ? <span className="done-label">Completed</span> : <button className="complete-button" onClick={() => void workspace.completeAction(action.id)} disabled={disabled} aria-label={`Complete ${action.title}`}>{busy === 'complete' ? 'Saving…' : 'Mark complete'}</button>}</li>)}</ul> : <p className="empty-copy">No actions yet. Add the first step above.</p>}
           </Panel>
+
+          <ReleaseWorkspace detail={detail} selectedReleaseId={selectedReleaseId} onSelectRelease={setSelectedReleaseId} disabled={disabled} stale={stale} busy={busy}
+            createRelease={workspace.createRelease} assignAction={workspace.assignAction} setActionExclusion={workspace.setActionExclusion} setStageExclusion={workspace.setStageExclusion}
+            completeAction={workspace.completeAction} reopenAction={workspace.reopenAction} recordReleaseVerification={workspace.recordReleaseVerification} confirmRelease={workspace.confirmRelease} />
 
           <Panel className="checkpoint-panel" id="checkpoint-heading" title="Checkpoint" eyebrow="Leave a clear next step">
             <form className="checkpoint-form" onSubmit={saveCheckpoint}>
@@ -81,6 +88,7 @@ export default function App() {
           <Panel className="history" id="history-heading" title="Checkpoint history" eyebrow="Development memory">
             {checkpoints.length ? <div className="checkpoint-list">{checkpoints.map(checkpoint => <article className="checkpoint-card" key={checkpoint.id}><time dateTime={checkpoint.createdAt}>{new Date(checkpoint.createdAt).toLocaleString()}</time><div><h3>Accomplished</h3><p>{checkpoint.accomplished}</p></div><div><h3>Next steps</h3><p>{checkpoint.nextSteps}</p></div></article>)}</div> : <p className="empty-copy">Your saved checkpoints will appear here.</p>}
           </Panel>
+          <details className="event-history"><summary>Action audit history ({detail.actionEvents.length})</summary>{detail.actionEvents.length ? <ol>{detail.actionEvents.map(event => <li key={event.id}><time dateTime={event.createdAt}>{new Date(event.createdAt).toLocaleString()}</time><span>{event.actionId !== null && <strong>{detail.actions.find(action => action.id === event.actionId)?.title}: </strong>}{event.description}</span></li>)}</ol> : <p className="empty-copy">No action events recorded.</p>}</details>
             </div>
           </div>
         </> : <section className="welcome">

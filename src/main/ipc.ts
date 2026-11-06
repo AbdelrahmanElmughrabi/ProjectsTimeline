@@ -12,6 +12,13 @@ export function registerWorkspaceIpc(window: BrowserWindow, store: WorkspaceStor
     openProject: (input: unknown) => store.openProject(input),
     addAction: (input: unknown) => store.addAction(input),
     completeAction: (input: unknown) => store.completeAction(input),
+    reopenAction: (input: unknown) => store.reopenAction(input),
+    createRelease: (input: unknown) => store.createRelease(input),
+    assignAction: (input: unknown) => store.assignAction(input),
+    setActionExclusion: (input: unknown) => store.setActionExclusion(input),
+    setStageExclusion: (input: unknown) => store.setStageExclusion(input),
+    recordReleaseVerification: (input: unknown) => store.recordReleaseVerification(input),
+    confirmRelease: (input: unknown) => store.confirmRelease(input),
     saveCheckpoint: (input: unknown) => store.saveCheckpoint(input),
   } satisfies Record<keyof WorkspaceApi, (input: unknown) => unknown>;
   for (const [name, operation] of Object.entries(operations)) {

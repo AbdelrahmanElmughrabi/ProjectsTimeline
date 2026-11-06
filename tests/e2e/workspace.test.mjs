@@ -25,7 +25,7 @@ test('Electron flow persists across full restart and enforces renderer boundarie
   assert.equal(runtime.nodeIntegration, false);
   assert.deepEqual(await page.evaluate(() => [typeof window.require, typeof window.process]), ['undefined', 'undefined']);
   assert.deepEqual(await page.evaluate(() => Object.keys(window.workspace).sort()),
-    ['addAction', 'completeAction', 'createProject', 'listProjects', 'openProject', 'saveCheckpoint']);
+    ['addAction', 'assignAction', 'completeAction', 'confirmRelease', 'createProject', 'createRelease', 'listProjects', 'openProject', 'recordReleaseVerification', 'reopenAction', 'saveCheckpoint', 'setActionExclusion', 'setStageExclusion']);
 
   await createProject(page, 'Project A');
   await createProject(page, 'Project B');

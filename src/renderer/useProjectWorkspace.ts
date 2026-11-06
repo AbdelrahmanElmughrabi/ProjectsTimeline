@@ -155,7 +155,7 @@ export function useProjectWorkspace() {
     addAction: (title: string) => execute('action', () => api.addAction({ projectId: selected.current!, title }), 'Action added.'),
     completeAction: (actionId: number) => execute('complete', () => api.completeAction({ projectId: selected.current!, actionId }), 'Action completed.'),
     reopenAction: (actionId: number) => execute('release', () => api.reopenAction({ projectId: selected.current!, actionId }), 'Action reopened.'),
-    createRelease: (name: string) => execute('release', () => api.createRelease({ projectId: selected.current!, name }), 'Release created.'),
+    createRelease: (name: string, templateId?: number, templateVersion?: number) => execute('release', () => api.createRelease({ projectId: selected.current!, name, ...(templateId !== undefined && templateVersion !== undefined ? { templateId, templateVersion } : {}) }), 'Release created.'),
     assignAction: (actionId: number, releaseId: number, stageId: number | null) => execute('release', () => api.assignAction({ projectId: selected.current!, actionId, releaseId, stageId }), 'Action scope saved.'),
     setActionExclusion: (actionId: number, reason: string | null) => execute('release', () => api.setActionExclusion({ projectId: selected.current!, actionId, reason }), reason ? 'Action exclusion saved.' : 'Action restored to scope.'),
     setStageExclusion: (releaseId: number, stageId: number, reason: string | null) => execute('release', () => api.setStageExclusion({ projectId: selected.current!, releaseId, stageId, reason }), reason ? 'Stage exclusion saved.' : 'Stage restored to scope.'),

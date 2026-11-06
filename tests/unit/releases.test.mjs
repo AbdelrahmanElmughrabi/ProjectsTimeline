@@ -63,13 +63,13 @@ test('v1 migration preserves legacy identities and rows, backs up before v2, and
   assert.deepEqual(migrated.actionEvents, []);
   const raw = new DatabaseSync(filename);
   try {
-    assert.equal(raw.prepare('PRAGMA user_version').get().user_version, 2);
+    assert.equal(raw.prepare('PRAGMA user_version').get().user_version, 3);
     assert.equal(raw.prepare('PRAGMA foreign_key_check').all().length, 0);
     assert.deepEqual({ ...raw.prepare('SELECT id, project_id, title, created_at, completed_at FROM actions').get() }, {
       id: 73, project_id: 41, title: 'Legacy completed action', created_at: '2026-02-03T04:05:06.000Z', completed_at: '2026-02-04T05:06:07.000Z',
     });
   } finally { raw.close(); }
-  const backups = readdirSync(directory).filter((file) => file.includes('.before-v2.') && file.endsWith('.bak'));
+  const backups = readdirSync(directory).filter((file) => file.includes('.before-v3.') && file.endsWith('.bak'));
   assert.equal(backups.length, 1);
   const backup = new DatabaseSync(join(directory, backups[0]));
   try {

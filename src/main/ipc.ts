@@ -14,6 +14,8 @@ export function registerWorkspaceIpc(window: BrowserWindow, store: WorkspaceStor
     completeAction: (input: unknown) => store.completeAction(input),
     reopenAction: (input: unknown) => store.reopenAction(input),
     createRelease: (input: unknown) => store.createRelease(input),
+    getWorkflowLibrary: () => store.getWorkflowLibrary(),
+    duplicateWorkflowTemplate: (input: unknown) => store.duplicateWorkflowTemplate(input),
     assignAction: (input: unknown) => store.assignAction(input),
     setActionExclusion: (input: unknown) => store.setActionExclusion(input),
     setStageExclusion: (input: unknown) => store.setStageExclusion(input),

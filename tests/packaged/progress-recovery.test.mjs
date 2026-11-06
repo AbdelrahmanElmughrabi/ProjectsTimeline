@@ -24,7 +24,7 @@ test('packaged app upgrades populated v1 and recovers confirmed release provenan
   assert.equal(before.actions[0].releaseId, null);
   assert.deepEqual(before.releases, []);
   assert.deepEqual(before.actionEvents, []);
-  assert.equal(readdirSync(join(directory, 'data')).filter(file => file.includes('.before-v2.') && file.endsWith('.bak')).length, 1);
+  assert.equal(readdirSync(join(directory, 'data')).filter(file => file.includes('.before-v3.') && file.endsWith('.bak')).length, 1);
   const confirmed = await page.evaluate(async () => {
     const api = window.workspace;
     const unwrap = result => { if (!result.ok) throw new Error(result.error.message); return result.value; };
@@ -52,7 +52,7 @@ test('packaged app upgrades populated v1 and recovers confirmed release provenan
   assert.equal(recovered.resume.nextSteps, 'Continue from this checkpoint');
   const raw = new DatabaseSync(filename);
   try {
-    assert.equal(raw.prepare('PRAGMA user_version').get().user_version, 2);
+    assert.equal(raw.prepare('PRAGMA user_version').get().user_version, 3);
     assert.deepEqual(raw.prepare('PRAGMA foreign_key_check').all(), []);
   } finally { raw.close(); }
 });

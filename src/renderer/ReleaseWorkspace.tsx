@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
-import type { DevelopmentAction, ProjectDetail, ReleaseWorkspace as ReleaseData } from '../shared/contracts';
+import type { DevelopmentAction, ProjectDetail, ReleaseWorkspace as ReleaseData, WorkflowDetail } from '../shared/contracts';
 import { Panel } from './Panel';
 
 type Props = {
   detail: ProjectDetail;
+  workflows: WorkflowDetail[];
+  workflowsStale: boolean;
   selectedReleaseId: number | null;
   onSelectRelease: (id: number | null) => void;
   disabled: boolean;
   stale: boolean;
   busy: string | null;
-  createRelease: (name: string) => Promise<boolean>;
+  createRelease: (name: string, templateId?: number, templateVersion?: number) => Promise<boolean>;
   assignAction: (actionId: number, releaseId: number, stageId: number | null) => Promise<boolean>;
   setActionExclusion: (actionId: number, reason: string | null) => Promise<boolean>;
   setStageExclusion: (releaseId: number, stageId: number, reason: string | null) => Promise<boolean>;
@@ -27,8 +29,9 @@ const formatPercent = (value: number | null, confirmed = false) => {
   return `${!confirmed && Number(fixed) === 100 && value < 100 ? '<100' : fixed}%`;
 };
 
-export function ReleaseWorkspace({ detail, selectedReleaseId, onSelectRelease, disabled, stale, busy, ...commands }: Props) {
+export function ReleaseWorkspace({ detail, workflows, workflowsStale, selectedReleaseId, onSelectRelease, disabled, stale, busy, ...commands }: Props) {
   const [releaseName, setReleaseName] = useState('');
+  const [templateChoice, setTemplateChoice] = useState('');
   const [artifact, setArtifact] = useState('');
   const [evidence, setEvidence] = useState('');
   const [summary, setSummary] = useState('');
@@ -40,13 +43,16 @@ export function ReleaseWorkspace({ detail, selectedReleaseId, onSelectRelease, d
   const selected = detail.releases.find(row => row.release.id === selectedReleaseId) ?? null;
 
   useEffect(() => {
-    setReleaseName(''); setArtifact(''); setEvidence(''); setSummary(''); setVerificationId('');
+    setReleaseName(''); setTemplateChoice(''); setArtifact(''); setEvidence(''); setSummary(''); setVerificationId('');
     setStageChoices({}); setActionReasons({}); setStageReasons({});
   }, [detail.project.id, selectedReleaseId]);
 
+
   async function create(event: FormEvent) {
     event.preventDefault();
-    if (await commands.createRelease(releaseName)) setReleaseName('');
+    const template = workflowsStale ? null : workflows.find(item => String(item.template.id) === templateChoice)?.template;
+    if (templateChoice && !template) return;
+    if (await commands.createRelease(releaseName, template?.id, template?.version)) { setReleaseName(''); setTemplateChoice(''); }
   }
 
   async function record(event: FormEvent) {
@@ -66,8 +72,10 @@ export function ReleaseWorkspace({ detail, selectedReleaseId, onSelectRelease, d
   return <Panel className="release-panel" id="releases-heading" title="Releases" eyebrow="Scoped delivery and manual verification">
     <form className="inline-form release-create" onSubmit={create}>
       <div className="field grow"><label htmlFor="release-name">New release name</label><input id="release-name" maxLength={120} required value={releaseName} onChange={e => setReleaseName(e.target.value)} disabled={disabled} placeholder="Release name" /></div>
+      <div className="field release-template-field"><label htmlFor="release-template">Workflow template</label><select id="release-template" value={templateChoice} onChange={e => setTemplateChoice(e.target.value)} disabled={disabled || workflowsStale}><option value="">Stages Only</option>{workflowsStale && templateChoice && <option value={templateChoice}>Selected template needs a fresh load</option>}{!workflowsStale && workflows.map(item => <option key={item.template.id} value={item.template.id}>{item.template.name} · v{item.template.version}</option>)}</select></div>
       <button className="button button-primary" type="submit" disabled={disabled}>{busy === 'release' ? 'Saving…' : 'Create release'}</button>
     </form>
+    {workflowsStale && <p className="field-note">The workflow list is out of date. Refresh it before applying a template; stage only remains available.</p>}
     {detail.releases.length ? <div className="field release-picker"><label htmlFor="release-select">Selected release</label><select id="release-select" value={selectedReleaseId ?? ''} disabled={disabled} onChange={e => onSelectRelease(e.target.value ? Number(e.target.value) : null)}><option value="">Choose a release</option>{detail.releases.map(item => <option key={item.release.id} value={item.release.id}>{item.release.name}{item.release.confirmedAt ? ' · Confirmed' : ''}</option>)}</select></div> : <p className="empty-copy">Create a release to define its committed scope and verification.</p>}
     {!selected && !stale && <p className="empty-copy">No release selected. Progress is not assessed; project backlog remains outside committed scope.</p>}
     {stale ? <p className="scope-review" role="status">Release data may be out of date. Refresh the workspace before reviewing progress or making changes.</p> : selected && <ReleaseDetails release={selected} detail={detail} disabled={disabled} busy={busy}
@@ -106,6 +114,7 @@ function ReleaseDetails(props: DetailsProps) {
 
   return <div className="release-detail">
     <section className="release-summary" aria-label="Release progress summary">
+      <div><span className="summary-label">Source workflow</span><strong>{head.sourceTemplateName ? `${head.sourceTemplateName} · v${head.sourceTemplateVersion}` : 'Stage only'}</strong></div>
       <div><span className="summary-label">Status</span><strong>{head.confirmedAt ? 'Confirmed' : blockers ? 'Needs scope review' : 'In progress'}</strong></div>
       <div><span className="summary-label">Weighted progress</span><strong>{formatPercent(progress.percent, Boolean(head.confirmedAt))}</strong></div>
       <div><span className="summary-label">Current stage</span><strong>{currentStage?.name ?? 'None'}</strong></div>
@@ -126,7 +135,8 @@ function ReleaseDetails(props: DetailsProps) {
     </li>)}</ul></section>}
     <div className="stage-grid">{stages.map(stage => {
       const row = progress.stages.find(item => item.stageId === stage.id);
-      const actions = releaseActions.filter(action => action.stageId === stage.id);
+      const actions = releaseActions.filter(action => action.stageId === stage.id)
+        .sort((a, b) => (a.details?.position ?? Number.MAX_SAFE_INTEGER) - (b.details?.position ?? Number.MAX_SAFE_INTEGER) || a.id - b.id);
       const finalStage = stage.key === 'release_confirmation';
       const canExclude = !finalStage && actions.every(action => Boolean(action.exclusionReason)) && !stage.exclusionReason && !head.confirmedAt;
       return <article className={`stage-card${stage.exclusionReason ? ' stage-excluded' : ''}`} key={stage.id}>
@@ -145,6 +155,11 @@ function ReleaseDetails(props: DetailsProps) {
             <label htmlFor={fieldId('action-exclusion', action.id)}>Required reason for excluding {action.title}</label><input id={fieldId('action-exclusion', action.id)} maxLength={2000} required value={props.actionReasons[action.id] ?? ''} onChange={e => props.setActionReasons(cur => ({ ...cur, [action.id]: e.target.value }))} disabled={disabled}/><button className="button" type="submit" disabled={disabled}>Save exclusion</button>
           </form></details>}
           {action.exclusionReason && !head.confirmedAt && <button className="text-button" onClick={() => void props.onSetActionExclusion(action.id, null)} disabled={disabled}>Restore to scope</button>}
+          {action.details && <details className="engineering-details"><summary>Engineering details</summary><dl>{[
+            ['Instructions', action.details.instructions], ['Applicability', action.details.applicability],
+            ['Definition of done', action.details.definitionOfDone], ['Evidence guidance', action.details.evidenceGuidance],
+            ['Classification', action.details.actionType],
+          ].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value || 'Not provided'}</dd></div>)}</dl></details>}
           </>}
         </li>)}</ul> : <p className="empty-copy stage-empty">No committed actions in this stage.</p>}
         {!stage.exclusionReason && !head.confirmedAt && !finalStage && <details className="exclude-control stage-exclude">

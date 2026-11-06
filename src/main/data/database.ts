@@ -1,19 +1,22 @@
 import { DatabaseSync, backup } from 'node:sqlite';
 import { mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import type { ActionEvent, Checkpoint, DevelopmentAction, Project, ProjectDetail, ProjectRelease, ReleaseStage, ReleaseVerification, ReleaseWorkspace } from '../../shared/contracts';
+import type { ActionDetails, ActionEvent, Checkpoint, DevelopmentAction, Project, ProjectDetail, ProjectRelease, ReleaseStage, ReleaseVerification, ReleaseWorkspace, WorkflowDetail, WorkflowTemplate } from '../../shared/contracts';
 import { AppError, payload, positiveId, requiredText } from '../domain';
 import { selectResumeCheckpoint } from '../resume';
 import { calculateReleaseProgress } from '../progress';
+import { getWorkflowLibrary, loadWorkflowTemplate, duplicateWorkflowTemplate } from './workflows';
 
 const projectColumns = 'id, name, created_at AS createdAt';
 const actionQuery = `SELECT a.id, a.project_id AS projectId, a.title, a.created_at AS createdAt,
   CASE WHEN ra.kind = 'release-confirmation' THEN r.confirmed_at ELSE a.completed_at END AS completedAt,
   ra.release_id AS releaseId, ra.stage_id AS stageId, ra.exclusion_reason AS exclusionReason,
-  COALESCE(ra.kind, 'work') AS kind FROM actions a
-  LEFT JOIN release_actions ra ON ra.action_id = a.id LEFT JOIN releases r ON r.id = ra.release_id`;
+  COALESCE(ra.kind, 'work') AS kind, ad.action_id AS detailsId, ad.instructions, ad.applicability,
+  ad.definition_of_done AS definitionOfDone, ad.evidence_guidance AS evidenceGuidance, ad.action_type AS actionType, ad.position
+  FROM actions a LEFT JOIN release_actions ra ON ra.action_id = a.id LEFT JOIN releases r ON r.id = ra.release_id
+  LEFT JOIN action_details ad ON ad.action_id = a.id`;
 const checkpointColumns = 'id, project_id AS projectId, accomplished, next_steps AS nextSteps, created_at AS createdAt';
-const releaseColumns = 'id, project_id AS projectId, name, created_at AS createdAt, scope_revision AS scopeRevision, policy_version AS policyVersion, confirmed_at AS confirmedAt, confirmed_verification_id AS confirmedVerificationId';
+const releaseColumns = 'id, project_id AS projectId, name, created_at AS createdAt, scope_revision AS scopeRevision, policy_version AS policyVersion, confirmed_at AS confirmedAt, confirmed_verification_id AS confirmedVerificationId, source_template_id AS sourceTemplateId, source_template_version AS sourceTemplateVersion, source_template_name AS sourceTemplateName';
 const stageColumns = 'id, release_id AS releaseId, stage_key AS key, name, position, exclusion_reason AS exclusionReason';
 const verificationColumns = 'id, release_id AS releaseId, scope_revision AS scopeRevision, artifact_identity AS artifactIdentity, evidence_reference AS evidenceReference, summary, outcome, created_at AS createdAt';
 
@@ -26,6 +29,11 @@ const defaultStages = [
   ['preparation', 'Release Preparation'],
   ['release_confirmation', 'Deployment/Distribution and Release Confirmation'],
 ] as const;
+
+function actionFromRow(row: unknown): DevelopmentAction {
+  const { detailsId, instructions, applicability, definitionOfDone, evidenceGuidance, actionType, position, ...action } = row as Omit<DevelopmentAction, 'details'> & ActionDetails & { detailsId: number | null };
+  return { ...action, details: detailsId === null ? null : { instructions, applicability, definitionOfDone, evidenceGuidance, actionType, position } };
+}
 
 // Review: schema changes and their version marker commit together, after a SQLite-consistent backup.
 export async function migrate(db: DatabaseSync, filename: string, directory: string): Promise<void> {
@@ -138,22 +146,44 @@ export class WorkspaceStore {
   }
 
   createRelease(input: unknown): ProjectRelease {
-    const values = payload(input, ['projectId', 'name']);
+    const values = payload(input, ['projectId', 'name', 'templateId', 'templateVersion']);
     const projectId = positiveId(values.projectId);
     const name = requiredText(values.name, 'Release name', 120);
     return this.transaction(() => {
       this.findProject(projectId);
+      const hasTemplate = values.templateId !== undefined || values.templateVersion !== undefined;
+      const workflow = hasTemplate ? loadWorkflowTemplate(this.db, positiveId(values.templateId), positiveId(values.templateVersion)) : null;
       const now = new Date().toISOString();
-      const releaseId = Number(this.db.prepare('INSERT INTO releases(project_id, name, created_at) VALUES (?, ?, ?)').run(projectId, name, now).lastInsertRowid);
+      const releaseId = Number(this.db.prepare('INSERT INTO releases(project_id, name, created_at, source_template_id, source_template_version, source_template_name) VALUES (?, ?, ?, ?, ?, ?)')
+        .run(projectId, name, now, workflow?.template.id ?? null, workflow?.template.version ?? null, workflow?.template.name ?? null).lastInsertRowid);
       const insert = this.db.prepare('INSERT INTO release_stages(release_id, stage_key, name, position) VALUES (?, ?, ?, ?)');
-      defaultStages.forEach(([key, label], position) => insert.run(releaseId, key, label, position));
-      const closing = this.stages(releaseId)[6];
+      const stageMap = new Map<number, number>();
+      if (workflow) {
+        for (const stage of workflow.stages) {
+          const result = insert.run(releaseId, stage.protectedClosing ? 'release_confirmation' : `workflow_stage_${stage.id}`, stage.name, stage.position);
+          stageMap.set(stage.id, Number(result.lastInsertRowid));
+        }
+        for (const source of workflow.actions) {
+          const actionId = Number(this.db.prepare('INSERT INTO actions(project_id, title, created_at) VALUES (?, ?, ?)').run(projectId, source.title, now).lastInsertRowid);
+          this.db.prepare('INSERT INTO release_actions(action_id, release_id, stage_id) VALUES (?, ?, ?)').run(actionId, releaseId, stageMap.get(source.stageId)!);
+          this.db.prepare('INSERT INTO action_details(action_id, instructions, applicability, definition_of_done, evidence_guidance, action_type, position) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            .run(actionId, source.instructions, source.applicability, source.definitionOfDone, source.evidenceGuidance, source.actionType, source.position);
+          this.event(projectId, releaseId, actionId, `Created committed action from ${workflow.template.name} v${workflow.template.version}`, null, this.findAction(projectId, actionId));
+        }
+      } else defaultStages.forEach(([key, label], position) => insert.run(releaseId, key, label, position));
+      const closing = this.stages(releaseId).find(stage => stage.key === 'release_confirmation')!;
       const actionId = Number(this.db.prepare('INSERT INTO actions(project_id, title, created_at) VALUES (?, ?, ?)').run(projectId, 'Confirm the released version works', now).lastInsertRowid);
       this.db.prepare("INSERT INTO release_actions(action_id, release_id, stage_id, kind) VALUES (?, ?, ?, 'release-confirmation')").run(actionId, releaseId, closing.id);
       const release = this.findRelease(projectId, releaseId);
-      this.event(projectId, releaseId, actionId, `Created release “${name}” with its seven-stage workflow and protected confirmation`, null, release);
+      this.event(projectId, releaseId, actionId, `Created release “${name}” with ${workflow ? `workflow ${workflow.template.name} v${workflow.template.version}` : 'its seven-stage workflow'} and protected confirmation`, null, release);
       return release;
     });
+  }
+
+  getWorkflowLibrary(): WorkflowDetail[] { return getWorkflowLibrary(this.db); }
+
+  duplicateWorkflowTemplate(input: unknown): WorkflowTemplate {
+    return this.transaction(() => duplicateWorkflowTemplate(this.db, input));
   }
 
   assignAction(input: unknown): DevelopmentAction {
@@ -289,13 +319,13 @@ export class WorkspaceStore {
   }
 
   private projectActions(projectId: number): DevelopmentAction[] {
-    return this.db.prepare(`${actionQuery} WHERE a.project_id = ? ORDER BY a.id`).all(projectId) as unknown as DevelopmentAction[];
+    return this.db.prepare(`${actionQuery} WHERE a.project_id = ? ORDER BY a.id`).all(projectId).map(actionFromRow);
   }
 
   private findAction(projectId: number, actionId: number): DevelopmentAction {
-    const action = this.db.prepare(`${actionQuery} WHERE a.project_id = ? AND a.id = ?`).get(projectId, actionId) as unknown as DevelopmentAction | undefined;
-    if (!action) throw new AppError('NOT_FOUND', 'Action was not found in this project.');
-    return action;
+    const row = this.db.prepare(`${actionQuery} WHERE a.project_id = ? AND a.id = ?`).get(projectId, actionId);
+    if (!row) throw new AppError('NOT_FOUND', 'Action was not found in this project.');
+    return actionFromRow(row);
   }
 
   private findRelease(projectId: number, releaseId: number): ProjectRelease {

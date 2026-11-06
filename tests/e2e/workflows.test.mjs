@@ -1,0 +1,63 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { mkdirSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { temporaryDirectory } from '../helpers.mjs';
+import { launchWorkspace, createProject, openProject, saveCheckpoint } from '../electron-flow.mjs';
+
+test('duplicate a persisted workflow, apply it twice, display engineering details and recover independent progress', { timeout: 120000 }, async t => {
+  let application;
+  const directory = temporaryDirectory(t, () => application?.close());
+  application = await launchWorkspace(directory);
+  let page = await application.firstWindow();
+  await createProject(page, 'Workflow project');
+  await openProject(page, 'Workflow project');
+  await saveCheckpoint(page, 'Keep project memory', 'Review reusable workflow copies');
+  await page.getByRole('button', { name: 'Workflows', exact: true }).click();
+  await page.getByRole('heading', { name: 'Workflow library', exact: true }).waitFor();
+  await page.getByText('Built in · read only', { exact: true }).waitFor();
+  assert.equal(await page.locator('.workflow-stage').count(), 7);
+  assert.equal(await page.locator('.workflow-actions h4').count(), 8);
+  await page.getByLabel('Name for the copy', { exact: true }).fill('Reusable test workflow');
+  await page.getByRole('button', { name: 'Duplicate template', exact: true }).click();
+  await page.locator('.workflow-template-link').filter({ hasText: 'Reusable test workflow' }).waitFor();
+  const templates = await page.evaluate(async () => (await window.workspace.getWorkflowLibrary()).value);
+  const source = templates.find(item => item.template.name === 'Reusable test workflow');
+  assert.ok(source);
+  await openProject(page, 'Workflow project');
+  for (const name of ['Release A', 'Release B']) {
+    await page.getByLabel('New release name', { exact: true }).fill(name);
+    await page.getByLabel('Workflow template', { exact: true }).selectOption(String(source.template.id));
+    await page.getByRole('button', { name: 'Create release', exact: true }).click();
+    await page.getByRole('status').filter({ hasText: 'Release created.' }).waitFor();
+  }
+  let snapshot = await page.evaluate(async () => {
+    const project = (await window.workspace.listProjects()).value[0];
+    return (await window.workspace.openProject({ projectId: project.id })).value;
+  });
+  const a = snapshot.releases.find(item => item.release.name === 'Release A');
+  const b = snapshot.releases.find(item => item.release.name === 'Release B');
+  await page.getByLabel('Selected release', { exact: true }).selectOption(String(a.release.id));
+  assert.equal(await page.locator('.stage-card').count(), 7);
+  const first = page.locator('.stage-card').filter({ has: page.getByRole('heading', { name: 'Requirements and Planning', exact: true }) });
+  await first.getByRole('button', { name: 'Mark complete', exact: true }).click();
+  await page.getByRole('status').filter({ hasText: 'Action completed.' }).waitFor();
+  const detailToggle = first.locator('summary').filter({ hasText: /Engineering details/ });
+  await detailToggle.click();
+  await first.getByText('Scope note and acceptance checklist.', { exact: true }).waitFor();
+  snapshot = await page.evaluate(async projectId => (await window.workspace.openProject({ projectId })).value, snapshot.project.id);
+  assert.ok(Math.abs(snapshot.releases.find(item => item.release.id === a.release.id).progress.percent - 100 / 7) < 1e-10);
+  assert.equal(snapshot.releases.find(item => item.release.id === b.release.id).progress.percent, 0);
+  assert.equal(snapshot.actions.filter(action => action.releaseId === b.release.id && action.completedAt !== null).length, 0);
+  assert.equal((await page.evaluate(async () => (await window.workspace.getWorkflowLibrary()).value)).find(item => item.template.id === source.template.id).template.version, 1);
+  mkdirSync(resolve('artifacts'), { recursive: true });
+  await page.screenshot({ path: resolve('artifacts/workflow-first-copy.png'), fullPage: true });
+  await application.close();
+  application = await launchWorkspace(directory);
+  page = await application.firstWindow();
+  await openProject(page, 'Workflow project');
+  const recovered = await page.evaluate(async projectId => (await window.workspace.openProject({ projectId })).value, snapshot.project.id);
+  assert.deepEqual(recovered, snapshot);
+  await page.getByRole('region', { name: 'Resume Development', exact: true }).getByText('Review reusable workflow copies', { exact: true }).waitFor();
+  assert.equal((await page.evaluate(async () => (await window.workspace.getWorkflowLibrary()).value)).length, 2);
+});

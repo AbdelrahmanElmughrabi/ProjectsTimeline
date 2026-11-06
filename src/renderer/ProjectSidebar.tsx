@@ -1,13 +1,15 @@
 import type { ReactNode } from 'react';
 import type { Project } from '../shared/contracts';
 
-export function ProjectSidebar({ projects, selectedId, loading, listError, navigationDisabled, retryDisabled, onSelect, onRetry, children }: {
+export function ProjectSidebar({ projects, selectedId, view, loading, listError, navigationDisabled, retryDisabled, onViewChange, onSelect, onRetry, children }: {
   projects: Project[];
   selectedId: number | null;
+  view: 'project' | 'workflows';
   loading: boolean;
   listError: string;
   navigationDisabled: boolean;
   retryDisabled: boolean;
+  onViewChange: (view: 'project' | 'workflows') => void;
   onSelect: (projectId: number) => void;
   onRetry: () => void;
   children: ReactNode;
@@ -17,6 +19,9 @@ export function ProjectSidebar({ projects, selectedId, loading, listError, navig
       <span className="brand-mark" aria-hidden="true">P</span>
       <div><strong className="brand-name">ProjectsTimeline</strong><span className="brand-caption">Development workspace</span></div>
     </div>
+    <nav className="sidebar-views" aria-label="Workspace views">
+      <button type="button" className={`project-link${view === 'workflows' ? ' selected' : ''}`} aria-current={view === 'workflows' ? 'page' : undefined} onClick={() => onViewChange('workflows')} disabled={navigationDisabled}><span className="project-icon" aria-hidden="true">◇</span><span className="project-label">Workflows</span></button>
+    </nav>
     <div className="sidebar-section">
       <h2 className="side-heading" id="projects-heading">Projects</h2>
       <nav className="project-list" aria-labelledby="projects-heading">
@@ -24,12 +29,12 @@ export function ProjectSidebar({ projects, selectedId, loading, listError, navig
         {!loading && !listError && projects.length === 0 && <p className="side-hint">Your projects will appear here.</p>}
         {projects.map(project => <button
           type="button"
-          className={`project-link${selectedId === project.id ? ' selected' : ''}`}
+          className={`project-link${view === 'project' && selectedId === project.id ? ' selected' : ''}`}
           key={project.id}
           onClick={() => onSelect(project.id)}
           disabled={navigationDisabled}
           aria-label={`Open ${project.name}`}
-          aria-current={selectedId === project.id ? 'page' : undefined}
+          aria-current={view === 'project' && selectedId === project.id ? 'page' : undefined}
         ><span className="project-icon" aria-hidden="true" /><span className="project-label">{project.name}</span></button>)}
       </nav>
     </div>

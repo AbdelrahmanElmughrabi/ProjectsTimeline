@@ -6,16 +6,20 @@ import { Panel } from './Panel';
 import { ProjectSidebar } from './ProjectSidebar';
 import { WorkspaceHeader } from './WorkspaceHeader';
 import { ReleaseWorkspace } from './ReleaseWorkspace';
+import { WorkflowLibrary } from './WorkflowLibrary';
+import { useWorkflowLibrary } from './useWorkflowLibrary';
 
 export default function App() {
   const workspace = useProjectWorkspace();
+  const library = useWorkflowLibrary();
   const { projects, detail, selectedId, loading, listError, busy, notice, stale } = workspace;
   const [projectName, setProjectName] = useState('');
   const [actionTitle, setActionTitle] = useState('');
   const [accomplished, setAccomplished] = useState('');
   const [nextSteps, setNextSteps] = useState('');
   const [selectedReleaseId, setSelectedReleaseId] = useState<number | null>(null);
-  const disabled = busy !== null || stale;
+  const [view, setView] = useState<'project' | 'workflows'>('project');
+  const disabled = busy !== null || library.busy || stale;
 
   useEffect(() => {
     if (detail) { setActionTitle(''); setAccomplished(''); setNextSteps(''); setSelectedReleaseId(null); }
@@ -45,10 +49,11 @@ export default function App() {
     <div className="shell">
       <a className="skip-link" href="#workspace-main" onClick={event => { event.preventDefault(); document.getElementById('workspace-main')?.focus(); }}>Skip to workspace</a>
       <ProjectSidebar
-        projects={projects} selectedId={selectedId} loading={loading} listError={listError}
-        navigationDisabled={(busy !== null && busy !== 'open') || loading}
-        retryDisabled={loading || busy !== null}
-        onSelect={(id) => void workspace.openProject(id)} onRetry={() => void workspace.retryLoading()}
+        projects={projects} selectedId={selectedId} view={view} loading={loading} listError={listError}
+        navigationDisabled={(busy !== null && busy !== 'open') || library.busy || loading}
+        retryDisabled={loading || busy !== null || library.busy}
+        onViewChange={setView}
+        onSelect={(id) => { setView('project'); void workspace.openProject(id); }} onRetry={() => void workspace.retryLoading()}
       >
         <form className="create-form" onSubmit={createProject}>
           <label htmlFor="project-name">New project</label>
@@ -58,6 +63,7 @@ export default function App() {
       </ProjectSidebar>
 
       <main className="main-content" id="workspace-main" tabIndex={-1}>
+        {view === 'workflows' ? <WorkflowLibrary workflows={library.workflows} loading={library.loading} busy={library.busy} stale={library.stale} error={library.error} onRetry={() => void library.refresh()} onDuplicate={library.duplicate} /> : <>
         {notice && <div className={`notice ${notice.kind}`} role={notice.kind === 'success' ? 'status' : 'alert'}>{notice.text}</div>}
         {(stale || notice?.kind === 'warning' || (selectedId !== null && !detail && busy === null)) && <div className="refresh-state"><p>Displayed information may be out of date. Reload saved data before making more changes.</p><button className="button button-primary" disabled={busy !== null} onClick={() => void workspace.retryLoading()}>Retry loading</button></div>}
         {detail ? <>
@@ -73,7 +79,7 @@ export default function App() {
             {backlogActions.length ? <ul className="action-list">{backlogActions.map(action => <li key={action.id} className="action-row"><span className={`state-dot${action.completedAt ? ' done' : ''}`} aria-hidden="true"/><span className={`action-name${action.completedAt ? ' completed' : ''}`}>{action.title}</span>{action.completedAt ? <span className="done-label">Completed</span> : <button className="complete-button" onClick={() => void workspace.completeAction(action.id)} disabled={disabled} aria-label={`Complete ${action.title}`}>{busy === 'complete' ? 'Saving…' : 'Mark complete'}</button>}</li>)}</ul> : <p className="empty-copy">No actions yet. Add the first step above.</p>}
           </Panel>
 
-          <ReleaseWorkspace detail={detail} selectedReleaseId={selectedReleaseId} onSelectRelease={setSelectedReleaseId} disabled={disabled} stale={stale} busy={busy}
+          <ReleaseWorkspace detail={detail} workflows={library.workflows} workflowsStale={library.stale} selectedReleaseId={selectedReleaseId} onSelectRelease={setSelectedReleaseId} disabled={disabled} stale={stale} busy={busy}
             createRelease={workspace.createRelease} assignAction={workspace.assignAction} setActionExclusion={workspace.setActionExclusion} setStageExclusion={workspace.setStageExclusion}
             completeAction={workspace.completeAction} reopenAction={workspace.reopenAction} recordReleaseVerification={workspace.recordReleaseVerification} confirmRelease={workspace.confirmRelease} />
 
@@ -95,6 +101,7 @@ export default function App() {
           <div className="welcome-icon" aria-hidden="true">↗</div><p className="eyebrow">A little progress, every day</p><h1>{busy === 'open' ? 'Loading project…' : selectedId !== null ? 'Project could not be loaded' : listError ? 'Projects are unavailable' : projects.length ? 'Choose a project' : 'Start with a project'}</h1><p>{listError ? 'Retry loading your projects from the sidebar.' : 'Select a project from the sidebar, or create one to begin tracking actions and checkpoints.'}</p>
           {!loading && !listError && projects.length === 0 && <button className="button button-primary" onClick={() => document.getElementById('project-name')?.focus()}>Create your first project</button>}
         </section>}
+        </>}
       </main>
     </div>
   );

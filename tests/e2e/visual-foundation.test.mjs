@@ -143,7 +143,8 @@ test('dark workspace is keyboard usable, Resume-first when compact and readable 
   await page.evaluate(() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))));
   assert.equal(await page.evaluate(() => document.getAnimations().some(animation => animation.playState === 'running')), false);
   assert.deepEqual(exceptions, []);
-  assert.equal(await page.locator('.sidebar').getByRole('button', { name: /^(Ideas|Workflows|Engineering|Testing|Release)$/ }).count(), 0);
+  assert.equal(await page.locator('.sidebar').getByRole('button', { name: /^(Ideas|Engineering|Testing|Release)$/ }).count(), 0);
+  assert.equal(await page.locator('.sidebar').getByRole('button', { name: 'Workflows', exact: true }).count(), 1);
 });
 
 test('maximum-length saved content wraps and remains reachable in compact and wide workspaces', { timeout: 120000 }, async (t) => {

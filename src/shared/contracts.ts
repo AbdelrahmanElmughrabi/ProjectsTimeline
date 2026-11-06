@@ -14,6 +14,37 @@ export interface DevelopmentAction {
   stageId: number | null;
   exclusionReason: string | null;
   kind: 'work' | 'release-confirmation';
+  details: ActionDetails | null;
+}
+
+export type ActionType = 'requirement' | 'implementation' | 'verification' | 'decision' | 'research' | 'documentation';
+
+export interface ActionDetails {
+  instructions: string;
+  applicability: string;
+  definitionOfDone: string;
+  evidenceGuidance: string;
+  actionType: ActionType;
+  position: number | null;
+}
+
+export interface WorkflowTemplate {
+  id: number; name: string; description: string; version: number;
+  builtInKey: string | null; createdAt: string; updatedAt: string;
+}
+
+export interface WorkflowStage {
+  id: number; templateId: number; name: string; position: number; protectedClosing: boolean;
+}
+
+export interface WorkflowAction extends ActionDetails {
+  id: number; templateId: number; stageId: number; title: string; position: number;
+}
+
+export interface WorkflowDetail {
+  template: WorkflowTemplate;
+  stages: WorkflowStage[];
+  actions: WorkflowAction[];
 }
 
 export type ProgressInput = Readonly<{
@@ -39,6 +70,7 @@ export interface ProjectRelease {
   id: number; projectId: number; name: string; createdAt: string;
   scopeRevision: number; policyVersion: number; confirmedAt: string | null;
   confirmedVerificationId: number | null;
+  sourceTemplateId: number | null; sourceTemplateVersion: number | null; sourceTemplateName: string | null;
 }
 
 export interface ReleaseStage {
@@ -93,7 +125,9 @@ export interface WorkspaceApi {
   addAction(input: { projectId: number; title: string }): Promise<Result<DevelopmentAction>>;
   completeAction(input: { projectId: number; actionId: number }): Promise<Result<DevelopmentAction>>;
   reopenAction(input: { projectId: number; actionId: number }): Promise<Result<DevelopmentAction>>;
-  createRelease(input: { projectId: number; name: string }): Promise<Result<ProjectRelease>>;
+  createRelease(input: { projectId: number; name: string; templateId?: number; templateVersion?: number }): Promise<Result<ProjectRelease>>;
+  getWorkflowLibrary(): Promise<Result<WorkflowDetail[]>>;
+  duplicateWorkflowTemplate(input: { templateId: number; expectedVersion: number; name: string }): Promise<Result<WorkflowTemplate>>;
   assignAction(input: { projectId: number; actionId: number; releaseId: number; stageId: number | null }): Promise<Result<DevelopmentAction>>;
   setActionExclusion(input: { projectId: number; actionId: number; reason: string | null }): Promise<Result<DevelopmentAction>>;
   setStageExclusion(input: { projectId: number; releaseId: number; stageId: number; reason: string | null }): Promise<Result<ReleaseStage>>;

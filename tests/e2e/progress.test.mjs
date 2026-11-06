@@ -116,6 +116,7 @@ test('committed release write followed by failed read hides progress and retries
   await page.getByRole('status').filter({ hasText: 'Release created.' }).waitFor();
   const releaseId = (await snapshot(page)).releases[0].release.id;
   await page.getByLabel('Selected release', { exact: true }).selectOption(String(releaseId));
+  await page.getByLabel('Add local release stage', { exact: true }).fill('Unsubmitted local stage draft');
   await application.evaluate(({ app }) => {
     const load = process.getBuiltinModule('module').createRequire(app.getAppPath() + '/package.json');
     const { WorkspaceStore } = load('./dist/main/data/database.js');
@@ -131,9 +132,10 @@ test('committed release write followed by failed read hides progress and retries
   await page.getByRole('button', { name: 'Create release', exact: true }).click();
   await page.getByRole('alert').filter({ hasText: 'Saved, but could not refresh.' }).waitFor();
   assert.equal(await page.getByLabel('New release name').inputValue(), '');
-  assert.equal(await page.locator('.release-summary').count(), 0);
+  assert.equal(await page.locator('.release-summary').isVisible(), false);
   await page.getByRole('button', { name: 'Retry loading', exact: true }).click();
   await page.getByRole('status').filter({ hasText: 'Workspace refreshed.' }).waitFor();
+  assert.equal(await page.getByLabel('Add local release stage', { exact: true }).inputValue(), 'Unsubmitted local stage draft');
   const recovered = await snapshot(page);
   assert.equal(recovered.releases.filter(item => item.release.name === 'Committed once').length, 1);
   assert.equal(recovered.actionEvents.filter(event => event.description.includes('Created release “Committed once”')).length, 1);

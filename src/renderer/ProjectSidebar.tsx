@@ -20,7 +20,7 @@ export function ProjectSidebar({ projects, selectedId, view, loading, listError,
       <div><strong className="brand-name">ProjectsTimeline</strong><span className="brand-caption">Development workspace</span></div>
     </div>
     <nav className="sidebar-views" aria-label="Workspace views">
-      <button type="button" className={`project-link${view === 'workflows' ? ' selected' : ''}`} aria-current={view === 'workflows' ? 'page' : undefined} onClick={() => onViewChange('workflows')} disabled={navigationDisabled}><span className="project-icon" aria-hidden="true">◇</span><span className="project-label">Workflows</span></button>
+      <button type="button" className={`project-link${view === 'workflows' ? ' selected' : ''}`} aria-current={view === 'workflows' ? 'page' : undefined} onClick={() => onViewChange('workflows')} disabled={navigationDisabled}><span className="project-icon" aria-hidden="true" /><span className="project-label">Workflows</span></button>
     </nav>
     <div className="sidebar-section">
       <h2 className="side-heading" id="projects-heading">Projects</h2>

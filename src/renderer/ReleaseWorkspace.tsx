@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
-import type { DevelopmentAction, ProjectDetail, ReleaseWorkspace as ReleaseData, WorkflowDetail } from '../shared/contracts';
+import type { ActionDefinitionInput, ActionType, DevelopmentAction, ProjectDetail, ReleaseWorkspace as ReleaseData, WorkflowDetail } from '../shared/contracts';
 import { Panel } from './Panel';
 
 type Props = {
@@ -20,6 +20,11 @@ type Props = {
   reopenAction: (actionId: number) => Promise<boolean>;
   recordReleaseVerification: (releaseId: number, artifact: string, evidence: string, summary: string, outcome: 'passed' | 'failed') => Promise<boolean>;
   confirmRelease: (releaseId: number, verificationId: number) => Promise<boolean>;
+  updateReleaseAction: (actionId: number, definition: ActionDefinitionInput) => Promise<boolean>;
+  reorderReleaseActions: (releaseId: number, stageId: number, actionIds: number[]) => Promise<boolean>;
+  addReleaseStage: (releaseId: number, name: string) => Promise<boolean>;
+  updateReleaseStage: (releaseId: number, stageId: number, name: string) => Promise<boolean>;
+  reorderReleaseStages: (releaseId: number, stageIds: number[]) => Promise<boolean>;
 };
 
 const fieldId = (prefix: string, id: number) => `${prefix}-${id}`;
@@ -41,6 +46,7 @@ export function ReleaseWorkspace({ detail, workflows, workflowsStale, selectedRe
   const [actionReasons, setActionReasons] = useState<Record<number, string>>({});
   const [stageReasons, setStageReasons] = useState<Record<number, string>>({});
   const selected = detail.releases.find(row => row.release.id === selectedReleaseId) ?? null;
+  const chosenWorkflow = workflows.find(row => String(row.template.id) === templateChoice);
 
   useEffect(() => {
     setReleaseName(''); setTemplateChoice(''); setArtifact(''); setEvidence(''); setSummary(''); setVerificationId('');
@@ -73,15 +79,18 @@ export function ReleaseWorkspace({ detail, workflows, workflowsStale, selectedRe
     <form className="inline-form release-create" onSubmit={create}>
       <div className="field grow"><label htmlFor="release-name">New release name</label><input id="release-name" maxLength={120} required value={releaseName} onChange={e => setReleaseName(e.target.value)} disabled={disabled} placeholder="Release name" /></div>
       <div className="field release-template-field"><label htmlFor="release-template">Workflow template</label><select id="release-template" value={templateChoice} onChange={e => setTemplateChoice(e.target.value)} disabled={disabled || workflowsStale}><option value="">Stages Only</option>{workflowsStale && templateChoice && <option value={templateChoice}>Selected template needs a fresh load</option>}{!workflowsStale && workflows.map(item => <option key={item.template.id} value={item.template.id}>{item.template.name} · v{item.template.version}</option>)}</select></div>
-      <button className="button button-primary" type="submit" disabled={disabled}>{busy === 'release' ? 'Saving…' : 'Create release'}</button>
+      <button className="button button-primary" type="submit" disabled={disabled || Boolean(templateChoice && (workflowsStale || !chosenWorkflow))}>{busy === 'release' ? 'Saving…' : 'Create release'}</button>
     </form>
+    {chosenWorkflow && !workflowsStale && <p className="field-note">Copies {chosenWorkflow.stages.length} stages and commits {chosenWorkflow.actions.length} checklist actions. The app adds protected confirmation inside the closing stage. Review applicability and add your product-specific work.</p>}
     {workflowsStale && <p className="field-note">The workflow list is out of date. Refresh it before applying a template; stage only remains available.</p>}
     {detail.releases.length ? <div className="field release-picker"><label htmlFor="release-select">Selected release</label><select id="release-select" value={selectedReleaseId ?? ''} disabled={disabled} onChange={e => onSelectRelease(e.target.value ? Number(e.target.value) : null)}><option value="">Choose a release</option>{detail.releases.map(item => <option key={item.release.id} value={item.release.id}>{item.release.name}{item.release.confirmedAt ? ' · Confirmed' : ''}</option>)}</select></div> : <p className="empty-copy">Create a release to define its committed scope and verification.</p>}
     {!selected && !stale && <p className="empty-copy">No release selected. Progress is not assessed; project backlog remains outside committed scope.</p>}
-    {stale ? <p className="scope-review" role="status">Release data may be out of date. Refresh the workspace before reviewing progress or making changes.</p> : selected && <ReleaseDetails release={selected} detail={detail} disabled={disabled} busy={busy}
+    {stale && <p className="scope-review" role="status">Release data may be out of date. Refresh the workspace before reviewing progress or making changes.</p>}
+    {selected && <div className="release-details-snapshot" hidden={stale} aria-hidden={stale || undefined}><ReleaseDetails key={selected.release.id} release={selected} detail={detail} disabled={disabled} busy={busy}
       stageChoices={stageChoices} setStageChoices={setStageChoices} actionReasons={actionReasons} setActionReasons={setActionReasons} stageReasons={stageReasons} setStageReasons={setStageReasons}
       artifact={artifact} setArtifact={setArtifact} evidence={evidence} setEvidence={setEvidence} summary={summary} setSummary={setSummary} outcome={outcome} setOutcome={setOutcome} verificationId={verificationId} setVerificationId={setVerificationId}
-      commitBacklog={commitBacklog} onComplete={commands.completeAction} onReopen={commands.reopenAction} onSetActionExclusion={commands.setActionExclusion} onSetStageExclusion={commands.setStageExclusion} onRecord={record} onConfirm={commands.confirmRelease} />}
+      commitBacklog={commitBacklog} onComplete={commands.completeAction} onReopen={commands.reopenAction} onSetActionExclusion={commands.setActionExclusion} onSetStageExclusion={commands.setStageExclusion} onRecord={record} onConfirm={commands.confirmRelease}
+      onUpdateAction={commands.updateReleaseAction} onReorderActions={commands.reorderReleaseActions} onAddStage={commands.addReleaseStage} onUpdateStage={commands.updateReleaseStage} onReorderStages={commands.reorderReleaseStages} /></div>}
   </Panel>;
 }
 
@@ -95,11 +104,47 @@ type DetailsProps = {
   commitBacklog: (action: DevelopmentAction, stageId: number | null) => Promise<void>; onComplete: (id: number) => Promise<boolean>; onReopen: (id: number) => Promise<boolean>;
   onSetActionExclusion: (id: number, reason: string | null) => Promise<boolean>; onSetStageExclusion: (releaseId: number, stageId: number, reason: string | null) => Promise<boolean>;
   onRecord: (event: FormEvent) => Promise<void>; onConfirm: (releaseId: number, verificationId: number) => Promise<boolean>;
+  onUpdateAction: (actionId: number, definition: ActionDefinitionInput) => Promise<boolean>;
+  onReorderActions: (releaseId: number, stageId: number, actionIds: number[]) => Promise<boolean>;
+  onAddStage: (releaseId: number, name: string) => Promise<boolean>;
+  onUpdateStage: (releaseId: number, stageId: number, name: string) => Promise<boolean>;
+  onReorderStages: (releaseId: number, stageIds: number[]) => Promise<boolean>;
 };
+
+const actionTypes: ActionType[] = ['requirement', 'implementation', 'verification', 'decision', 'research', 'documentation'];
+
+function ReleaseActionEditor({ action, disabled, onSave, onCancel }: {
+  action: DevelopmentAction; disabled: boolean; onSave: (definition: ActionDefinitionInput) => Promise<boolean>; onCancel: () => void;
+}) {
+  const [title, setTitle] = useState(action.title);
+  const [instructions, setInstructions] = useState(action.details?.instructions ?? '');
+  const [applicability, setApplicability] = useState(action.details?.applicability ?? '');
+  const [definitionOfDone, setDefinitionOfDone] = useState(action.details?.definitionOfDone ?? '');
+  const [evidenceGuidance, setEvidenceGuidance] = useState(action.details?.evidenceGuidance ?? '');
+  const [actionType, setActionType] = useState<ActionType>(action.details?.actionType ?? 'implementation');
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (await onSave({ title, instructions, applicability, definitionOfDone, evidenceGuidance, actionType })) onCancel();
+  }
+
+  return <form className="workflow-action-editor release-action-editor" onSubmit={submit}>
+    <div className="field"><label htmlFor={fieldId('release-action-title', action.id)}>Action title</label><input id={fieldId('release-action-title', action.id)} maxLength={300} required value={title} onChange={event => setTitle(event.target.value)} disabled={disabled} /></div>
+    <div className="field"><label htmlFor={fieldId('release-action-instructions', action.id)}>Instructions</label><textarea id={fieldId('release-action-instructions', action.id)} maxLength={10000} rows={3} value={instructions} onChange={event => setInstructions(event.target.value)} disabled={disabled} /></div>
+    <div className="field"><label htmlFor={fieldId('release-action-applicability', action.id)}>Applicability</label><textarea id={fieldId('release-action-applicability', action.id)} maxLength={2000} rows={2} value={applicability} onChange={event => setApplicability(event.target.value)} disabled={disabled} /></div>
+    <div className="field"><label htmlFor={fieldId('release-action-dod', action.id)}>Definition of done</label><textarea id={fieldId('release-action-dod', action.id)} maxLength={10000} rows={2} value={definitionOfDone} onChange={event => setDefinitionOfDone(event.target.value)} disabled={disabled} /></div>
+    <div className="field"><label htmlFor={fieldId('release-action-evidence', action.id)}>Evidence guidance</label><textarea id={fieldId('release-action-evidence', action.id)} maxLength={2000} rows={2} value={evidenceGuidance} onChange={event => setEvidenceGuidance(event.target.value)} disabled={disabled} /></div>
+    <div className="field"><label htmlFor={fieldId('release-action-classification', action.id)}>Classification</label><select id={fieldId('release-action-classification', action.id)} value={actionType} onChange={event => setActionType(event.target.value as ActionType)} disabled={disabled}>{actionTypes.map(type => <option key={type} value={type}>{type}</option>)}</select></div>
+    <div className="form-actions"><button className="button button-primary" type="submit" disabled={disabled || !title.trim()}>Save action details</button><button className="button" type="button" onClick={onCancel} disabled={disabled}>Cancel</button></div>
+  </form>;
+}
 
 function ReleaseDetails(props: DetailsProps) {
   const { release, detail, disabled, busy } = props;
   const { release: head, stages, progress, verifications } = release;
+  const [newStageName, setNewStageName] = useState('');
+  const [stageNames, setStageNames] = useState<Record<number, string>>(() => Object.fromEntries(stages.map(stage => [stage.id, stage.name])));
+  const [editingActionId, setEditingActionId] = useState<number | null>(null);
   const releaseActions = detail.actions.filter(action => action.releaseId === head.id);
   const backlog = detail.actions.filter(action => action.releaseId === null);
   const stageName = (id: number | null) => id === null ? 'Unassigned' : stages.find(stage => stage.id === id)?.name ?? 'Unknown stage';
@@ -107,10 +152,24 @@ function ReleaseDetails(props: DetailsProps) {
   const blockers = progress.state === 'needs-scope-review';
   const latestVerification = verifications[0] ?? null;
   const currentPassed = latestVerification?.outcome === 'passed' && latestVerification.scopeRevision === head.scopeRevision ? [latestVerification] : [];
+  const orderedStages = stages.slice().sort((a, b) => a.position - b.position);
   const applicableWorkComplete = releaseActions.filter(action => action.kind === 'work')
     .every(action => action.exclusionReason !== null || action.completedAt !== null);
   const complete = progress.state !== 'needs-scope-review' && progress.percent !== null && progress.emptyStageIds.length === 0 && progress.unassignedActionIds.length === 0 && applicableWorkComplete;
   const canConfirm = !disabled && !head.confirmedAt && complete && currentPassed.length > 0 && currentPassed.some(v => String(v.id) === props.verificationId);
+
+  async function moveStage(index: number, direction: -1 | 1) {
+    const target = index + direction;
+    if (target < 0 || target >= orderedStages.length || orderedStages[index].key === 'release_confirmation' || orderedStages[target].key === 'release_confirmation') return;
+    const stageIds = orderedStages.map(stage => stage.id);
+    [stageIds[index], stageIds[target]] = [stageIds[target], stageIds[index]];
+    await props.onReorderStages(head.id, stageIds);
+  }
+
+  async function addStage(event: FormEvent) {
+    event.preventDefault();
+    if (await props.onAddStage(head.id, newStageName)) setNewStageName('');
+  }
 
   return <div className="release-detail">
     <section className="release-summary" aria-label="Release progress summary">
@@ -133,14 +192,20 @@ function ReleaseDetails(props: DetailsProps) {
       </select>
       <button className="button" disabled={disabled || Boolean(head.confirmedAt) || props.stageChoices[action.id] === undefined || props.stageChoices[action.id] === ''} onClick={() => void props.commitBacklog(action, props.stageChoices[action.id] === 'unassigned' ? null : Number(props.stageChoices[action.id]))}>Commit</button>
     </li>)}</ul></section>}
-    <div className="stage-grid">{stages.map(stage => {
+    {!head.confirmedAt && <form className="inline-form release-add-stage" onSubmit={addStage}><div className="field grow"><label htmlFor={`release-new-stage-${head.id}`}>Add local release stage</label><input id={`release-new-stage-${head.id}`} maxLength={200} required value={newStageName} onChange={event => setNewStageName(event.target.value)} disabled={disabled} placeholder="Stage name" /></div><button className="button" type="submit" disabled={disabled || !newStageName.trim()}>Add stage</button></form>}
+    <div className="stage-grid">{orderedStages.map((stage, stageIndex) => {
       const row = progress.stages.find(item => item.stageId === stage.id);
       const actions = releaseActions.filter(action => action.stageId === stage.id)
         .sort((a, b) => (a.details?.position ?? Number.MAX_SAFE_INTEGER) - (b.details?.position ?? Number.MAX_SAFE_INTEGER) || a.id - b.id);
       const finalStage = stage.key === 'release_confirmation';
+      const ordinaryActions = actions.filter(action => action.kind === 'work');
       const canExclude = !finalStage && actions.every(action => Boolean(action.exclusionReason)) && !stage.exclusionReason && !head.confirmedAt;
       return <article className={`stage-card${stage.exclusionReason ? ' stage-excluded' : ''}`} key={stage.id}>
-        <div className="stage-heading"><div><p className="eyebrow">Stage {stage.position + 1}</p><h3>{stage.name}</h3></div><strong>{stage.exclusionReason ? 'Excluded' : formatPercent(row?.percent ?? null, Boolean(head.confirmedAt))}</strong></div>
+        <div className="stage-heading"><div><p className="eyebrow">Stage {stageIndex + 1}</p><h3>{stage.name}</h3>{finalStage && <span className="read-only-badge">Protected closing</span>}</div><strong>{stage.exclusionReason ? 'Excluded' : formatPercent(row?.percent ?? null, Boolean(head.confirmedAt))}</strong></div>
+        {!finalStage && !head.confirmedAt && <details className="release-stage-options"><summary>Stage options</summary>
+          <form className="release-stage-rename" onSubmit={async event => { event.preventDefault(); const name = stageNames[stage.id] ?? stage.name; if (await props.onUpdateStage(head.id, stage.id, name)) setStageNames(current => ({ ...current, [stage.id]: name })); }}><label className="sr-only" htmlFor={`release-stage-name-${stage.id}`}>Stage {stageIndex + 1} name</label><input id={`release-stage-name-${stage.id}`} maxLength={200} required value={stageNames[stage.id] ?? stage.name} onChange={event => setStageNames(current => ({ ...current, [stage.id]: event.target.value }))} disabled={disabled} /><button className="button" type="submit" disabled={disabled || !(stageNames[stage.id] ?? stage.name).trim()}>Save stage name</button></form>
+          <div className="release-stage-controls"><button className="button" type="button" aria-label={`Move ${stage.name} up`} onClick={() => void moveStage(stageIndex, -1)} disabled={disabled || stageIndex === 0 || orderedStages[stageIndex - 1]?.key === 'release_confirmation'}>Move stage up</button><button className="button" type="button" aria-label={`Move ${stage.name} down`} onClick={() => void moveStage(stageIndex, 1)} disabled={disabled || orderedStages[stageIndex + 1]?.key === 'release_confirmation'}>Move stage down</button></div>
+        </details>}
         <p className="stage-count">{row?.completedActions ?? 0} / {row?.totalActions ?? 0} applicable actions complete · {actions.length} committed action{actions.length === 1 ? '' : 's'}</p>
         {row?.percent !== null && row?.percent !== undefined && <progress className="stage-progress" aria-label={`Readiness: ${stage.name}`} max={100} value={row.percent} />}
         {stage.exclusionReason && <p className="exclusion-note">Excluded: {stage.exclusionReason}</p>}
@@ -160,6 +225,10 @@ function ReleaseDetails(props: DetailsProps) {
             ['Definition of done', action.details.definitionOfDone], ['Evidence guidance', action.details.evidenceGuidance],
             ['Classification', action.details.actionType],
           ].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value || 'Not provided'}</dd></div>)}</dl></details>}
+          <div className="release-action-controls"><button className="button" type="button" aria-label={`${editingActionId === action.id ? 'Close editor for' : 'Edit engineering details for'} ${action.title}`} onClick={() => setEditingActionId(editingActionId === action.id ? null : action.id)} disabled={disabled || Boolean(head.confirmedAt)}>{editingActionId === action.id ? 'Close editor' : 'Edit engineering details'}</button>
+            {ordinaryActions.length > 1 && <><button className="button" type="button" aria-label={`Move ${action.title} up in ${stage.name}`} onClick={() => { const index = ordinaryActions.findIndex(item => item.id === action.id); const ids = ordinaryActions.map(item => item.id); if (index > 0) { [ids[index], ids[index - 1]] = [ids[index - 1], ids[index]]; void props.onReorderActions(head.id, stage.id, ids); } }} disabled={disabled || Boolean(head.confirmedAt) || ordinaryActions[0].id === action.id}>Move action up</button><button className="button" type="button" aria-label={`Move ${action.title} down in ${stage.name}`} onClick={() => { const index = ordinaryActions.findIndex(item => item.id === action.id); const ids = ordinaryActions.map(item => item.id); if (index >= 0 && index < ids.length - 1) { [ids[index], ids[index + 1]] = [ids[index + 1], ids[index]]; void props.onReorderActions(head.id, stage.id, ids); } }} disabled={disabled || Boolean(head.confirmedAt) || ordinaryActions[ordinaryActions.length - 1].id === action.id}>Move action down</button></>}
+          </div>
+          {editingActionId === action.id && <ReleaseActionEditor key={action.id} action={action} disabled={disabled || Boolean(head.confirmedAt)} onSave={definition => props.onUpdateAction(action.id, definition)} onCancel={() => setEditingActionId(null)} />}
           </>}
         </li>)}</ul> : <p className="empty-copy stage-empty">No committed actions in this stage.</p>}
         {!stage.exclusionReason && !head.confirmedAt && !finalStage && <details className="exclude-control stage-exclude">
@@ -172,12 +241,16 @@ function ReleaseDetails(props: DetailsProps) {
     })}</div>
     {releaseActions.some(action => action.stageId === null) && <section className="unassigned-release"><h3>Unassigned release actions</h3><p className="field-note">These actions are committed to this release but need a stage assignment.</p><ul className="action-list">{releaseActions.filter(action => action.stageId === null).map(action => <li className="action-row release-unassigned-row" key={action.id}>
       <span className={`state-dot${action.completedAt ? ' done' : ''}`} aria-hidden="true"/><span className="action-name">{action.title}</span>
+      {action.kind === 'release-confirmation' ? <span className="field-note">Protected: confirmation uses the verification controls below.</span> : <>
       {action.completedAt ? <button className="complete-button" onClick={() => void props.onReopen(action.id)} disabled={disabled || Boolean(head.confirmedAt)}>Reopen</button> : <button className="complete-button" onClick={() => void props.onComplete(action.id)} disabled={disabled || Boolean(head.confirmedAt)}>Mark complete</button>}
       <label className="sr-only" htmlFor={fieldId('reassign-stage', action.id)}>Assign stage for {action.title}</label><select id={fieldId('reassign-stage', action.id)} value={props.stageChoices[action.id] ?? ''} disabled={disabled || Boolean(head.confirmedAt)} onChange={e => props.setStageChoices(cur => ({ ...cur, [action.id]: e.target.value }))}><option value="">Choose stage</option>{stages.filter(stage => !stage.exclusionReason).map(stage => <option key={stage.id} value={stage.id}>{stage.name}</option>)}</select>
       <button className="button" disabled={disabled || Boolean(head.confirmedAt) || !props.stageChoices[action.id]} onClick={() => void props.commitBacklog(action, Number(props.stageChoices[action.id]))}>Assign stage</button>
       {action.exclusionReason && <span className="exclusion-note">Excluded: {action.exclusionReason}</span>}
       {!action.exclusionReason && !head.confirmedAt && <details className="exclude-control"><summary>Exclude</summary><form onSubmit={async e => { e.preventDefault(); const reason = props.actionReasons[action.id] ?? ''; if (await props.onSetActionExclusion(action.id, reason)) props.setActionReasons(cur => ({ ...cur, [action.id]: '' })); }}><label htmlFor={fieldId('action-exclusion', action.id)}>Required reason for excluding {action.title}</label><input id={fieldId('action-exclusion', action.id)} maxLength={2000} required value={props.actionReasons[action.id] ?? ''} onChange={e => props.setActionReasons(cur => ({ ...cur, [action.id]: e.target.value }))} disabled={disabled}/><button className="button" type="submit" disabled={disabled}>Save exclusion</button></form></details>}
       {action.exclusionReason && !head.confirmedAt && <button className="text-button" onClick={() => void props.onSetActionExclusion(action.id, null)} disabled={disabled}>Restore to scope</button>}
+      <button className="button" type="button" aria-label={`Edit engineering details for ${action.title}`} onClick={() => setEditingActionId(editingActionId === action.id ? null : action.id)} disabled={disabled || Boolean(head.confirmedAt)}>{editingActionId === action.id ? 'Close editor' : 'Edit engineering details'}</button>
+      {editingActionId === action.id && <ReleaseActionEditor key={action.id} action={action} disabled={disabled || Boolean(head.confirmedAt)} onSave={definition => props.onUpdateAction(action.id, definition)} onCancel={() => setEditingActionId(null)} />}
+      </>}
     </li>)}</ul></section>}
     <details className="verification-history"><summary>Manual verification history ({verifications.length})</summary>{verifications.length ? <ol>{verifications.map(item => <li key={item.id}>
       <strong>{item.outcome === 'passed' ? 'Passed' : 'Failed'} · scope revision {item.scopeRevision}{item.scopeRevision !== head.scopeRevision ? ' · stale for current scope' : ''}</strong><time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleString()}</time><p><b>Artifact/version:</b> {item.artifactIdentity}</p><p><b>Evidence reference:</b> {item.evidenceReference}</p><p>{item.summary}</p>

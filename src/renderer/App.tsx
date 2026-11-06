@@ -63,7 +63,7 @@ export default function App() {
       </ProjectSidebar>
 
       <main className="main-content" id="workspace-main" tabIndex={-1}>
-        {view === 'workflows' ? <WorkflowLibrary workflows={library.workflows} loading={library.loading} busy={library.busy} stale={library.stale} error={library.error} onRetry={() => void library.refresh()} onDuplicate={library.duplicate} /> : <>
+        {view === 'workflows' ? <WorkflowLibrary {...library} onRetry={() => void library.refresh()} /> : <>
         {notice && <div className={`notice ${notice.kind}`} role={notice.kind === 'success' ? 'status' : 'alert'}>{notice.text}</div>}
         {(stale || notice?.kind === 'warning' || (selectedId !== null && !detail && busy === null)) && <div className="refresh-state"><p>Displayed information may be out of date. Reload saved data before making more changes.</p><button className="button button-primary" disabled={busy !== null} onClick={() => void workspace.retryLoading()}>Retry loading</button></div>}
         {detail ? <>
@@ -81,6 +81,7 @@ export default function App() {
 
           <ReleaseWorkspace detail={detail} workflows={library.workflows} workflowsStale={library.stale} selectedReleaseId={selectedReleaseId} onSelectRelease={setSelectedReleaseId} disabled={disabled} stale={stale} busy={busy}
             createRelease={workspace.createRelease} assignAction={workspace.assignAction} setActionExclusion={workspace.setActionExclusion} setStageExclusion={workspace.setStageExclusion}
+            updateReleaseAction={workspace.updateReleaseAction} reorderReleaseActions={workspace.reorderReleaseActions} addReleaseStage={workspace.addReleaseStage} updateReleaseStage={workspace.updateReleaseStage} reorderReleaseStages={workspace.reorderReleaseStages}
             completeAction={workspace.completeAction} reopenAction={workspace.reopenAction} recordReleaseVerification={workspace.recordReleaseVerification} confirmRelease={workspace.confirmRelease} />
 
           <Panel className="checkpoint-panel" id="checkpoint-heading" title="Checkpoint" eyebrow="Leave a clear next step">

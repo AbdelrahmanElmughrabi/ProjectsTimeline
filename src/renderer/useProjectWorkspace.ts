@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Project, ProjectDetail, Result } from '../shared/contracts';
+import type { ActionDefinitionInput, Project, ProjectDetail, Result } from '../shared/contracts';
 
 type Operation = 'create' | 'open' | 'action' | 'complete' | 'checkpoint' | 'release' | 'refresh' | null;
 type Notice = { kind: 'success' | 'error' | 'warning'; text: string } | null;
@@ -156,6 +156,11 @@ export function useProjectWorkspace() {
     completeAction: (actionId: number) => execute('complete', () => api.completeAction({ projectId: selected.current!, actionId }), 'Action completed.'),
     reopenAction: (actionId: number) => execute('release', () => api.reopenAction({ projectId: selected.current!, actionId }), 'Action reopened.'),
     createRelease: (name: string, templateId?: number, templateVersion?: number) => execute('release', () => api.createRelease({ projectId: selected.current!, name, ...(templateId !== undefined && templateVersion !== undefined ? { templateId, templateVersion } : {}) }), 'Release created.'),
+    updateReleaseAction: (actionId: number, definition: ActionDefinitionInput) => execute('release', () => api.updateReleaseAction({ projectId: selected.current!, actionId, ...definition }), 'Release action details saved.'),
+    reorderReleaseActions: (releaseId: number, stageId: number, actionIds: number[]) => execute('release', () => api.reorderReleaseActions({ projectId: selected.current!, releaseId, stageId, actionIds }), 'Release action order saved.'),
+    addReleaseStage: (releaseId: number, name: string) => execute('release', () => api.addReleaseStage({ projectId: selected.current!, releaseId, name }), 'Release stage added.'),
+    updateReleaseStage: (releaseId: number, stageId: number, name: string) => execute('release', () => api.updateReleaseStage({ projectId: selected.current!, releaseId, stageId, name }), 'Release stage renamed.'),
+    reorderReleaseStages: (releaseId: number, stageIds: number[]) => execute('release', () => api.reorderReleaseStages({ projectId: selected.current!, releaseId, stageIds }), 'Release stage order saved.'),
     assignAction: (actionId: number, releaseId: number, stageId: number | null) => execute('release', () => api.assignAction({ projectId: selected.current!, actionId, releaseId, stageId }), 'Action scope saved.'),
     setActionExclusion: (actionId: number, reason: string | null) => execute('release', () => api.setActionExclusion({ projectId: selected.current!, actionId, reason }), reason ? 'Action exclusion saved.' : 'Action restored to scope.'),
     setStageExclusion: (releaseId: number, stageId: number, reason: string | null) => execute('release', () => api.setStageExclusion({ projectId: selected.current!, releaseId, stageId, reason }), reason ? 'Stage exclusion saved.' : 'Stage restored to scope.'),

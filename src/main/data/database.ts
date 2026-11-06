@@ -1,11 +1,11 @@
 import { DatabaseSync, backup } from 'node:sqlite';
 import { mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import type { ActionDetails, ActionEvent, Checkpoint, DevelopmentAction, Project, ProjectDetail, ProjectRelease, ReleaseStage, ReleaseVerification, ReleaseWorkspace, WorkflowDetail, WorkflowTemplate } from '../../shared/contracts';
+import type { ActionDefinitionInput, ActionDetails, ActionEvent, Checkpoint, DevelopmentAction, Project, ProjectDetail, ProjectRelease, ReleaseStage, ReleaseVerification, ReleaseWorkspace, WorkflowAction, WorkflowDetail, WorkflowStage, WorkflowTemplate } from '../../shared/contracts';
 import { AppError, payload, positiveId, requiredText } from '../domain';
 import { selectResumeCheckpoint } from '../resume';
 import { calculateReleaseProgress } from '../progress';
-import { getWorkflowLibrary, loadWorkflowTemplate, duplicateWorkflowTemplate } from './workflows';
+import * as workflowData from './workflows';
 
 const projectColumns = 'id, name, created_at AS createdAt';
 const actionQuery = `SELECT a.id, a.project_id AS projectId, a.title, a.created_at AS createdAt,
@@ -152,7 +152,7 @@ export class WorkspaceStore {
     return this.transaction(() => {
       this.findProject(projectId);
       const hasTemplate = values.templateId !== undefined || values.templateVersion !== undefined;
-      const workflow = hasTemplate ? loadWorkflowTemplate(this.db, positiveId(values.templateId), positiveId(values.templateVersion)) : null;
+      const workflow = hasTemplate ? workflowData.loadWorkflowTemplate(this.db, positiveId(values.templateId), positiveId(values.templateVersion)) : null;
       const now = new Date().toISOString();
       const releaseId = Number(this.db.prepare('INSERT INTO releases(project_id, name, created_at, source_template_id, source_template_version, source_template_name) VALUES (?, ?, ?, ?, ?, ?)')
         .run(projectId, name, now, workflow?.template.id ?? null, workflow?.template.version ?? null, workflow?.template.name ?? null).lastInsertRowid);
@@ -180,10 +180,116 @@ export class WorkspaceStore {
     });
   }
 
-  getWorkflowLibrary(): WorkflowDetail[] { return getWorkflowLibrary(this.db); }
+  getWorkflowLibrary(): WorkflowDetail[] { return workflowData.getWorkflowLibrary(this.db); }
 
   duplicateWorkflowTemplate(input: unknown): WorkflowTemplate {
-    return this.transaction(() => duplicateWorkflowTemplate(this.db, input));
+    return this.transaction(() => workflowData.duplicateWorkflowTemplate(this.db, input));
+  }
+
+  createWorkflowTemplate(input: unknown): WorkflowTemplate { return this.transaction(() => workflowData.createWorkflowTemplate(this.db, input)); }
+  updateWorkflowTemplate(input: unknown): WorkflowTemplate { return this.transaction(() => workflowData.updateWorkflowTemplate(this.db, input)); }
+  addWorkflowStage(input: unknown): WorkflowStage { return this.transaction(() => workflowData.addWorkflowStage(this.db, input)); }
+  updateWorkflowStage(input: unknown): WorkflowStage { return this.transaction(() => workflowData.updateWorkflowStage(this.db, input)); }
+  reorderWorkflowStages(input: unknown): WorkflowTemplate { return this.transaction(() => workflowData.reorderWorkflowStages(this.db, input)); }
+  removeWorkflowStage(input: unknown): WorkflowTemplate { return this.transaction(() => workflowData.removeWorkflowStage(this.db, input)); }
+  addWorkflowAction(input: unknown): WorkflowAction { return this.transaction(() => workflowData.addWorkflowAction(this.db, input)); }
+  updateWorkflowAction(input: unknown): WorkflowAction { return this.transaction(() => workflowData.updateWorkflowAction(this.db, input)); }
+  reorderWorkflowActions(input: unknown): WorkflowTemplate { return this.transaction(() => workflowData.reorderWorkflowActions(this.db, input)); }
+  removeWorkflowAction(input: unknown): WorkflowTemplate { return this.transaction(() => workflowData.removeWorkflowAction(this.db, input)); }
+
+  updateReleaseAction(input: unknown): DevelopmentAction {
+    const values = payload(input, ['projectId', 'actionId', 'title', 'instructions', 'applicability', 'definitionOfDone', 'evidenceGuidance', 'actionType']);
+    const projectId = positiveId(values.projectId);
+    const actionId = positiveId(values.actionId);
+    const definition = workflowData.parseActionDefinition(values);
+    return this.transaction(() => {
+      const before = this.findAction(projectId, actionId);
+      this.editableAction(before);
+      if (before.releaseId === null) throw new AppError('VALIDATION', 'Commit this action to a release before editing release details.');
+      if (before.details !== null && Object.entries(definition).every(([key, value]) => key === 'title' ? value === before.title : value === before.details![key as keyof ActionDetails])) return before;
+      this.db.prepare('UPDATE actions SET title = ? WHERE id = ?').run(definition.title, actionId);
+      this.writeActionDetails(actionId, definition, before.details?.position ?? null);
+      this.bump(before.releaseId);
+      const after = this.findAction(projectId, actionId);
+      this.event(projectId, before.releaseId, actionId, 'Updated release action definition', before, after);
+      return after;
+    });
+  }
+
+  reorderReleaseActions(input: unknown): ProjectRelease {
+    const values = payload(input, ['projectId', 'releaseId', 'stageId', 'actionIds']);
+    const projectId = positiveId(values.projectId);
+    const releaseId = positiveId(values.releaseId);
+    const stageId = positiveId(values.stageId);
+    return this.transaction(() => {
+      const release = this.editableRelease(projectId, releaseId);
+      this.findStage(releaseId, stageId);
+      const before = this.projectActions(projectId).filter(action => action.releaseId === releaseId && action.stageId === stageId && action.kind === 'work')
+        .sort((a, b) => (a.details?.position ?? Number.MAX_SAFE_INTEGER) - (b.details?.position ?? Number.MAX_SAFE_INTEGER) || a.id - b.id);
+      const ids = workflowData.validateOrder(values.actionIds, before.map(action => action.id));
+      if (ids.every((id, index) => before[index].id === id)) return release;
+      ids.forEach((id, position) => {
+        const action = before.find(row => row.id === id)!;
+        this.writeActionDetails(id, this.definitionFor(action), position);
+      });
+      this.bump(releaseId);
+      this.event(projectId, releaseId, null, 'Reordered release actions', before, ids.map(id => this.findAction(projectId, id)));
+      return this.findRelease(projectId, releaseId);
+    });
+  }
+
+  addReleaseStage(input: unknown): ReleaseStage {
+    const values = payload(input, ['projectId', 'releaseId', 'name']);
+    const projectId = positiveId(values.projectId);
+    const releaseId = positiveId(values.releaseId);
+    const name = requiredText(values.name, 'Stage name', 200);
+    return this.transaction(() => {
+      const release = this.editableRelease(projectId, releaseId);
+      const closing = this.stages(releaseId).find(stage => stage.key === 'release_confirmation')!;
+      this.db.prepare('UPDATE release_stages SET position = position + 1 WHERE id = ?').run(closing.id);
+      const id = Number(this.db.prepare('INSERT INTO release_stages(release_id, stage_key, name, position) VALUES (?, ?, ?, ?)').run(releaseId, `local_${release.scopeRevision}`, name, closing.position).lastInsertRowid);
+      this.bump(releaseId);
+      const after = this.findStage(releaseId, id);
+      this.event(projectId, releaseId, null, `Added release stage: ${name}`, null, after);
+      return after;
+    });
+  }
+
+  updateReleaseStage(input: unknown): ReleaseStage {
+    const values = payload(input, ['projectId', 'releaseId', 'stageId', 'name']);
+    const projectId = positiveId(values.projectId);
+    const releaseId = positiveId(values.releaseId);
+    const stageId = positiveId(values.stageId);
+    const name = requiredText(values.name, 'Stage name', 200);
+    return this.transaction(() => {
+      this.editableRelease(projectId, releaseId);
+      const before = this.findStage(releaseId, stageId);
+      if (before.name === name) return before;
+      this.db.prepare('UPDATE release_stages SET name = ? WHERE id = ?').run(name, stageId);
+      this.bump(releaseId);
+      const after = this.findStage(releaseId, stageId);
+      this.event(projectId, releaseId, null, `Renamed release stage: ${before.name} → ${name}`, before, after);
+      return after;
+    });
+  }
+
+  reorderReleaseStages(input: unknown): ProjectRelease {
+    const values = payload(input, ['projectId', 'releaseId', 'stageIds']);
+    const projectId = positiveId(values.projectId);
+    const releaseId = positiveId(values.releaseId);
+    return this.transaction(() => {
+      const release = this.editableRelease(projectId, releaseId);
+      const before = this.stages(releaseId);
+      const ids = workflowData.validateOrder(values.stageIds, before.map(stage => stage.id));
+      if (ids.at(-1) !== before.find(stage => stage.key === 'release_confirmation')!.id) throw new AppError('FORBIDDEN', 'Final confirmation must remain in the closing stage.');
+      if (ids.every((id, index) => before[index].id === id)) return release;
+      const offset = Math.max(...before.map(stage => stage.position)) + before.length + 1;
+      this.db.prepare('UPDATE release_stages SET position = position + ? WHERE release_id = ?').run(offset, releaseId);
+      ids.forEach((id, position) => this.db.prepare('UPDATE release_stages SET position = ? WHERE id = ?').run(position, id));
+      this.bump(releaseId);
+      this.event(projectId, releaseId, null, 'Reordered release stages', before, this.stages(releaseId));
+      return this.findRelease(projectId, releaseId);
+    });
   }
 
   assignAction(input: unknown): DevelopmentAction {
@@ -202,6 +308,10 @@ export class WorkspaceStore {
       if (before.releaseId === releaseId && before.stageId === stageId) return before;
       if (before.releaseId === null) this.db.prepare('INSERT INTO release_actions(action_id, release_id, stage_id) VALUES (?, ?, ?)').run(actionId, releaseId, stageId);
       else this.db.prepare('UPDATE release_actions SET stage_id = ? WHERE action_id = ?').run(stageId, actionId);
+      if (before.stageId !== stageId || before.releaseId === null) {
+        const position = stageId === null ? null : this.db.prepare("SELECT COALESCE(MAX(ad.position), -1) + 1 AS position FROM release_actions ra JOIN action_details ad ON ad.action_id = ra.action_id WHERE ra.release_id = ? AND ra.stage_id = ? AND ra.action_id != ? AND ra.kind = 'work'").get(releaseId, stageId, actionId)!.position as number;
+        if (stageId !== null || before.details !== null) this.writeActionDetails(actionId, this.definitionFor(before), position);
+      }
       this.bump(releaseId);
       const after = this.findAction(projectId, actionId);
       this.event(projectId, releaseId, actionId, `${before.releaseId === null ? 'Committed action' : 'Reassigned action'} to ${stage?.name ?? 'Unassigned'}`, before, after);
@@ -377,6 +487,18 @@ export class WorkspaceStore {
 
   private bump(releaseId: number | null): void {
     if (releaseId !== null) this.db.prepare('UPDATE releases SET scope_revision = scope_revision + 1 WHERE id = ?').run(releaseId);
+  }
+
+  private definitionFor(action: DevelopmentAction): ActionDefinitionInput {
+    return { title: action.title, instructions: action.details?.instructions ?? '', applicability: action.details?.applicability ?? '',
+      definitionOfDone: action.details?.definitionOfDone ?? '', evidenceGuidance: action.details?.evidenceGuidance ?? '', actionType: action.details?.actionType ?? 'implementation' };
+  }
+
+  private writeActionDetails(actionId: number, definition: ActionDefinitionInput, position: number | null): void {
+    this.db.prepare(`INSERT INTO action_details(action_id, instructions, applicability, definition_of_done, evidence_guidance, action_type, position) VALUES (?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(action_id) DO UPDATE SET instructions = excluded.instructions, applicability = excluded.applicability,
+      definition_of_done = excluded.definition_of_done, evidence_guidance = excluded.evidence_guidance, action_type = excluded.action_type, position = excluded.position`)
+      .run(actionId, definition.instructions, definition.applicability, definition.definitionOfDone, definition.evidenceGuidance, definition.actionType, position);
   }
 
   private event(projectId: number, releaseId: number | null, actionId: number | null, description: string, before: unknown, after: unknown): void {

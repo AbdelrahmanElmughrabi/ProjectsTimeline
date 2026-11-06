@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import { temporaryDirectory } from '../helpers.mjs';
 import { launchWorkspace, createProject, openProject, saveCheckpoint } from '../electron-flow.mjs';
 
@@ -60,4 +61,171 @@ test('duplicate a persisted workflow, apply it twice, display engineering detail
   assert.deepEqual(recovered, snapshot);
   await page.getByRole('region', { name: 'Resume Development', exact: true }).getByText('Review reusable workflow copies', { exact: true }).waitFor();
   assert.equal((await page.evaluate(async () => (await window.workspace.getWorkflowLibrary()).value)).length, 2);
+});
+
+test('workflow editing, local release edits and compact layouts use independent persisted definitions', { timeout: 120000 }, async t => {
+  let application;
+  const directory = temporaryDirectory(t, () => application?.close());
+  application = await launchWorkspace(directory);
+  const page = await application.firstWindow();
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.getByRole('button', { name: 'Workflows', exact: true }).click();
+  await page.getByText('Create a workflow', { exact: true }).click();
+  const createForm = page.locator('.workflow-create-form');
+  await createForm.getByLabel('Workflow name', { exact: true }).fill('Editable workflow');
+  await createForm.getByLabel('Description', { exact: true }).fill('A persisted solo workflow');
+  await createForm.getByRole('button', { name: 'Create workflow', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await page.getByRole('heading', { name: 'Editable workflow', exact: true }).waitFor();
+  const header = page.locator('.workflow-template-form');
+  await header.getByLabel('Template name', { exact: true }).fill('Reviewed workflow');
+  await header.getByRole('button', { name: 'Save template', exact: true }).click();
+  await page.getByRole('heading', { name: 'Reviewed workflow', exact: true }).waitFor();
+  await page.getByLabel('Add stage before protected closing', { exact: true }).fill('Release checks');
+  await page.locator('.workflow-add-stage').getByRole('button', { name: 'Add stage', exact: true }).click();
+  const readSource = () => page.evaluate(async () => (await window.workspace.getWorkflowLibrary()).value.find(item => item.template.name === 'Reviewed workflow'));
+  await page.getByLabel('Stage 7 name', { exact: true }).waitFor();
+  let source = await readSource();
+  const custom = source.stages.find(stage => stage.name === 'Release checks');
+  const stage = page.locator('.workflow-stage').filter({ has: page.locator(`#workflow-stage-name-${custom.id}`) });
+  for (const title of ['Test persistence after restart', 'Inspect recovery failure']) {
+    await stage.getByLabel('Quick add action', { exact: true }).fill(title);
+    await stage.getByRole('button', { name: 'Add action', exact: true }).click();
+    await stage.getByRole('heading', { name: title, exact: true }).waitFor();
+  }
+  await stage.getByRole('button', { name: 'Move Inspect recovery failure up', exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('.workflow-stage .workflow-actions h4')?.textContent === 'Inspect recovery failure');
+  await stage.getByRole('button', { name: 'Edit Test persistence after restart', exact: true }).click();
+  let editor = page.locator('.workflow-action-editor');
+  await editor.getByLabel('Instructions', { exact: true }).fill('Restart completely and inspect saved state. ' + 'LongEvidence'.repeat(40));
+  await editor.getByLabel('Applicability', { exact: true }).fill('Persistent local project data');
+  await editor.getByLabel('Definition of done', { exact: true }).fill('The saved state is restored exactly after restarting.');
+  await editor.getByLabel('Evidence guidance', { exact: true }).fill('Recorded restart result or automated recovery test');
+  await editor.getByLabel('Classification', { exact: true }).selectOption('verification');
+  await editor.getByRole('button', { name: 'Save action', exact: true }).click();
+  await editor.waitFor({ state: 'detached' });
+  await stage.getByRole('button', { name: 'Edit Inspect recovery failure', exact: true }).click();
+  editor = page.locator('.workflow-action-editor');
+  await editor.getByLabel('Stage', { exact: true }).selectOption(String(source.stages[0].id));
+  await editor.getByRole('button', { name: 'Save action', exact: true }).click();
+  await editor.waitFor({ state: 'detached' });
+  await stage.getByLabel('Stage 7 name', { exact: true }).fill('Reliability checks');
+  await stage.getByRole('button', { name: 'Save stage name', exact: true }).click();
+  await stage.getByRole('button', { name: 'Move Reliability checks up', exact: true }).click();
+  await page.getByLabel('Stage 6 name', { exact: true }).waitFor();
+  source = await readSource();
+  assert.equal(source.stages.at(-1).protectedClosing, true);
+  assert.equal(source.stages.length, 8);
+  await page.getByLabel('Add stage before protected closing', { exact: true }).fill('Temporary definition stage');
+  await page.locator('.workflow-add-stage').getByRole('button', { name: 'Add stage', exact: true }).click();
+  const removeStage = page.getByRole('button', { name: 'Remove empty stage Temporary definition stage', exact: true });
+  await removeStage.click();
+  await removeStage.waitFor({ state: 'detached' });
+  const moved = page.getByRole('button', { name: 'Remove action Inspect recovery failure', exact: true });
+  await moved.click();
+  await moved.waitFor({ state: 'detached' });
+  source = await readSource();
+  assert.equal(source.actions.length, 1);
+  assert.equal(source.actions[0].actionType, 'verification');
+  await page.getByText('Create a workflow', { exact: true }).click();
+  mkdirSync(resolve('artifacts'), { recursive: true });
+  for (const width of [800, 1160, 1440]) {
+    await application.evaluate(({ BrowserWindow }, value) => BrowserWindow.getAllWindows()[0].setSize(value, 900), width);
+    await page.evaluate(() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))));
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Workflow overflow at ${width}`);
+    await page.evaluate(() => scrollTo(0, 0));
+    await page.screenshot({ path: resolve(`artifacts/workflows-${width}.png`), fullPage: false });
+  }
+  await createProject(page, 'Local workflow project');
+  await openProject(page, 'Local workflow project');
+  await page.getByLabel('New release name', { exact: true }).fill('Independent checklist');
+  await page.getByLabel('Workflow template', { exact: true }).selectOption(String(source.template.id));
+  await page.getByRole('button', { name: 'Create release', exact: true }).click();
+  await page.getByRole('status').filter({ hasText: 'Release created.' }).waitFor();
+  let project = await page.evaluate(async () => {
+    const id = (await window.workspace.listProjects()).value[0].id;
+    return (await window.workspace.openProject({ projectId: id })).value;
+  });
+  const release = project.releases[0];
+  await page.getByLabel('Selected release', { exact: true }).selectOption(String(release.release.id));
+  const action = project.actions.find(item => item.kind === 'work');
+  await page.getByRole('button', { name: `Edit engineering details for ${action.title}`, exact: true }).click();
+  const local = page.locator('.release-action-editor');
+  await local.getByLabel('Action title', { exact: true }).fill('Release-local restart review');
+  await local.getByLabel('Instructions', { exact: true }).fill('Release-specific restart procedure');
+  const raw = new DatabaseSync(join(directory, 'data', 'workspace.sqlite'));
+  try {
+    raw.exec("CREATE TRIGGER reject_local_details BEFORE UPDATE ON action_details BEGIN SELECT RAISE(ABORT, 'controlled local edit failure'); END");
+    await local.getByRole('button', { name: 'Save action details', exact: true }).click();
+    await page.getByRole('alert').waitFor();
+    assert.equal(await local.getByLabel('Action title', { exact: true }).inputValue(), 'Release-local restart review');
+    assert.equal(raw.prepare('SELECT title FROM actions WHERE id = ?').get(action.id).title, action.title);
+    raw.exec('DROP TRIGGER reject_local_details');
+    await local.getByRole('button', { name: 'Save action details', exact: true }).click();
+    await page.getByRole('status').filter({ hasText: 'Release action details saved.' }).waitFor();
+    await local.waitFor({ state: 'detached' });
+  } finally { raw.close(); }
+  project = await page.evaluate(async projectId => (await window.workspace.openProject({ projectId })).value, project.project.id);
+  assert.equal(project.actions.find(item => item.id === action.id).details.instructions, 'Release-specific restart procedure');
+  assert.equal(project.releases[0].release.scopeRevision, release.release.scopeRevision + 1);
+  await page.getByLabel('Add local release stage', { exact: true }).fill('Local-only review');
+  await page.locator('.release-add-stage').getByRole('button', { name: 'Add stage', exact: true }).click();
+  await page.getByRole('status').filter({ hasText: 'Release stage added.' }).waitFor();
+  const latest = await readSource();
+  assert.equal(latest.stages.length, 8);
+  assert.equal(latest.actions[0].instructions, source.actions[0].instructions);
+  assert.equal(latest.template.version, source.template.version);
+  const localStage = page.locator('.stage-card').filter({ has: page.getByRole('heading', { name: 'Local-only review', exact: true }) });
+  await localStage.getByText('Stage options', { exact: true }).click();
+  const last = await page.evaluate(async projectId => (await window.workspace.openProject({ projectId })).value, project.project.id);
+  const localStageId = last.releases[0].stages.find(item => item.name === 'Local-only review').id;
+  await localStage.locator(`#release-stage-name-${localStageId}`).fill('Renamed local review');
+  await localStage.getByRole('button', { name: 'Save stage name', exact: true }).click();
+  await page.getByRole('status').filter({ hasText: 'Release stage renamed.' }).waitFor();
+  await page.getByRole('button', { name: 'Move Renamed local review up', exact: true }).click();
+  await page.getByRole('status').filter({ hasText: 'Release stage order saved.' }).waitFor();
+  assert.equal(page.url(), 'app://workspace/index.html');
+  assert.deepEqual(errors, []);
+});
+
+test('workflow copy failures retain drafts and acknowledged copies retry reads without duplication', { timeout: 90000 }, async t => {
+  let application;
+  const directory = temporaryDirectory(t, () => application?.close());
+  application = await launchWorkspace(directory);
+  const page = await application.firstWindow();
+  await page.getByRole('button', { name: 'Workflows', exact: true }).click();
+  await page.getByText('Built in · read only', { exact: true }).waitFor();
+  const raw = new DatabaseSync(join(directory, 'data', 'workspace.sqlite'));
+  try {
+    raw.exec("CREATE TRIGGER reject_workflow_copy BEFORE INSERT ON workflow_templates BEGIN SELECT RAISE(ABORT, 'controlled copy failure'); END");
+    await page.getByLabel('Name for the copy', { exact: true }).fill('Kept duplicate draft');
+    await page.getByRole('button', { name: 'Duplicate template', exact: true }).click();
+    await page.getByRole('alert').waitFor();
+    assert.equal(await page.getByLabel('Name for the copy', { exact: true }).inputValue(), 'Kept duplicate draft');
+    assert.equal(raw.prepare('SELECT COUNT(*) AS n FROM workflow_templates').get().n, 1);
+    raw.exec('DROP TRIGGER reject_workflow_copy');
+    await application.evaluate(({ app }) => {
+      const load = process.getBuiltinModule('module').createRequire(app.getAppPath() + '/package.json');
+      const { WorkspaceStore } = load('./dist/main/data/database.js');
+      const original = WorkspaceStore.prototype.getWorkflowLibrary;
+      let failures = 2;
+      WorkspaceStore.prototype.getWorkflowLibrary = function() {
+        if (failures-- > 0) throw new Error('controlled workflow refresh failure');
+        WorkspaceStore.prototype.getWorkflowLibrary = original;
+        return original.call(this);
+      };
+    });
+    await page.getByRole('button', { name: 'Duplicate template', exact: true }).click();
+    await page.getByRole('alert').filter({ hasText: 'Saved, but the library could not refresh.' }).waitFor();
+    assert.equal(await page.locator('.workflow-library-content').isVisible(), false);
+    assert.equal(raw.prepare('SELECT COUNT(*) AS n FROM workflow_templates').get().n, 2);
+    await page.getByRole('button', { name: 'Retry loading', exact: true }).click();
+    await page.getByRole('alert').waitFor();
+    await page.getByRole('button', { name: 'Retry loading', exact: true }).click();
+    await page.getByRole('heading', { name: 'Kept duplicate draft', exact: true }).waitFor();
+    assert.equal(await page.getByLabel('Name for the copy', { exact: true }).inputValue(), '');
+    assert.equal(raw.prepare('SELECT COUNT(*) AS n FROM workflow_templates').get().n, 2);
+    assert.equal(raw.prepare('SELECT COUNT(*) AS n FROM workflow_template_actions').get().n, 16);
+  } finally { raw.close(); }
 });

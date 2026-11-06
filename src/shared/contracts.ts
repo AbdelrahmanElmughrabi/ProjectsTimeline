@@ -28,6 +28,8 @@ export interface ActionDetails {
   position: number | null;
 }
 
+export type ActionDefinitionInput = Omit<ActionDetails, 'position'> & { title: string };
+
 export interface WorkflowTemplate {
   id: number; name: string; description: string; version: number;
   builtInKey: string | null; createdAt: string; updatedAt: string;
@@ -128,6 +130,21 @@ export interface WorkspaceApi {
   createRelease(input: { projectId: number; name: string; templateId?: number; templateVersion?: number }): Promise<Result<ProjectRelease>>;
   getWorkflowLibrary(): Promise<Result<WorkflowDetail[]>>;
   duplicateWorkflowTemplate(input: { templateId: number; expectedVersion: number; name: string }): Promise<Result<WorkflowTemplate>>;
+  createWorkflowTemplate(input: { name: string; description: string }): Promise<Result<WorkflowTemplate>>;
+  updateWorkflowTemplate(input: { templateId: number; expectedVersion: number; name: string; description: string }): Promise<Result<WorkflowTemplate>>;
+  addWorkflowStage(input: { templateId: number; expectedVersion: number; name: string }): Promise<Result<WorkflowStage>>;
+  updateWorkflowStage(input: { templateId: number; expectedVersion: number; stageId: number; name: string }): Promise<Result<WorkflowStage>>;
+  reorderWorkflowStages(input: { templateId: number; expectedVersion: number; stageIds: number[] }): Promise<Result<WorkflowTemplate>>;
+  removeWorkflowStage(input: { templateId: number; expectedVersion: number; stageId: number }): Promise<Result<WorkflowTemplate>>;
+  addWorkflowAction(input: { templateId: number; expectedVersion: number; stageId: number; title: string }): Promise<Result<WorkflowAction>>;
+  updateWorkflowAction(input: { templateId: number; expectedVersion: number; actionId: number; stageId: number } & ActionDefinitionInput): Promise<Result<WorkflowAction>>;
+  reorderWorkflowActions(input: { templateId: number; expectedVersion: number; stageId: number; actionIds: number[] }): Promise<Result<WorkflowTemplate>>;
+  removeWorkflowAction(input: { templateId: number; expectedVersion: number; actionId: number }): Promise<Result<WorkflowTemplate>>;
+  updateReleaseAction(input: { projectId: number; actionId: number } & ActionDefinitionInput): Promise<Result<DevelopmentAction>>;
+  reorderReleaseActions(input: { projectId: number; releaseId: number; stageId: number; actionIds: number[] }): Promise<Result<ProjectRelease>>;
+  addReleaseStage(input: { projectId: number; releaseId: number; name: string }): Promise<Result<ReleaseStage>>;
+  updateReleaseStage(input: { projectId: number; releaseId: number; stageId: number; name: string }): Promise<Result<ReleaseStage>>;
+  reorderReleaseStages(input: { projectId: number; releaseId: number; stageIds: number[] }): Promise<Result<ProjectRelease>>;
   assignAction(input: { projectId: number; actionId: number; releaseId: number; stageId: number | null }): Promise<Result<DevelopmentAction>>;
   setActionExclusion(input: { projectId: number; actionId: number; reason: string | null }): Promise<Result<DevelopmentAction>>;
   setStageExclusion(input: { projectId: number; releaseId: number; stageId: number; reason: string | null }): Promise<Result<ReleaseStage>>;

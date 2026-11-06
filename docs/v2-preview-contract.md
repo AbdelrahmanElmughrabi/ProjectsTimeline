@@ -55,7 +55,7 @@ Current templates have `builtInKey`/version and mandatory protected closing stag
 
 ## 6. Named commands, snapshot lifecycle and view contract
 
-Canonical declarations: [src/shared/blueprint-preview.ts](../src/shared/blueprint-preview.ts). The [original review entry](agent-handoffs/contracts/v2-preview.ts) now type-reexports this module to prevent drift. The standalone module uses type-only imports/exports: no runtime values, WorkspaceApi extension, handler/channel registration, preload/global declaration, parser/controller/UI or dependency change. Diagnostic code/severity pairs are a discriminated union: workflow-purpose diagnostics cannot be emitted as syntax errors under this contract. This shared-type commit is reviewable now; it does **not** open implementation.
+Canonical declarations: [src/shared/blueprint-preview.ts](../src/shared/blueprint-preview.ts). The [original review entry](agent-handoffs/contracts/v2-preview.ts) type-reexports it to prevent drift. That standalone module still has no runtime values. The original 601a350/838a8eb type-only commits did not register an API; later explicit Phase B authorization added the separate WorkspaceApi extension/main/preload/controller implementation. Diagnostic code/severity pairs are a discriminated union: workflow-purpose diagnostics cannot be emitted as syntax errors. Native file grant authority never crosses the bridge.
 
 | Future fixed command | Behavior |
 | --- | --- |

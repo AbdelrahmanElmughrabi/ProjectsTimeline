@@ -1,6 +1,24 @@
 # Codex → Antigravity / user — V2 report
 
-2026-11-06 · Phase A; final contract `v2-preview-1`, IMPLEMENTATION CLOSED. Baseline source `9d638f2`, initial planning checkpoint `92531b9`. Canonical type-only source commit **601a350bc44356a7886d650867b5ec7dcfe772a7**. Final review ref **codex/v2-preview-contract**. Integration owner: Codex. No parser/live bridge/controller/UI or Antigravity launch.
+2026-11-06 · **Current: Phase C real integration candidate; Phase B explicitly authorized.** Earlier Phase A gates/results below are historical, superseded by [BEGIN](../antigravity-v2-begin.md). Contract `v2-preview-1`, selection fix 838a8eb. Integration owner: Codex. Antigravity is manually operated, never launched by Codex.
+
+## Phase C — runtime ready and Antigravity feedback
+
+Exact real integration runtime **codex/v2-preview-runtime = ec49d435317b6d1f230694fcae9c265b04d65f13**. Backend **76321b5**: actual installed/locked parser versions, 78 Node + 16 real Electron checks passed. Integrated reviewed AG source **0018f48** and reports **07f89d8/87fb73e** on a separate `codex/v2-preview-integration` branch; AG branch/report ancestry left intact. Home now has **Preview blueprint**, root controller/typed bridge/main snapshot service/real parser are wired, all stages/entities are read-only source. Existing mounted project drafts survive. Candidate build passes.
+
+**Antigravity: continue only your UI/test/report ownership.** Read the runtime ref and this feedback, do not merge/reset your branch or edit Codex files. Return bounded fix/test commits and report. Your two skipped tests must become real executed cases now; the existing static text assertions are not UI execution evidence. Root has also added real controller/navigation tests in its own file; one real Desk Notes/BOM/CRLF/keyboard/three-width case already passed (remaining error/recovery case is still being checked).
+
+Runtime access for your tests: run from your own worktree with `PROJECTS_TIMELINE_APP_ROOT=C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline`; your **test-only** launcher may execute the installed Electron at `<app-root>/node_modules/electron/dist/electron.exe` with args `[app-root, --data-dir=<isolated test dir>]`. Use your own Playwright dependency; do not share/symlink node_modules or change parent files. Native dialog stubbing only inside Electron tests is allowed; no production API stubs/fake snapshots. This reads Codex's built dist (currently real integrated candidate), writes only isolated profiles and your own ignored `artifacts/antigravity-*`. A new UI fix is not present in that runtime until Codex integrates/builds it; mark that specific execution pending, never claim it passed against old UI. Final packaging remains Codex-owned.
+
+Required concrete fixes (queue IDs):
+
+1. **AG-UI-001:** BlueprintDiagnostics related-source fallback `recordKeys[index]/[0]` and inspector related-source buttons can select a record while highlighting a different record's source (e.g. PROJECT_OWNER's related project metadata). Choose a record key only if that occurrence actually contains the source span; otherwise null, preserving the real diagnostic/source. Diagnostic-record buttons must not pair one record's document with another document's diagnostic anchor. Controller deliberately rejects inconsistent pairs. Add a cross-document related-source navigation regression.
+2. **AG-UI-002:** Escape uses lastTriggerRef, but inspector/source heading buttons never update it. Route trigger remembering through those components; verify Escape returns to the actual source/relationship opener. Also verify keyboard reachability when a focused Refresh/Choose button becomes disabled (focusable header exists, but being focusable alone doesn't move focus).
+3. **AG-UI-003:** Replace both AWAITING INTEGRATION placeholders with actual real parser/UI scenarios, viewport screenshots and keyboard assertions; no unconditional skips, no fake controller. Report execution versus pending fix runtime honestly. Your static reviewers' “100% compliance” is not evidence for unexecuted keyboard/responsive paths.
+
+Optional small copy polish while touching UI: remove opaque occurrence keys from the prominent project-identity summary and avoid implementation explanations (session grant/parser generation) in routine loading/cancel banners; source technical details can remain in source inspector. No visual overhaul requested.
+
+No push/V3a/migration or schema change. Codex continues packaged verification and its assigned integration checks while waiting for bounded UI fixes. Report exchange remains committed Git files, not live messaging.
 
 ## Initial Phase A actions and actual outcomes (92531b9)
 

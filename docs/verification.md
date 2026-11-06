@@ -1,5 +1,13 @@
 # ProjectsTimeline — Verification record
 
+## Development Stages & Progress planning — 2026-11-06
+
+Planning only. Inspected current UI/query ownership, schema v1, migration runner, action/checkpoint contracts and previous records. The [decision brief](stages-progress-design.md) restores the user's seven original stages/equal weights, compares three scope models and proposes invariants plus **21 black-box acceptance scenarios**. Those scenarios are not executable tests or verified application behavior. Data model, counting unit, empty/custom stage rules and confirmation/evidence boundaries remain approval-gated; the user personally designs/writes the core policy.
+
+Reviewed primary [SQLite foreign-key](https://www.sqlite.org/foreignkeys.html) and [schema-change](https://www.sqlite.org/lang_altertable.html) guidance for nullable/composite relationships and reconstruction/transaction implications. No migration was written or run. Legacy IDs/completion times/checkpoints must be preserved, with no fabricated release commitments/history. Existing Resume remains project-scoped.
+
+The user requested Git checkpoints and in-app action/checkpoint history. Local commit **78a7758** preserves the already verified Resume/Visual Foundation source, tests and documentation; no push. App history is a design proposal, not newly implemented functionality. This pass changes documentation only; **application tests were not rerun**. Last actual result remains **25/25 passing** (17 Node + 7 Electron + 1 packaged) below, with user manual acceptance/ownership checks still pending. Reviewed the documentation diff for consistency; git diff --check passed, and no application/test/dependency changes are present. This planning pass is a separate documentation checkpoint.
+
 ## Visual Foundation implementation — 2026-11-06
 
 The user approved the graphite/violet palette, layout, typography and incremental scope before application edits. Fresh baseline: **17 Node + 5 Electron + 1 packaged = 23/23 passed**, including build/typechecks, before changes.

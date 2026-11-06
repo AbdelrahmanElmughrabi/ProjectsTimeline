@@ -3,6 +3,7 @@ import { mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import type { Checkpoint, DevelopmentAction, Project, ProjectDetail } from '../../shared/contracts';
 import { AppError, payload, positiveId, requiredText } from '../domain';
+import { selectResumeCheckpoint } from '../resume';
 
 const projectColumns = 'id, name, created_at AS createdAt';
 const actionColumns = 'id, project_id AS projectId, title, created_at AS createdAt, completed_at AS completedAt';
@@ -74,7 +75,7 @@ export class WorkspaceStore {
     const project = this.findProject(projectId);
     const actions = this.db.prepare(`SELECT ${actionColumns} FROM actions WHERE project_id = ? ORDER BY id`).all(projectId) as unknown as DevelopmentAction[];
     const checkpoints = this.db.prepare(`SELECT ${checkpointColumns} FROM checkpoints WHERE project_id = ? ORDER BY created_at DESC, id DESC`).all(projectId) as unknown as Checkpoint[];
-    return { project, actions, checkpoints };
+    return { project, actions, checkpoints, resume: selectResumeCheckpoint(checkpoints) };
   }
 
   addAction(input: unknown): DevelopmentAction {

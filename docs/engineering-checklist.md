@@ -1,6 +1,6 @@
 # ProjectsTimeline — Engineering checklist
 
-Updated: 2026-11-05. Milestone: first vertical slice. Foundation approval: **approved, including `node:sqlite`**. Implementation and automated verification complete; user review/manual acceptance pending.
+Updated: 2026-11-06. Milestones: foundation, Resume and approved Visual Foundation implemented; automated checks pass. User manual acceptance/review pending. Stages/progress and release implementation are not authorized.
 
 States: **Undecided → Designed → Implemented → Verified**. Undecided includes AI proposals awaiting the user's decision. Designed means agreed, not merely written. Verified requires recorded results; generated code or a test file is insufficient.
 
@@ -26,17 +26,37 @@ States: **Undecided → Designed → Implemented → Verified**. Undecided inclu
 | Security | Local file/database access controlled | Verified | Main owns fixed profile data path; protocol serves only document/build assets |
 | Security | Untrusted input handled safely | Verified | Required/bounded input, bound SQL and inert stored markup checks pass |
 | Verification | User defines expected behavior | Designed | User approved proposed rules/criteria on 2026-11-05 |
-| Verification | Unit tests cover business rules | Verified | npm test: 12/12 rules/integration/boundary checks |
+| Verification | Unit tests cover business rules | Verified | npm test: 17/17 rules/integration/boundary checks, including Resume selector/query |
 | Verification | Persistence integration test exists and passes | Verified | Real-file Node tests, Electron restart and packaged restart pass |
 | Verification | Manual restart/recovery completed | Designed | Await user's own packaged-app flow; automated result does not complete this |
 | Verification | Failure cases tested | Verified | Invalid input/IDs, locked/aborted writes, failed migration/backup/newer schema |
-| Verification | Results/unresolved issues recorded | Verified | verification.md records 12 + 2 + 1 passing checks, fixes and limits |
+| Verification | Results/unresolved issues recorded | Verified | verification.md preserves earlier evidence, visual baseline 23/23 and current 17 + 7 + 1 checks, screenshots and limits |
 | Ownership | User can explain architecture | Undecided | Walk through boundaries |
 | Ownership | User understands important data flows | Undecided | Trace request, validation, commit, UI acknowledgement |
 | Ownership | User understands core implementation | Undecided | Line-by-line review of sensitive code |
 | Ownership | User can debug basic application | Undecided | Trace one controlled failure without AI taking over |
-| Ownership | User reviews AI implementation (replaces personal coding requirement) | Designed | User requested AI implementation with their review on 2026-11-05; sensitive code still requires line-by-line review |
+| Ownership | User personally designs/implements stage-progress calculation and policy | Designed | User explicitly reserved this component; implementation pending before A2. AI must not implement the algorithm |
 
-Latest evidence: [verification.md](verification.md) records actual commands/results and test links. Runtime: Electron 45.2.3 / embedded Node 24.22.2. Build/typechecks, 12 Node checks, two Electron scenarios, packaging and one packaged recovery check passed. Normal/compact screenshots inspected. Verified states refer to this evidence, not a full security audit or completed user review.
+Latest evidence: [verification.md](verification.md) records baseline 23/23 before visual edits and final 25/25 (17 Node + 7 Electron + 1 packaged). Build/typechecks and packaging pass. Inspected 800/1160/1440, empty, keyboard and real error/stale captures. Eleven protected source/dependency files match pre-visual SHA-256 hashes; main changes only its startup background. Verified states refer to recorded automation/inspection, not user acceptance or a full accessibility/security audit.
 
-Next gate: user reviews the sensitive implementation line by line, performs manual restart/recovery, and traces one save/failure. Keep the ownership-understanding items open until the user demonstrates them. No additional first-slice implementation is currently outstanding.
+Next gate: user accepts the Visual Foundation after reviewing screenshots and using actual project/create/action/checkpoint/Resume flows, keyboard and compact layout. Keep manual Resume/understanding checks open until completed. Stop before stages; the user owns the stage-progress policy. Release lifecycle remains future E.
+
+## New roadmap decisions
+
+These supplement preserved M1 evidence. The Continue Implementation brief approved Resume and its refresh strategy. Feature-level Resume remains Implemented until its manual acceptance criterion is complete; automated criteria have recorded verification. Other draft proposals remain Undecided until accepted.
+
+| Category | Proposed work / decision | State | Evidence / next gate |
+| --- | --- | --- | --- |
+| Requirements and scope | Resume slice and its six acceptance criteria | Implemented | User approved all criteria; automated 1–5 pass, manual criterion 6 pending |
+| Architecture/module boundaries | One workspace snapshot owner; refresh from main after committed commands | Verified | useProjectWorkspace; tests distinguish write failure, committed/read failure, repeated read-only retries and stale responses |
+| Data/migration safety | Resume uses existing schema v1 without migration | Verified | Existing 001 unchanged; real-file integration confirms version 1 and context recovery; future schema changes need separate approval |
+| State transitions | Reopening/history, stage meaning, decisions and verification/readiness freshness | Undecided | Existing complete-only rule stays; review new policies before their slices |
+| Security/error handling | Preserve narrow IPC and accurate failure/retry feedback | Verified | Same six channels/preload; original boundary checks pass; actual write failure and repeated read failure tested |
+| UI scope/accessibility | Approved Visual Foundation on the existing project screen | Implemented | User-approved scope complete; automated evidence/screenshots recorded; user acceptance pending |
+| Testing/verification | Retain M1 regressions; selector/refresh/navigation/restart checks | Verified | Baseline rerun 15/15 before edits; final 23/23 with source and packaged Resume recovery |
+| Testing/verification | User manual Resume acceptance and line-by-line review | Designed | Pending user execution/review; do not mark complete from automation |
+| Developer ownership | User owns stage-progress calculation and policy | Designed | Help define invariants, review user algorithm/implementation, and test it; do not generate core logic |
+| Release scope/evidence | Future E: preparation, publication and final release verification | Undecided | Dependencies: requirements/checks/evidence/freshness, source/artifact identity, lifecycle/targets/permissions and release acceptance policy |
+| Visual consistency | Semantic theme/spacing/type/state/layout tokens and reduced-motion-aware feedback | Verified | tokens.css + shared native styles; sampled rendered contrast/hover and reduced motion checked; no settings system added |
+| Visual verification | Preserve baseline; keyboard/overflow/long-content/state/layout inspection | Verified | All previous 23 checks retained; 2 added Electron scenarios; 25/25 pass with 800/1160/1440 and error-state screenshots |
+| Manual visual acceptance | User reviews density, contrast, focus/keyboard and real-project interactions | Designed | Pending user; automated checks and agent screenshot inspection do not complete this gate |

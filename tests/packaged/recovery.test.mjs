@@ -26,8 +26,11 @@ test('packaged executable uses bundled SQLite and recovers committed data withou
   page = await application.firstWindow();
   await openProject(page, 'Packaged recovery');
   await page.getByText('Completed', { exact: true }).waitFor();
-  await page.getByText('Packaged executable runs', { exact: true }).waitFor();
-  await page.getByText('Review the foundation', { exact: true }).waitFor();
+  const resume = page.getByRole('region', { name: 'Resume Development', exact: true });
+  await resume.getByText('Packaged executable runs', { exact: true }).waitFor();
+  await resume.getByText('Review the foundation', { exact: true }).waitFor();
+  const savedTime = await resume.locator('time').getAttribute('dateTime');
+  assert.equal(await page.locator('.checkpoint-card time').getAttribute('dateTime'), savedTime);
   assert.equal(await page.locator('.action-row').count(), 1);
   assert.equal(await page.locator('.checkpoint-card').count(), 1);
   assert.equal(new URL(page.url()).protocol, 'app:');

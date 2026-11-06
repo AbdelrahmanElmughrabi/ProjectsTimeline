@@ -30,6 +30,29 @@ test('real file survives close/reopen with isolated projects, completion and che
   assert.equal(store.openProject({ projectId: project.id }).checkpoints.length, 2);
 });
 
+test('workspace query derives project-scoped Resume with timestamp tie-breaking and file recovery', async (t) => {
+  let store;
+  const filename = join(temporaryDirectory(t, () => store?.close()), 'workspace.sqlite');
+  store = await openStore(filename);
+  const { id: projectId } = store.createProject({ name: 'Resume' });
+  const other = store.createProject({ name: 'Other' });
+  assert.equal(store.openProject({ projectId }).resume, null);
+  store.saveCheckpoint({ projectId, accomplished: 'First accomplishment', nextSteps: 'First next step' });
+  const latest = store.saveCheckpoint({ projectId, accomplished: 'Second accomplishment', nextSteps: 'Saved free text, not an inferred action' });
+  store.saveCheckpoint({ projectId: other.id, accomplished: 'Different project', nextSteps: 'Never show in Resume' });
+  const raw = new DatabaseSync(filename);
+  raw.prepare('UPDATE checkpoints SET created_at = ? WHERE project_id = ?').run('2026-11-05T10:00:00.000Z', projectId);
+  assert.equal(raw.prepare('PRAGMA user_version').get().user_version, 1);
+  raw.close();
+  const detail = store.openProject({ projectId });
+  assert.equal(detail.resume.id, latest.id);
+  assert.deepEqual(detail.resume, detail.checkpoints[0]);
+  assert.equal(detail.resume.nextSteps, 'Saved free text, not an inferred action');
+  store.close();
+  store = await openStore(filename);
+  assert.deepEqual(store.openProject({ projectId }).resume, detail.resume);
+});
+
 test('SQL-like text is stored literally; invalid input and missing relationships do not change rows', async (t) => {
   let store;
   const filename = join(temporaryDirectory(t, () => store?.close()), 'workspace.sqlite');

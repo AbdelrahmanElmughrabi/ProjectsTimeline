@@ -84,6 +84,10 @@ The user approved these criteria on 2026-11-05. Personal verification of importa
 
 **Ownership amendment, 2026-11-05:** the user requested that AI implement the components and the user check them. This replaces the original requirement to personally implement a core component. Preserve the line-by-line review requirement for persistence, state changes, errors, concurrency and security; implementation does not demonstrate the user's understanding by itself.
 
+Later amendment, same date: the new feature-alignment brief restores personal design/implementation of an important domain component for future work. Selection and next-slice approval are pending in [feature-alignment.md](feature-alignment.md); the prior M1 implementation is retained.
+
+Continuation update, 2026-11-06: Resume selection/refresh was approved and implemented; the user's chosen personal component is stage-progress calculation and policy. [ADR 0002](adr/0002-resume-workspace.md) and [verification](verification.md) record that slice. Stop for user review before the next visual or feature milestone.
+
 ## Decision checkpoint
 
 1. Approved: Windows-first scope, Electron/React/TypeScript/Vite, Node tests, Playwright and Forge packaging.

@@ -98,6 +98,7 @@ test('actual failed checkpoint write preserves form input and allows retry', { t
   const page = await application.firstWindow();
   await createProject(page, 'Failure case');
   await openProject(page, 'Failure case');
+  await saveCheckpoint(page, 'Confirmed accomplishment', 'Confirmed next step');
   const raw = new DatabaseSync(join(directory, 'data', 'workspace.sqlite'));
   try {
     raw.exec("CREATE TRIGGER fail_checkpoint BEFORE INSERT ON checkpoints BEGIN SELECT RAISE(ABORT, 'controlled failure'); END");
@@ -107,12 +108,18 @@ test('actual failed checkpoint write preserves form input and allows retry', { t
     await page.getByRole('alert').waitFor();
     assert.equal(await page.getByLabel('What I accomplished', { exact: true }).inputValue(), 'Keep this accomplishment');
     assert.equal(await page.getByLabel('What to do next', { exact: true }).inputValue(), 'Retry this save');
-    assert.equal(await page.locator('.checkpoint-card').count(), 0);
-    assert.equal(raw.prepare('SELECT COUNT(*) AS count FROM checkpoints').get().count, 0);
+    assert.equal(await page.locator('.checkpoint-card').count(), 1);
+    const resume = page.getByRole('region', { name: 'Resume Development', exact: true });
+    assert.equal(await resume.getByText('Confirmed next step', { exact: true }).count(), 1);
+    assert.equal(await resume.getByText('Retry this save', { exact: true }).count(), 0);
+    assert.equal(raw.prepare('SELECT COUNT(*) AS count FROM checkpoints').get().count, 1);
+    mkdirSync(resolve('artifacts'), { recursive: true });
+    await page.screenshot({ path: resolve('artifacts/visual-write-error.png'), fullPage: true, animations: 'disabled' });
     raw.exec('DROP TRIGGER fail_checkpoint');
     await page.getByRole('button', { name: 'Save checkpoint', exact: true }).click();
     await page.getByRole('status').filter({ hasText: 'Checkpoint saved.' }).waitFor();
-    assert.equal(await page.locator('.checkpoint-card').count(), 1);
+    assert.equal(await page.locator('.checkpoint-card').count(), 2);
+    await resume.getByText('Retry this save', { exact: true }).waitFor();
     assert.equal(await page.getByLabel('What I accomplished', { exact: true }).inputValue(), '');
   } finally { raw.close(); }
 });

@@ -24,6 +24,7 @@ export interface ProjectDetail {
   project: Project;
   actions: DevelopmentAction[];
   checkpoints: Checkpoint[];
+  resume: Checkpoint | null;
 }
 
 export type ErrorCode = 'VALIDATION' | 'NOT_FOUND' | 'STORAGE' | 'FORBIDDEN';

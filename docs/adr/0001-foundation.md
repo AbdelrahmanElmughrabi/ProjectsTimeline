@@ -12,6 +12,10 @@ Use immutable numbered SQL migrations, `user_version`, a consistent backup befor
 
 Use Node's test runner for rules/integration and Playwright for Electron automation. Verify an executable folder through Forge; defer installer, signing and updates. No external services or Knowledge Atlas integration.
 
-AI implements and user reviews. This explicitly replaces the earlier personal-coding requirement. Persistence, state changes, security, concurrency and errors remain line-by-line user review points; user understanding and manual verification remain outstanding until demonstrated.
+Original M1 ownership: AI implements and user reviews, replacing the initial personal-coding requirement for that slice. Persistence, state changes, security, concurrency and errors remain line-by-line user review points; user understanding and manual verification remain outstanding until demonstrated.
+
+Ownership amendment from the later feature-alignment brief (2026-11-05): the user again requires personal design and implementation of an important domain component in future work. Component choice is pending; do not have AI implement the selected component. This changes future ownership, not the already completed M1 implementation. See the [new proposal](../feature-alignment.md).
+
+Selection confirmed in the Continue Implementation brief: the user owns the future stage-progress calculation and policy; AI is authorized to implement Resume selection. [ADR 0002](0002-resume-workspace.md) records the approved Resume/query-refresh decision. Do not implement the user's stage-progress algorithm.
 
 See [verification](../verification.md) for actual compatibility/test evidence and limits, and [the checklist](../engineering-checklist.md) for current progress.

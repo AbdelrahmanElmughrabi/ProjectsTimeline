@@ -49,7 +49,7 @@ if (!app.requestSingleInstanceLock()) {
       session.defaultSession.setPermissionCheckHandler(() => false);
       window = new BrowserWindow({
         width: 1160, height: 820, minWidth: 780, minHeight: 600,
-        title: 'ProjectsTimeline', backgroundColor: '#f5f4ee', show: false,
+        title: 'ProjectsTimeline', backgroundColor: '#101219', show: false,
         webPreferences: {
           preload: join(__dirname, '../preload/index.js'),
           contextIsolation: true, nodeIntegration: false, sandbox: true,

@@ -11,7 +11,12 @@ import type {
   PreviewValidation,
   PreviewWorkflowResolution,
 } from '../../shared/blueprint-preview';
-import { formatSourceSpan, severityBadgeClass, severityLabel } from './BlueprintDiagnostics';
+import {
+  formatSourceSpan,
+  resolveDiagnosticRecordKeyForSource,
+  severityBadgeClass,
+  severityLabel,
+} from './BlueprintDiagnostics';
 
 export function validationLabel(validation: PreviewValidation): string {
   switch (validation) {
@@ -159,6 +164,7 @@ export function BlueprintRecordInspector({
   inboundUnresolvedByTargetId,
   onSelect,
   onClearDetail,
+  onRememberTrigger,
 }: {
   snapshot: BlueprintPreviewSnapshot;
   selection: PreviewSelection | null;
@@ -174,6 +180,7 @@ export function BlueprintRecordInspector({
   inboundUnresolvedByTargetId: ReadonlyMap<string, readonly PreviewRelationship[]>;
   onSelect: (selection: PreviewSelection) => void;
   onClearDetail: () => void;
+  onRememberTrigger?: (element: HTMLElement | null) => void;
 }) {
   if (!occurrence) {
     const selectedDiag = selection?.diagnosticId ? diagnosticsById.get(selection.diagnosticId) ?? null : null;
@@ -203,7 +210,7 @@ export function BlueprintRecordInspector({
             </div>
             <p style={{ margin: '0 0 var(--space-2)' }}>{selectedDiag.message}</p>
             <p className="field-note" style={{ margin: 0 }}>
-              Location: <code className="bp-mono">{formatSourceSpan(selectedDiag.source, documentsById)}</code>
+              Location: <code className="bp-mono">{formatSourceSpan(selection?.source ?? selectedDiag.source, documentsById)}</code>
             </p>
           </div>
         ) : (
@@ -240,8 +247,8 @@ export function BlueprintRecordInspector({
 
   const eyebrow =
     occurrence.state === 'record'
-      ? `${occurrence.record.kind.toUpperCase()} · ${occurrence.record.id} · Occurrence ${occurrence.key}`
-      : `INVALID RECORD · ${occurrence.declaredKind ?? 'unknown kind'} · Occurrence ${occurrence.key}`;
+      ? `${occurrence.record.kind.toUpperCase()} · ${occurrence.record.id}`
+      : `INVALID RECORD · ${occurrence.declaredKind ?? 'unknown kind'} · ${occurrence.key}`;
 
   return (
     <Panel
@@ -271,15 +278,16 @@ export function BlueprintRecordInspector({
             type="button"
             className="bp-chip-button"
             disabled={disabled}
-            onClick={() =>
+            onClick={(event) => {
+              onRememberTrigger?.(event.currentTarget);
               onSelect({
                 snapshotId: snapshot.snapshotId,
                 documentId: occurrence.metadataSource.documentId,
                 recordKey: occurrence.key,
                 diagnosticId: null,
                 source: occurrence.metadataSource,
-              })
-            }
+              });
+            }}
           >
             Metadata span ({formatSourceSpan(occurrence.metadataSource, documentsById)})
           </button>
@@ -287,15 +295,16 @@ export function BlueprintRecordInspector({
             type="button"
             className="bp-chip-button"
             disabled={disabled}
-            onClick={() =>
+            onClick={(event) => {
+              onRememberTrigger?.(event.currentTarget);
               onSelect({
                 snapshotId: snapshot.snapshotId,
                 documentId: occurrence.narrativeSource.documentId,
                 recordKey: occurrence.key,
                 diagnosticId: null,
                 source: occurrence.narrativeSource,
-              })
-            }
+              });
+            }}
           >
             Narrative span ({formatSourceSpan(occurrence.narrativeSource, documentsById)})
           </button>
@@ -313,10 +322,6 @@ export function BlueprintRecordInspector({
       {/* Metadata fields */}
       <dl className="bp-dl">
         <div className="bp-dl-row">
-          <dt>Occurrence key</dt>
-          <dd className="bp-mono">{occurrence.key} (presentation order #{occurrence.order + 1})</dd>
-        </div>
-        <div className="bp-dl-row">
           <dt>External PTB ID</dt>
           <dd className="bp-mono">
             {occurrence.state === 'record' ? occurrence.record.id : occurrence.declaredId ?? 'None / unparsed'}
@@ -327,6 +332,10 @@ export function BlueprintRecordInspector({
           <dd className="bp-mono">
             {occurrence.state === 'record' ? occurrence.record.kind : occurrence.declaredKind ?? 'None / unparsed'}
           </dd>
+        </div>
+        <div className="bp-dl-row">
+          <dt>Source occurrence</dt>
+          <dd className="bp-mono">{occurrence.key} (presentation order #{occurrence.order + 1})</dd>
         </div>
         {occurrence.state === 'record' && 'project' in occurrence.record && (
           <div className="bp-dl-row">
@@ -576,15 +585,16 @@ export function BlueprintRecordInspector({
                         type="button"
                         className="bp-chip-button"
                         disabled={disabled}
-                        onClick={() =>
+                        onClick={(event) => {
+                          onRememberTrigger?.(event.currentTarget);
                           onSelect({
                             snapshotId: snapshot.snapshotId,
                             documentId: rel.source.documentId,
                             recordKey: occurrence.key,
                             diagnosticId: null,
                             source: rel.source,
-                          })
-                        }
+                          });
+                        }}
                       >
                         Reference source ({formatSourceSpan(rel.source, documentsById)})
                       </button>
@@ -600,15 +610,16 @@ export function BlueprintRecordInspector({
                             type="button"
                             className="bp-chip-button"
                             disabled={disabled}
-                            onClick={() =>
+                            onClick={(event) => {
+                              onRememberTrigger?.(event.currentTarget);
                               onSelect({
                                 snapshotId: snapshot.snapshotId,
                                 documentId: targetOcc?.metadataSource.documentId ?? rel.source.documentId,
                                 recordKey: tKey,
                                 diagnosticId: null,
                                 source: targetOcc?.metadataSource ?? null,
-                              })
-                            }
+                              });
+                            }}
                           >
                             Jump to target: {targetLabel}
                           </button>
@@ -653,15 +664,16 @@ export function BlueprintRecordInspector({
                       type="button"
                       className="bp-chip-button"
                       disabled={disabled}
-                      onClick={() =>
+                      onClick={(event) => {
+                        onRememberTrigger?.(event.currentTarget);
                         onSelect({
                           snapshotId: snapshot.snapshotId,
                           documentId: fromOcc?.metadataSource.documentId ?? rel.source.documentId,
                           recordKey: rel.fromKey,
                           diagnosticId: null,
                           source: fromOcc?.metadataSource ?? rel.source,
-                        })
-                      }
+                        });
+                      }}
                     >
                       Inspect source record ({rel.fromKey})
                     </button>
@@ -717,15 +729,21 @@ export function BlueprintRecordInspector({
                       type="button"
                       className="bp-chip-button"
                       disabled={disabled}
-                      onClick={() =>
+                      onClick={(event) => {
+                        onRememberTrigger?.(event.currentTarget);
+                        const matchingKey = resolveDiagnosticRecordKeyForSource(
+                          diag,
+                          diag.source,
+                          occurrencesByKey,
+                        );
                         onSelect({
                           snapshotId: snapshot.snapshotId,
                           documentId: diag.source ? diag.source.documentId : null,
-                          recordKey: occurrence.key,
+                          recordKey: matchingKey,
                           diagnosticId: diag.id,
                           source: diag.source,
-                        })
-                      }
+                        });
+                      }}
                     >
                       Highlight diagnostic span ({formatSourceSpan(diag.source, documentsById)})
                     </button>
@@ -736,15 +754,21 @@ export function BlueprintRecordInspector({
                       type="button"
                       className="bp-chip-button"
                       disabled={disabled}
-                      onClick={() =>
+                      onClick={(event) => {
+                        onRememberTrigger?.(event.currentTarget);
+                        const matchingKey = resolveDiagnosticRecordKeyForSource(
+                          diag,
+                          rel,
+                          occurrencesByKey,
+                        );
                         onSelect({
                           snapshotId: snapshot.snapshotId,
                           documentId: rel.documentId,
-                          recordKey: occurrence.key,
+                          recordKey: matchingKey,
                           diagnosticId: diag.id,
                           source: rel,
-                        })
-                      }
+                        });
+                      }}
                     >
                       Related #{idx + 1}: {formatSourceSpan(rel, documentsById)}
                     </button>

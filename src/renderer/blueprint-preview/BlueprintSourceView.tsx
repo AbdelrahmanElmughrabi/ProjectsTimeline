@@ -20,6 +20,7 @@ export function BlueprintSourceView({
   documentsById,
   onSelect,
   onClearDetail,
+  onRememberTrigger,
 }: {
   snapshot: BlueprintPreviewSnapshot;
   selection: PreviewSelection | null;
@@ -30,6 +31,7 @@ export function BlueprintSourceView({
   documentsById: ReadonlyMap<string, PreviewDocument>;
   onSelect: (selection: PreviewSelection) => void;
   onClearDetail?: () => void;
+  onRememberTrigger?: (element: HTMLElement | null) => void;
 }) {
   const highlightRef = useRef<HTMLElement | null>(null);
 
@@ -135,15 +137,18 @@ export function BlueprintSourceView({
                     type="button"
                     className={`bp-chip-button${isSelectedHeading ? ' bp-selected' : ''}`}
                     disabled={disabled}
-                    onClick={() =>
+                    onClick={(event) => {
+                      onRememberTrigger?.(event.currentTarget);
                       onSelect({
                         snapshotId: snapshot.snapshotId,
                         documentId: activeDocument.id,
-                        recordKey: selection?.recordKey ?? null,
+                        recordKey: selection?.recordKey && activeOccurrence?.metadataSource.documentId === activeDocument.id
+                          ? selection.recordKey
+                          : null,
                         diagnosticId: null,
                         source: heading.source,
-                      })
-                    }
+                      });
+                    }}
                   >
                     <span className="bp-mono">H{heading.depth}</span> {heading.text}{' '}
                     <span className="bp-mono">({heading.source.span.start.line}:{heading.source.span.start.column})</span>

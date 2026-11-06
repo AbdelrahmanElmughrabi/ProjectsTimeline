@@ -40,6 +40,54 @@ export function severityBadgeClass(severity: PreviewDiagnostic['severity']): str
   }
 }
 
+function occurrenceContainsSource(occ: PreviewOccurrence, source: PreviewSourceRef): boolean {
+  const inMetadata =
+    occ.metadataSource.documentId === source.documentId &&
+    occ.metadataSource.span.start.byteOffset <= source.span.start.byteOffset &&
+    source.span.end.byteOffset <= occ.metadataSource.span.end.byteOffset;
+  const inNarrative =
+    occ.narrativeSource.documentId === source.documentId &&
+    occ.narrativeSource.span.start.byteOffset <= source.span.start.byteOffset &&
+    source.span.end.byteOffset <= occ.narrativeSource.span.end.byteOffset;
+  return inMetadata || inNarrative;
+}
+
+export function resolveDiagnosticRecordKeyForSource(
+  diag: PreviewDiagnostic,
+  source: PreviewSourceRef | null,
+  occurrencesByKey: ReadonlyMap<string, PreviewOccurrence>,
+): string | null {
+  if (!source) return null;
+  for (const key of diag.recordKeys) {
+    const occ = occurrencesByKey.get(key);
+    if (occ && occurrenceContainsSource(occ, source)) {
+      return key;
+    }
+  }
+  return null;
+}
+
+export function resolveDiagnosticSourceForRecord(
+  diag: PreviewDiagnostic,
+  occ: PreviewOccurrence,
+): PreviewSourceRef | null {
+  if (diag.source && occurrenceContainsSource(occ, diag.source)) {
+    return diag.source;
+  }
+  for (const rel of diag.relatedSources) {
+    if (occurrenceContainsSource(occ, rel)) {
+      return rel;
+    }
+  }
+  if (diag.source && diag.source.documentId === occ.metadataSource.documentId) {
+    return diag.source;
+  }
+  const sameDocRelated = diag.relatedSources.find(
+    (rel) => rel.documentId === occ.metadataSource.documentId,
+  );
+  return sameDocRelated ?? null;
+}
+
 export function BlueprintDiagnostics({
   snapshot,
   selection,
@@ -62,10 +110,11 @@ export function BlueprintDiagnostics({
   function selectDiagnosticPrimary(diag: PreviewDiagnostic, trigger: HTMLElement) {
     onRememberTrigger?.(trigger);
     if (diag.source) {
+      const matchingKey = resolveDiagnosticRecordKeyForSource(diag, diag.source, occurrencesByKey);
       onSelect({
         snapshotId: snapshot.snapshotId,
         documentId: diag.source.documentId,
-        recordKey: diag.recordKeys[0] ?? null,
+        recordKey: matchingKey,
         diagnosticId: diag.id,
         source: diag.source,
       });
@@ -81,22 +130,9 @@ export function BlueprintDiagnostics({
     }
   }
 
-  function selectRelatedSource(diag: PreviewDiagnostic, related: PreviewSourceRef, index: number, trigger: HTMLElement) {
+  function selectRelatedSource(diag: PreviewDiagnostic, related: PreviewSourceRef, trigger: HTMLElement) {
     onRememberTrigger?.(trigger);
-    const matchingKey =
-      diag.recordKeys.find((key) => {
-        const occ = occurrencesByKey.get(key);
-        return (
-          occ &&
-          occ.metadataSource.documentId === related.documentId &&
-          occ.metadataSource.span.start.byteOffset <= related.span.start.byteOffset &&
-          related.span.end.byteOffset <= occ.metadataSource.span.end.byteOffset
-        );
-      }) ??
-      diag.recordKeys[index] ??
-      diag.recordKeys[0] ??
-      null;
-
+    const matchingKey = resolveDiagnosticRecordKeyForSource(diag, related, occurrencesByKey);
     onSelect({
       snapshotId: snapshot.snapshotId,
       documentId: related.documentId,
@@ -109,13 +145,25 @@ export function BlueprintDiagnostics({
   function selectDiagnosticRecord(diag: PreviewDiagnostic, recordKey: string, trigger: HTMLElement) {
     onRememberTrigger?.(trigger);
     const occ = occurrencesByKey.get(recordKey);
-    onSelect({
-      snapshotId: snapshot.snapshotId,
-      documentId: occ ? occ.metadataSource.documentId : diag.source?.documentId ?? null,
-      recordKey,
-      diagnosticId: diag.id,
-      source: diag.source ?? occ?.metadataSource ?? null,
-    });
+    if (!occ) return;
+    const matchedDiagSource = resolveDiagnosticSourceForRecord(diag, occ);
+    if (matchedDiagSource) {
+      onSelect({
+        snapshotId: snapshot.snapshotId,
+        documentId: occ.metadataSource.documentId,
+        recordKey,
+        diagnosticId: diag.id,
+        source: matchedDiagSource,
+      });
+    } else {
+      onSelect({
+        snapshotId: snapshot.snapshotId,
+        documentId: occ.metadataSource.documentId,
+        recordKey,
+        diagnosticId: null,
+        source: occ.metadataSource,
+      });
+    }
   }
 
   return (
@@ -199,7 +247,7 @@ export function BlueprintDiagnostics({
                         type="button"
                         className={`bp-chip-button${relSelected ? ' bp-selected' : ''}`}
                         disabled={disabled}
-                        onClick={(event) => selectRelatedSource(diag, rel, idx, event.currentTarget)}
+                        onClick={(event) => selectRelatedSource(diag, rel, event.currentTarget)}
                       >
                         Related location #{idx + 1}: {relLabel}
                       </button>

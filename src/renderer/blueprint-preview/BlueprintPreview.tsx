@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { KeyboardEvent } from 'react';
 import { Panel } from '../Panel';
 import type {
@@ -46,12 +46,38 @@ export function BlueprintPreview({
   onCancel,
   onSelect,
 }: BlueprintPreviewProps) {
+  const rootRef = useRef<HTMLElement | null>(null);
+  const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
   const lastTriggerRef = useRef<HTMLElement | null>(null);
   const snapshot = activeSnapshotFromState(state);
 
   const isLoading = state.phase === 'loading';
   const isCancelling = state.phase === 'cancelling';
   const controlsDisabled = isLoading || isCancelling;
+
+  // AG-UI-002: When Choose/Refresh buttons become disabled during loading/cancelling,
+  // Chromium drops focus to document.body. Move focus to Cancel preview (or the header)
+  // so keyboard reachability is preserved while loading.
+  useEffect(() => {
+    if (!controlsDisabled) return;
+    if (typeof document === 'undefined') return;
+    const active = document.activeElement;
+    const droppedOrDisabled =
+      !active ||
+      active === document.body ||
+      active === document.documentElement ||
+      (rootRef.current?.contains(active) &&
+        active instanceof HTMLButtonElement &&
+        active.disabled);
+    if (droppedOrDisabled) {
+      if (!isCancelling && cancelButtonRef.current) {
+        cancelButtonRef.current.focus();
+      } else {
+        headerRef.current?.focus();
+      }
+    }
+  }, [controlsDisabled, isCancelling]);
 
   // Build O(1) lookup maps for the current snapshot
   const maps = useMemo(() => {
@@ -174,12 +200,13 @@ export function BlueprintPreview({
 
   return (
     <section
+      ref={rootRef}
       className="blueprint-preview"
       aria-label="Blueprint Preview"
       onKeyDown={handleKeyDown}
     >
       {/* Top Header */}
-      <header className="bp-header" tabIndex={-1}>
+      <header ref={headerRef} className="bp-header" tabIndex={-1}>
         <div className="bp-header-copy">
           <p className="eyebrow">
             Blueprint preview · Read-only PTB v0.2 inspection ({snapshot?.contractVersion ?? 'v2-preview-1'})
@@ -225,6 +252,7 @@ export function BlueprintPreview({
 
           {state.phase !== 'idle' && (
             <button
+              ref={cancelButtonRef}
               type="button"
               className="button"
               onClick={onCancel}
@@ -259,13 +287,13 @@ export function BlueprintPreview({
           <div className="bp-banner-body">
             <h2>
               {state.operation === 'choose'
-                ? 'Opening blueprint chooser and capturing source…'
-                : 'Recapturing blueprint from retained session grant…'}
+                ? 'Selecting and reading blueprint…'
+                : 'Refreshing blueprint preview…'}
             </h2>
             <p>
               {state.previous
-                ? 'Previous captured snapshot is shown below while the new capture is in progress. Native chooser cancellation preserves the prior capture.'
-                : 'Reading and validating Markdown AST and PTB 0.2 records in main process.'}
+                ? 'Previous captured snapshot remains visible below while the updated blueprint is read. Native chooser cancellation preserves the prior capture.'
+                : 'Reading and validating Markdown source and PTB 0.2 records.'}
             </p>
           </div>
           <button type="button" className="button" onClick={onCancel}>
@@ -280,7 +308,7 @@ export function BlueprintPreview({
             <h2>Captured snapshot is retired / stale</h2>
             <p>{state.message}</p>
             <p>
-              The previously captured snapshot ({state.snapshot.snapshotId}) is displayed below for reference only and is no longer current. Refresh preview to recapture using the retained session grant, or select another blueprint file.
+              The previously captured snapshot is displayed below for reference only and is no longer current. Refresh preview to read the selected blueprint again, or select another blueprint file.
             </p>
           </div>
           <div className="bp-header-actions">
@@ -323,7 +351,7 @@ export function BlueprintPreview({
             <h2>Preview session expired</h2>
             <p>{state.message}</p>
             <p>
-              The temporary main-process preview session grant is no longer active. Select a blueprint file to start a fresh capture, or cancel preview.
+              The active preview session is no longer available. Select a blueprint file to start a fresh capture, or cancel preview.
             </p>
           </div>
           <div className="bp-header-actions">
@@ -340,9 +368,9 @@ export function BlueprintPreview({
       {state.phase === 'cancelling' && (
         <div className="bp-banner bp-banner-info" role="status" aria-live="polite">
           <div className="bp-banner-body">
-            <h2>Cancelling blueprint preview…</h2>
+            <h2>Closing blueprint preview…</h2>
             <p>
-              Retiring active snapshot and session grant. Any late parser or chooser result will be ignored.
+              Discarding temporary preview state and returning to Home.
             </p>
           </div>
         </div>
@@ -378,9 +406,7 @@ export function BlueprintPreview({
             <div className="bp-summary-cell">
               <span className="bp-summary-label">Project identity</span>
               <strong className="bp-summary-value bp-mono">
-                {projectRecord
-                  ? `${projectRecord.id} (${snapshot.projectKey})`
-                  : 'null (no unique valid project)'}
+                {projectRecord ? projectRecord.id : 'null (no unique valid project)'}
               </strong>
             </div>
 
@@ -402,15 +428,31 @@ export function BlueprintPreview({
 
             <div className="bp-summary-cell">
               <span className="bp-summary-label">Source semantic SHA-256</span>
-              <strong className="bp-summary-value bp-mono">
-                {snapshot.semanticSha256 ?? 'null (blocked / invalid graph)'}
+              <strong className="bp-summary-value bp-mono" title={snapshot.semanticSha256 ?? undefined}>
+                {snapshot.semanticSha256
+                  ? `${snapshot.semanticSha256.slice(0, 16)}…`
+                  : 'null (blocked / invalid graph)'}
               </strong>
             </div>
           </section>
 
           <div className="bp-workspace">
-            {/* Left Column: Documents + Engineering Outline + Diagnostics */}
+            {/* Left Column: Engineering Outline + Captured Documents + Diagnostics */}
             <div className="bp-column">
+              <BlueprintRecordList
+                snapshot={snapshot}
+                selection={validSelection}
+                disabled={controlsDisabled}
+                documentsById={maps.documentsById}
+                occurrencesByKey={maps.occurrencesByKey}
+                workflowsByScopeKey={maps.workflowsByScopeKey}
+                assignmentsByActionKey={maps.assignmentsByActionKey}
+                onSelect={onSelect}
+                onRememberTrigger={(el) => {
+                  lastTriggerRef.current = el;
+                }}
+              />
+
               <Panel
                 id="blueprint-documents-heading"
                 title="Captured documents"
@@ -459,7 +501,6 @@ export function BlueprintPreview({
                               >
                                 {doc.status === 'captured' ? 'Captured' : 'Unavailable'}
                               </span>
-                              <span className="bp-badge bp-mono">{doc.id}</span>
                             </div>
                           </button>
 
@@ -470,37 +511,11 @@ export function BlueprintPreview({
                             </span>
                             <span>·</span>
                             <span className="bp-mono">
-                              SHA-256: {doc.sha256 ? `${doc.sha256.slice(0, 16)}…` : 'unavailable'}
+                              SHA-256: {doc.sha256 ? `${doc.sha256.slice(0, 12)}…` : 'unavailable'}
                             </span>
                             <span>·</span>
                             <span>{doc.headings.length} heading{doc.headings.length === 1 ? '' : 's'}</span>
                           </div>
-
-                          {doc.headings.length > 0 && (
-                            <ul className="bp-heading-list" aria-label={`Headings for ${doc.relativePath}`}>
-                              {doc.headings.map((h, i) => (
-                                <li key={`${h.source.span.start.byteOffset}-${i}`}>
-                                  <button
-                                    type="button"
-                                    className="bp-chip-button"
-                                    disabled={controlsDisabled}
-                                    onClick={(event) => {
-                                      lastTriggerRef.current = event.currentTarget;
-                                      onSelect({
-                                        snapshotId: snapshot.snapshotId,
-                                        documentId: doc.id,
-                                        recordKey: null,
-                                        diagnosticId: null,
-                                        source: h.source,
-                                      });
-                                    }}
-                                  >
-                                    <span className="bp-mono">H{h.depth}</span> {h.text}
-                                  </button>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
                         </li>
                       );
                     })}
@@ -509,20 +524,6 @@ export function BlueprintPreview({
                   <p className="empty-copy">No documents recorded in this snapshot.</p>
                 )}
               </Panel>
-
-              <BlueprintRecordList
-                snapshot={snapshot}
-                selection={validSelection}
-                disabled={controlsDisabled}
-                documentsById={maps.documentsById}
-                occurrencesByKey={maps.occurrencesByKey}
-                workflowsByScopeKey={maps.workflowsByScopeKey}
-                assignmentsByActionKey={maps.assignmentsByActionKey}
-                onSelect={onSelect}
-                onRememberTrigger={(el) => {
-                  lastTriggerRef.current = el;
-                }}
-              />
 
               <BlueprintDiagnostics
                 snapshot={snapshot}
@@ -554,6 +555,9 @@ export function BlueprintPreview({
                 inboundUnresolvedByTargetId={maps.inboundUnresolvedByTargetId}
                 onSelect={onSelect}
                 onClearDetail={clearDetailSelection}
+                onRememberTrigger={(el) => {
+                  lastTriggerRef.current = el;
+                }}
               />
 
               <BlueprintSourceView
@@ -566,6 +570,9 @@ export function BlueprintPreview({
                 documentsById={maps.documentsById}
                 onSelect={onSelect}
                 onClearDetail={clearDetailSelection}
+                onRememberTrigger={(el) => {
+                  lastTriggerRef.current = el;
+                }}
               />
             </div>
           </div>

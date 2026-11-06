@@ -256,6 +256,18 @@
   padding: 0 var(--space-2);
 }
 
+.blueprint-preview .bp-doc-headings-disclosure {
+  margin-top: var(--space-1);
+  padding: 0 var(--space-2);
+}
+
+.blueprint-preview .bp-doc-headings-disclosure > summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: var(--font-meta);
+  user-select: none;
+}
+
 .blueprint-preview .bp-heading-list {
   display: flex;
   flex-wrap: wrap;

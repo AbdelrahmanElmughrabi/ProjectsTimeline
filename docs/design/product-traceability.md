@@ -1,6 +1,6 @@
 # Product requirements → screens → domain → persistence → acceptance
 
-2026-11-06 · **Proposed acceptance map, not a database schema.** IDs below identify product requirements for implementing ProjectsTimeline, not engineering requirements imported into a user's project. [Roadmap](product-implementation-roadmap.md) · [PTB](ptb-v0.2-contract.md) · [Examples](ptb-v0.2-examples.md).
+2026-11-06 · **Approved direction/acceptance map, not a database schema or blanket implementation authorization.** V1 implements PA-01 and relevant PA-18 preservation/continuity checks only; rich PA-14 links follow V3a. IDs identify ProjectsTimeline product requirements, not imported user-project requirements. [Roadmap](product-implementation-roadmap.md) · [PTB](ptb-v0.2-contract.md) · [Examples](ptb-v0.2-examples.md).
 
 Command names and persistence groups are candidate contracts; none exist merely because listed here. All mutations use named main-side validation, same-project ownership, revision checks and atomic history. No generic SQL/filesystem channel.
 

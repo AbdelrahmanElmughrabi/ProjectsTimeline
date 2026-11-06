@@ -1,6 +1,6 @@
 # Connected workspace — information architecture and interaction proposal
 
-2026-11-06 · **Design only; no interface replacement.** [Domain](development-domain-contract.md) · [Traceability](product-traceability.md) · [Roadmap](product-implementation-roadmap.md).
+2026-11-06 · **Design direction approved; only V1 Home implemented.** Existing project/Resume/Workflows/Releases stay intact; PTB and connected development views remain later authorized slices. [Domain](development-domain-contract.md) · [Traceability](product-traceability.md) · [Roadmap](product-implementation-roadmap.md) · [V1](../v1-home-plan.md).
 
 ## Visual continuity and navigation
 

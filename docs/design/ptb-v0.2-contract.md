@@ -1,6 +1,6 @@
 # PTB v0.2 — Format, validation and approval proposal
 
-2026-11-06 · **Design draft; approval required. No importer or schema implemented.** Replaces the proposed v0.1 file-per-entity restriction for future implementation, not the supplied historical package. See [design index](../product-architecture-alignment.md), [domain](development-domain-contract.md) and [worked examples](ptb-v0.2-examples.md).
+2026-11-06 · **Format adopted with refinements; no importer or schema implemented.** Production parsing must be Markdown-aware, reject duplicate keys, preserve narrative and validate deterministic relationships. Finalize stable presentation/order and parser tooling before V2; only V1 is currently authorized. Replaces the proposed v0.1 file-per-entity restriction, not the supplied historical package. See [design index](../product-architecture-alignment.md), [domain](development-domain-contract.md) and [worked examples](ptb-v0.2-examples.md).
 
 ## 1. One model, two package sizes
 
@@ -24,7 +24,7 @@ Keep a small offline scratchpad.
 Restore authored text without inventing a previous session.
 ````
 
-**Why JSON rather than the old YAML frontmatter:** one explicit representation works inside any Markdown document, supports standard JSON tooling and avoids YAML coercion/tags/alias behavior. JSON has more punctuation; this is a proposed tradeoff for approval. Markdown narrative stays normal Markdown, not escaped JSON strings. JSON duplicates must be rejected, including escaped-equivalent keys; a plain last-key-wins parse is insufficient. No YAML compatibility or silent v0.1 conversion is implied. Literal version string `"0.2"` is mandatory on every record; unknown versions block. This unshipped draft is not a migration of existing application data.
+**Why JSON rather than the old YAML frontmatter:** the user adopted one explicit representation that works inside Markdown, supports JSON tooling and avoids YAML coercion/tags/alias behavior, accepting its additional punctuation. Narrative stays normal Markdown, not escaped JSON strings. JSON duplicates must be rejected, including escaped-equivalent keys; a plain last-key-wins parse is insufficient. No YAML compatibility or silent v0.1 conversion is implied. Literal version string `"0.2"` is mandatory on every record; unknown versions block. This unshipped format is not a migration of existing application data.
 
 ## 2. Identity, schema and fields
 

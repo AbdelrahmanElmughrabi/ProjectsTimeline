@@ -1,6 +1,6 @@
 # ProjectsTimeline — Product & Architecture Alignment
 
-2026-11-06 · **Direction approved for further design; implementation and migration approval pending.** Independent project-level development records/scopes, release-free workflows, separated proposals/engineering truth and revisioned future delivery capture are approved architectural direction. Concrete contracts below remain drafts. The user rejected one entity per file: a complete multi-entity single-file blueprint is required. Existing ADRs/data remain intact.
+2026-11-06 · **Design package approved with refinements; V1 only authorized.** Adopt explicit JSON-in-Markdown PTB, independent project-owned work/scopes, one current scope per action, audited lifecycle/moves, truthful development counts/Not Assessed and reviewed proposal/acceptance/source separation. Revisioned delivery capture is approved direction with its actual policy/schema deferred. [V1 plan](v1-home-plan.md) and [ADR 0006](adr/0006-home-project-continuity.md) describe the current implementation; V2/new migrations are not authorized. Existing ADRs/data remain intact.
 
 ## Current design package
 
@@ -13,7 +13,7 @@
 | Dependency roadmap | [Implementation slices](design/product-implementation-roadmap.md): usable paths and schema/policy gates |
 | Worked specification review | [Two examples and release-free journeys](design/ptb-v0.2-examples.md): 15-record single-file Desk Notes and 37-record/four-file FieldLedger |
 
-The original v0.1 package stays unchanged as design history. v0.2 is a new draft, not an installed format/parser. No implementation agents were started in this design phase. Earlier inspection findings below remain useful; the current contracts supersede the rejected file-per-entity recommendation.
+The original v0.1 package stays unchanged as design history. v0.2 syntax is adopted, but not an installed format/parser; stable PTB presentation/order and concrete parser tooling must be finalized before V2. Rich linked continuation is prioritized immediately after V3a. No implementation agents have been started. Earlier inspection findings below remain useful; the current contracts supersede the rejected file-per-entity recommendation.
 
 ## Evidence and current implementation versus intended product
 
@@ -69,18 +69,18 @@ Names below are candidate operations, not implemented APIs.
 
 The [updated dependency roadmap](design/product-implementation-roadmap.md) replaces the initial broad slice list. It separates Home, safe preview, lightweight project formation, optional scoped work, reusable development workflows, rich context, decisions, evidence, reviewed reimport, suggestions and later delivery capture. Each usable path traces to [PA-01–18](design/product-traceability.md), with concrete schema/policy and user-acceptance gates. Existing tests/security/history remain preservation requirements. Git/Obsidian product integration, models, personalization and pattern recognition remain future proposals.
 
-## Remaining decisions before coding
+## Approval record and remaining gates
 
-The broad architectural direction and separation of proposals/results are already approved; do not request those approvals again. Review these concrete choices:
+The user approved the five design decisions with refinements. Do not request those approvals again or infer blanket implementation authorization:
 
-1. **Authoring syntax/intake:** accept fenced strict JSON records with `ptb: "0.2"`, Markdown bodies, inline scope stages or exact development-template references, and the proposed bounds/diagnostics? Alternative is a defined YAML record-block syntax, with its parser/dependency tradeoff; either must support the same multi-entity single-file graph. No prose inference.
-2. **Lifecycle/cardinality:** accept one current scope per action and the proposed Draft/Active/Paused/Closed/Cancelled rules, including actual work while paused, guarded reopening, unfinished-work disposition and acknowledged completed-action moves?
-3. **Development progress:** deliver counts/Not assessed first, or approve a separate development percentage policy before its slice? The equal-included-stage/null-empty candidate is explicit but unapproved; stage-less scopes and unscoped work need no fabricated percentage.
-4. **Concrete review/apply behavior:** accept default draft requirements/scopes, proposed actions/decisions and planned checks; explicit batch choices for acceptance/activation/commitment; captured immutable preview, receipt recovery and revision-conflict handling? Existing-identity reimport stays open/cancel until reviewed-diff design; no silent clone/overwrite.
-5. **Scope of the next implementation:** accept the connected UX/traceability and V1 → V2 → V3a → V3b staged delivery, with optional rich context/library/evidence paths after their gates? Parser choice and concrete additive SQL/DTOs still require review before their code/migration. Actual evidence freshness and delivery-snapshot schema/migration remain deferred, as requested.
+1. **Format adopted:** PTB v0.2 explicit JSON/Markdown, single/multiple files, Markdown-aware recognition, duplicate-key rejection, intact narrative and deterministic relationship validation. Stable presentation/order and parser choice are pre-V2 gates; no parser is implemented in V1.
+2. **Domain adopted:** independent project records, optional scopes, one current scope/action, explicit lifecycle and audited reassignment. Concrete additive SQL/DTO/constraint design remains a separate pre-migration review; no release conversion.
+3. **Progress adopted:** truthful counts and Not Assessed initially. No development percentage or release gate transfer until a separate development percentage policy is approved.
+4. **Application adopted:** explicit requirement/action acceptance, proposals uncommitted by default, immutable source provenance, atomic/idempotent reviewed import and no implicit overwrite. No AI runtime/model needed.
+5. **Roadmap adopted as direction:** V1 only now; richer linked recovery immediately after V3a, before optional scoped/library depth. Recommendations remain a separate later slice and are absent initially. V2, evidence freshness and delivery snapshot policy/schema require their explicit future gates.
 
 ## Antigravity collaboration
 
 Use the [copy-ready handoff prompt](antigravity-collaboration-prompt.md) for an independent review now and bounded assigned implementation after approval. Antigravity is an external development collaborator, not an application feature. One integration owner controls each slice, migrations and shared contracts. The initial inspection used lighter read-only agents; this revised-design phase started no agents or Antigravity session. Parallel implementation remains unapproved.
 
-**Stop:** review this proposal before implementation; no migration, feature, UI redesign or dependency change is authorized by this document.
+**Stop:** after V1 verification/manual review. This design approval authorizes no V2 implementation, migration or dependency installation.

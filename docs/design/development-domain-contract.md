@@ -1,6 +1,6 @@
 # Development domain, ownership and lifecycle proposal
 
-2026-11-06 · **Behavioral design for approval, not SQL or implemented commands.** Independent project records and optional scopes are approved direction; the concrete rules below remain proposed. [PTB](ptb-v0.2-contract.md) · [UX](connected-workspace-design.md).
+2026-11-06 · **Behavioral design approved with counts-first refinement; not SQL or implemented development commands.** Independent project records/scopes, one current scope/action, explicit lifecycle and audited moves are approved. Only V1 Home is authorized now; concrete schema/DTOs need their separate review. [PTB](ptb-v0.2-contract.md) · [UX](connected-workspace-design.md).
 
 ## Ownership and boundaries
 
@@ -43,7 +43,7 @@ Terminal scopes are protected from ordinary edits; reopening is an explicit audi
 
 ## Progress and evidence are different policies
 
-**Development policy is not approved yet.** Recommended first implementation exposes truthful counts and Not assessed, no project/feature/scope percentage. Candidate later formula: equal included-stage mean of completed applicable committed actions; empty included stages or in-scope Unassigned actions withhold percentage; unscoped work remains outside any scope denominator. Stage-less scopes show counts without stage-weight percentage. Scope closure is guarded independently of arithmetic. If approved, 100% means accepted work complete, not requirement verified or release ready. Out-of-order work is allowed. No mandatory “confirmation” action is added.
+**Initial presentation approved: truthful counts and Not Assessed; percentages remain unapproved.** No project/feature/scope percentage is implemented or implied. Candidate later formula: equal included-stage mean of completed applicable committed actions; empty included stages or in-scope Unassigned actions withhold percentage; unscoped work remains outside any scope denominator. Stage-less scopes show counts without stage-weight percentage. Scope closure is guarded independently of arithmetic. If separately approved, 100% means accepted work complete, not requirement verified or release ready. Out-of-order work is allowed. No mandatory “confirmation” action is added.
 
 Assessments must reference exact requirement/check-definition revisions and actual observation/provenance. Missing, failed and stale are distinct from passed. A changed relevant revision must not retain a current verified label; keep old results historically readable. Scope/work-definition changes conservatively stale scope assessments until a finer dependency policy is approved. Action completion alone is not evidence freshness. Planned automated checks never run merely because PTB says `automated`. Actual-run recording, freshness and release capture need separate policy approval before their implementation.
 

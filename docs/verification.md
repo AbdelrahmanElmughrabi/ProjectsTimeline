@@ -1,5 +1,47 @@
 # ProjectsTimeline — Verification record
 
+## V1 — Home and Project Continuity, 2026-11-06
+
+The user approved the design package with refinements and explicitly authorized **V1 only**. Inspected clean tracked source at `1ade173` (supplied PTB package already untracked), reran the baseline and presented [requirement → UI → backend plan](v1-home-plan.md) before feature edits. [ADR 0006](adr/0006-home-project-continuity.md) records actual read ordering, continuity and boundaries. Source/test checkpoint: **0c5197c**; records are separately checkpointed. No push or agents.
+
+| Execution | Actual result |
+| --- | --- |
+| Pre-edit npm test | **47/47 Node passed**, including build/typechecks |
+| Pre-edit npm run test:e2e | **12/12 Electron passed** |
+| Pre-edit npm run test:packaged | **3/3 existing executable recovery passed** |
+| Final npm test | **49/49 Node passed**, including both TypeScript targets and final build |
+| Final npm run test:e2e | **14/14 passed**, including all original scenarios and the superseded-Home-navigation focus assertion |
+| Final npm run package | **Passed**, Windows x64 executable rebuilt from final source |
+| Final npm run test:packaged | **3/3 passed**, rebuilt executable: Home/Resume restart plus populated-v1/v2 release/workflow recovery |
+
+**Baseline 62/62; final 66 unique checks = 49 Node + 14 Electron + 3 packaged.** Repeated focused/full executions are not counted again. Final renderer `index-BZzTd8r3.js`, styles `index-X768Ofa9.css`; executable `out/ProjectsTimeline-win32-x64/ProjectsTimeline.exe`. Tests use isolated profiles, never the regular app database. Desktop/process/runtime-cache access was authorized for Electron/packaging.
+
+Implemented evidence:
+
+- [Home store tests](../tests/unit/home.test.mjs): empty/legacy projects have no invented activity; actual checkpoint/action-event chronology and source/ID ties, project order and isolation; checkpoint equals existing Resume by value; one Home read does not load complete workspace histories, mutate any table/schema or alter reopen results. Schema stays **v3**.
+- [Home Electron tests](../tests/e2e/home.test.mjs): default Home, create/open cards, actual saved context/timestamp, empty activity, Home/Workflows/project navigation, retained action/checkpoint/release drafts, unchanged persisted state after navigation, keyboard submission, three widths and full process restart. Controlled main summary failures withhold old cards and retry reads; a late response cannot overwrite a newly committed project's cards. A superseded Home→project read cannot steal focus from a newer workspace.
+- [Packaged recovery](../tests/packaged/recovery.test.mjs) now checks Home's recovered checkpoint/time against Resume after opening the card. Both original populated-v1 and populated-v2/frozen-release recovery scenarios remain and pass. The complete existing Node/Electron policy, migrations, verification/freeze, workflow-isolation, failure, draft, navigation-race and security assertions pass.
+- One new fixed read method: **31 named bridge methods**. Sender/main-frame/exact-URL checks, main startup/protocol/CSP/sandbox/Node-disabled preferences, all migrations 001–003, pure Resume/release-progress functions and dependencies/lockfile have **no diff from 1ade173**. No V2 parser, development entities, recommendation evaluator or new migration.
+
+Review corrections: Home-versus-Resume equality originally compared SQLite's null-prototype row directly; corrected value comparison. New fixture labels were aligned to existing Workflow library/Releases headings. An early focused run hit Playwright actionability timeouts; isolated render/control inspection and subsequent focused/full runs passed without force-clicking or weakening assertions. Review caught an unconditional focus after an old navigation; returning an applied-read result now guards focus, with an explicit regression assertion. No remaining automated failure.
+
+Visual evidence: [empty](../artifacts/home-empty.png), [800px](../artifacts/home-800.png), [1160px](../artifacts/home-1160.png), [1440px](../artifacts/home-1440.png). All three have automated no-page-overflow checks; compact/wide screenshots were inspected, including a 120-character Unicode/unbroken name. Existing project Resume/contrast/reduced-motion/max-content checks also pass. Screenshots show actual saved isolated test records, not production sample data; local artifacts remain ignored.
+
+Changed-file review map:
+
+| Area | Files |
+| --- | --- |
+| Read/typed boundary | src/main/data/database.ts; src/shared/contracts.ts; src/main/ipc.ts; src/preload/index.ts |
+| Home/continuity UI | src/renderer/ProjectHome.tsx; src/renderer/App.tsx; src/renderer/ProjectSidebar.tsx; src/renderer/useProjectWorkspace.ts; src/renderer/styles.css |
+| Tests | tests/unit/home.test.mjs; tests/e2e/home.test.mjs; tests/e2e/workspace.test.mjs; tests/packaged/recovery.test.mjs |
+| Current records | README.md; docs/v1-home-plan.md; docs/adr/0006-home-project-continuity.md; docs/verification.md; docs/engineering-checklist.md; docs/feature-alignment.md |
+| Approval/priority amendments | docs/product-architecture-alignment.md; docs/design/product-implementation-roadmap.md; docs/design/ptb-v0.2-contract.md; docs/design/development-domain-contract.md; docs/design/connected-workspace-design.md; docs/design/product-traceability.md; docs/antigravity-collaboration-prompt.md |
+| External checkpoint | Authorized ProjectsTimeline - Development Log.md only; no vault scan/sync or vault Git commit |
+
+**Manual acceptance:** use real projects to compare card checkpoint/next-step timestamps with Resume/history, including a legacy/no-event project; review card order, long text, density and keyboard focus at your compact/wide sizes; navigate Home/Workflows and back while action/checkpoint/release drafts are unsubmitted; fully restart the rebuilt executable and compare saved context plus existing confirmed releases. Unsaved drafts are session-only and must not be expected after quitting. Older manual/understanding gates remain open.
+
+Limits: Home shows the latest recorded item per project, not a full cross-project timeline or measured work sessions. No saved goal/appearance fields, startup selection preferences or richer linked checkpoint records were added. Saved next steps are authored text; deterministic recommendations stay absent until their separate approved catalog/evaluator slice. Development percentages remain unapproved. Large-history performance, assistive-technology/high-contrast/scaling and a separate clean Windows machine were not assessed here. Rich linked continuation is prioritized immediately after V3a; **stop before V2/new migrations without explicit approval**.
+
 ## Revised PTB/domain/UX design — 2026-11-06
 
 User approved architectural direction for further design, required complete single-file multi-entity blueprints and deferred actual delivery snapshot schema/policy. Revisited existing UI reference/tokens/components/contracts and authored [PTB v0.2](design/ptb-v0.2-contract.md), [development ownership/lifecycle](design/development-domain-contract.md), [connected UX](design/connected-workspace-design.md), [traceability](design/product-traceability.md), [dependency roadmap](design/product-implementation-roadmap.md), and [two example reviews/journeys](design/ptb-v0.2-examples.md). Revised the alignment index and Antigravity prompt; original supplied v0.1/ADRs remain unchanged. No agents were started.

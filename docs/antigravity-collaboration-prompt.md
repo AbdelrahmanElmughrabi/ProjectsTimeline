@@ -9,8 +9,9 @@ Repository: C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline
 Current task: review the revised Product & Architecture design package only.
 Do not implement features, write migrations, redesign UI, install dependencies,
 push, or edit application/user data. Do not treat a draft as an approved decision.
-Do not initiate parallel implementation agents. The user approved architectural
-direction for further design, not feature implementation or exact SQL.
+Do not initiate parallel implementation agents. The user approved the design
+with refinements and authorized Codex to implement V1 Home only. Your task is
+review-only unless separately assigned; no V2, migration or blanket SQL approval.
 
 Read first:
 1. docs/product-architecture-alignment.md (current approvals and remaining choices)
@@ -20,7 +21,9 @@ Read first:
 5. Both fixtures under docs/design/examples/ptb-v0.2/
 The original projectstimeline_ptb_v0.1/ package is historical input. Its
 one-entity-per-file restriction was rejected: complete single-file multi-entity
-blueprints are required. The v0.2 syntax/lifecycle/progress details await approval.
+blueprints are required. The v0.2 syntax/lifecycle are adopted; production ordering
+and parser choices remain pre-V2 gates. Development shows counts/Not Assessed,
+with no percentage policy. Rich linked continuation is prioritized after V3a.
 Then inspect actual code, tests, docs/verification.md, the engineering checklist,
 feature roadmap and ADRs 0001–0005. Check AGENTS.md/local instructions if present.
 

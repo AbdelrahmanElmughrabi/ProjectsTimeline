@@ -8,7 +8,7 @@ import { createProject, openProject } from '../electron-flow.mjs';
 
 const worktreeRoot = resolve(import.meta.dirname, '..', '..');
 const appRoot = resolve(
-  process.env.PROJECTS_TIMELINE_APP_ROOT ?? 'C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline',
+  process.env.PROJECTS_TIMELINE_APP_ROOT ?? worktreeRoot,
 );
 const electronExe = resolve(appRoot, 'node_modules/electron/dist/electron.exe');
 const artifactsDir = resolve(worktreeRoot, 'artifacts');
@@ -162,6 +162,8 @@ test(
     const preview = page.getByRole('region', { name: 'Blueprint Preview', exact: true });
     await preview.getByRole('heading', { name: 'Desk Notes', exact: true }).waitFor();
     await preview.getByText('15 total · 0 unparsed / invalid', { exact: true }).waitFor();
+    assert.equal(await preview.locator('.bp-column').first().locator('.panel h2').first().textContent(), 'Engineering outline', 'Rebuilt outline-first renderer must be running');
+    assert.equal(await preview.locator('.bp-summary-cell').filter({ hasText: 'Project identity' }).locator('.bp-summary-value').textContent(), 'proj.desk-notes', 'Rebuilt renderer removes opaque occurrence keys from summary');
 
     // Verify outline record selection, UTF-16 source slice highlight, and Escape focus restoration to outline opener
     const actionButton = preview.locator('.bp-record-button').filter({ hasText: '(act.check-note-restart)' });
@@ -187,6 +189,30 @@ test(
       true,
       'Escape restores focus to the originating outline record button',
     );
+
+    // Source-panel heading controls must remember their own opener, rather than an old outline button.
+    const sourceHeading = preview.getByRole('list', { name: 'Headings in desk-notes.md', exact: true }).getByRole('button').first();
+    await sourceHeading.click();
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => document.activeElement?.closest('[aria-label="Headings in desk-notes.md"]') !== null);
+    assert.equal(await sourceHeading.evaluate(el => el === document.activeElement), true);
+
+    // This inspector opener disappears when details close: focus must fall back to its stable outline entry.
+    await actionButton.click();
+    await inspector.getByRole('button', { name: /^Metadata span/ }).click();
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => document.activeElement?.classList.contains('bp-record-button'));
+    assert.equal(await actionButton.evaluate(el => el === document.activeElement), true);
+
+    // Hold the real native chooser open, without faking parser output, to inspect keyboard access while busy.
+    await application.evaluate(({ dialog }) => {
+      dialog.showOpenDialog = () => new Promise(resolve => { globalThis.finishBlueprintDialog = resolve; });
+    });
+    await preview.getByRole('button', { name: 'Select another blueprint', exact: true }).click();
+    await page.waitForFunction(() => document.activeElement?.textContent?.trim() === 'Cancel preview');
+    assert.equal(await preview.getByRole('button', { name: 'Selecting blueprint…', exact: true }).isDisabled(), true);
+    await application.evaluate(() => { globalThis.finishBlueprintDialog({ canceled: true, filePaths: [] }); delete globalThis.finishBlueprintDialog; });
+    await preview.getByRole('button', { name: 'Select another blueprint', exact: true }).waitFor();
 
     // 2. Switch to FieldLedger (4 documents, 37 records, 82 relationships)
     await stubChooseDialog(application, fieldLedgerEntry);
@@ -337,26 +363,19 @@ test(
     await projectOwnerRelatedBtn.waitFor();
     await projectOwnerRelatedBtn.click();
 
-    // When running against the rebuilt runtime with AG-UI-001 integrated, clicking PROJECT_OWNER's
-    // cross-document related location #1 switches the source view to project.md and highlights proj.alpha.
-    // When running against the pre-rebuild ec49d43 runtime (which bundled 0018f48), the old fallback paired
-    // recordKeys[0] (second.md) with source (project.md), which useBlueprintPreview.onSelect rejected.
-    const projectSourceVisible = await preview
-      .getByLabel('Exact captured Markdown text for project.md', { exact: true })
-      .isVisible();
-    if (projectSourceVisible) {
-      const entrySourceBox = preview.getByLabel('Exact captured Markdown text for project.md', {
-        exact: true,
-      });
-      assert.ok(
-        (await entrySourceBox.locator('mark').textContent())?.includes('"id":"proj.alpha"'),
-        'AG-UI-001 verified in rebuilt runtime: PROJECT_OWNER related location #1 highlights proj.alpha in project.md',
-      );
-    } else {
-      t.diagnostic(
-        'PENDING REBUILT RUNTIME (AG-UI-001): Current app-root dist still bundles 0018f48; PROJECT_OWNER cross-doc related location #1 assertion will activate once Codex rebuilds dist with the AG-UI-001 fix commit.',
-      );
-    }
+    const entrySourceBox = preview.getByLabel('Exact captured Markdown text for project.md', { exact: true });
+    await entrySourceBox.waitFor();
+    assert.ok((await entrySourceBox.locator('mark').textContent())?.includes('"id":"proj.alpha"'),
+      'PROJECT_OWNER related location must highlight proj.alpha, with no unrelated record selection');
+    await preview.getByRole('region', { name: 'Selected-record inspector', exact: true }).getByText('PROJECT_OWNER', { exact: true }).waitFor();
+
+    // The matching occurrence chip returns to the foreign feature's own source.
+    await projectOwnerCard.getByRole('button', { name: /Occurrence .*feat.foreign/ }).click();
+    await secondSourceBox.waitFor();
+    await preview.getByRole('region', { name: 'Foreign Project Feature', exact: true }).waitFor();
+    assert.equal(await secondSourceBox.locator('mark').textContent(), '"proj.other"', 'Occurrence chip highlights its own failing project field');
+
+    await application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setSize(800, 900));
 
     mkdirSync(artifactsDir, { recursive: true });
     await page.screenshot({

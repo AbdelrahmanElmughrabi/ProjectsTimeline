@@ -50,6 +50,7 @@ export function BlueprintPreview({
   const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
   const lastTriggerRef = useRef<HTMLElement | null>(null);
+  const restoreFocus = useRef<{ opener: HTMLElement | null; fallback: HTMLElement | null } | null>(null);
   const snapshot = activeSnapshotFromState(state);
 
   const isLoading = state.phase === 'loading';
@@ -166,12 +167,25 @@ export function BlueprintPreview({
     return snapshot.documents[0] ?? null;
   }, [snapshot, validSelection, maps.documentsById]);
 
+  // Inspector controls disappear when details close; focus after React commits.
+  useEffect(() => {
+    const pending = restoreFocus.current;
+    if (!pending) return;
+    restoreFocus.current = null;
+    const target = pending.opener?.isConnected ? pending.opener : pending.fallback?.isConnected ? pending.fallback : headerRef.current;
+    target?.focus();
+  }, [selection]);
+
   function clearDetailSelection() {
     if (!snapshot) return;
     const preserveDocId =
       validSelection?.documentId !== undefined
         ? validSelection.documentId
         : snapshot.documents[0]?.id ?? null;
+    restoreFocus.current = {
+      opener: lastTriggerRef.current,
+      fallback: rootRef.current?.querySelector<HTMLElement>('.bp-record-button[aria-current="true"]') ?? headerRef.current,
+    };
     onSelect({
       snapshotId: snapshot.snapshotId,
       documentId: preserveDocId,
@@ -179,9 +193,6 @@ export function BlueprintPreview({
       diagnosticId: null,
       source: null,
     });
-    if (lastTriggerRef.current && typeof lastTriggerRef.current.focus === 'function') {
-      lastTriggerRef.current.focus();
-    }
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLElement>) {

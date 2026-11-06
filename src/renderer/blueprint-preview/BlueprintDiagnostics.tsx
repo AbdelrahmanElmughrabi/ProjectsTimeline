@@ -79,13 +79,7 @@ export function resolveDiagnosticSourceForRecord(
       return rel;
     }
   }
-  if (diag.source && diag.source.documentId === occ.metadataSource.documentId) {
-    return diag.source;
-  }
-  const sameDocRelated = diag.relatedSources.find(
-    (rel) => rel.documentId === occ.metadataSource.documentId,
-  );
-  return sameDocRelated ?? null;
+  return null;
 }
 
 export function BlueprintDiagnostics({

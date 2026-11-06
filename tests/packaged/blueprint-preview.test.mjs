@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { resolve, join } from 'node:path';
+import { mkdirSync } from 'node:fs';
 import { temporaryDirectory } from '../helpers.mjs';
 import { launchWorkspace } from '../electron-flow.mjs';
 
@@ -28,4 +29,14 @@ test('packaged preview resolves bundled ESM and drops temporary sessions after f
   assert.equal(expired.error.code, 'NOT_FOUND');
   assert.equal((await page.evaluate(() => window.workspace.listProjects())).value.length, 0);
   assert.deepEqual(await page.evaluate(() => [typeof window.process, typeof window.require]), ['undefined', 'undefined']);
+  await application.evaluate(({ dialog }, file) => { dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [file] }); }, resolve('docs/design/examples/ptb-v0.2/complex/project.md'));
+  await page.getByRole('button', { name: 'Preview blueprint', exact: true }).click();
+  const preview = page.getByRole('region', { name: 'Blueprint Preview', exact: true });
+  await preview.getByRole('heading', { name: 'FieldLedger', exact: true }).waitFor();
+  await preview.getByText('37 total · 0 unparsed / invalid', { exact: true }).waitFor();
+  assert.equal(await preview.locator('.bp-column').first().locator('.panel h2').first().textContent(), 'Engineering outline');
+  mkdirSync(resolve('artifacts'), { recursive: true });
+  await page.screenshot({ path: resolve('artifacts/blueprint-packaged.png'), animations: 'disabled' });
+  await preview.getByRole('button', { name: 'Cancel preview', exact: true }).click();
+  assert.equal((await page.evaluate(() => window.workspace.listProjects())).value.length, 0);
 });

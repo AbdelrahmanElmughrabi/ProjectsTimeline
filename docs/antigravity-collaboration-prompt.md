@@ -1,5 +1,7 @@
 # Antigravity — ProjectsTimeline collaboration prompt
 
+Task-specific V2 prompt: [antigravity-v2-preview.md](agent-handoffs/antigravity-v2-preview.md). Use that standalone assignment and [coordination record](agent-handoffs/v2-collaboration.md); this older generic prompt is retained as history. V2 Phase A is authorized, Phase B is not yet started. Latest fresh baseline is 66/66, not the older 62 below.
+
 Paste the following into Antigravity. It starts with review only; future implementation needs a specifically approved task. This is a development handoff, not app-level agent integration or permission to change the product plan.
 
 ```text

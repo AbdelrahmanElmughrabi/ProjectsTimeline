@@ -1,5 +1,19 @@
 # ProjectsTimeline — Verification record
 
+## V2 Phase A — preview contract and collaboration setup, 2026-11-06
+
+Read the attached V2 brief and current PTB/alignment/examples/domain/UX/traceability/roadmap/ADRs, reference image, actual source/security/library schema and build/tests at `9d638f2`. Tracked baseline was clean; the supplied `projectstimeline_ptb_v0.1/` package was already untracked and remains unchanged.
+
+Fresh actual baseline: **npm test 49/49 Node** (build/both TypeScript targets), **npm run test:e2e 14/14**, **npm run test:packaged 3/3** = **66/66**. Packaged tests exercised the existing V1 executable; no new package was produced in Phase A. Isolated profiles and authorized desktop/process access; no production profile changed.
+
+Reviewed primary maintainer Markdown/JSON/dialog/position documentation and tagged dependency manifests; candidate pins/options and tradeoffs are linked in [v2-preview-contract.md](v2-preview-contract.md). Registry “latest” endpoints were unavailable through browsing, so tagged candidates are explicitly not claimed as latest/audited/installed. No candidate dependency or transitive graph was installed or executed; resolved graph/advisory/runtime/packaging checks belong after approval.
+
+Prepared [type-only contract](agent-handoffs/contracts/v2-preview.ts), [standalone Antigravity prompt](agent-handoffs/antigravity-v2-preview.md), [collaboration protocol](agent-handoffs/v2-collaboration.md), single-writer queue and Codex report. Independent no-emit TypeScript check passed: `node node_modules/typescript/bin/tsc --noEmit --strict --skipLibCheck --target ES2022 --module Node16 --moduleResolution Node16 --types node docs/agent-handoffs/contracts/v2-preview.ts`. It is outside application source, not a live API.
+
+Two lighter read-only reviewers checked acquisition/workflow semantics and UI/state/ownership. Incorporated explicit diagnostic severity/hash rules, unclosed-fence invalid occurrences, source-anchor selection and separately attributed smaller-reviewer reports. Proposed ADR 0007 records decisions pending approval. No Antigravity session or parallel implementation was launched. A separate local review worktree/ref is prepared per coordination record; no dependencies or product changes are made there.
+
+Phase A checks include local links and staged whitespace. Application source, existing tests, migrations 001–003, security/policy files, dependency manifests and original ADRs 0001–0006 remain unchanged. Planned V2 parser/hostile-file/preview/cancel/no-write/UI/packaged tests have **not** executed, and no Antigravity delivery/integration is claimed. Stop for contract/dependency approval, manual handoff confirmation and source-DTO readiness before Phase B.
+
 ## V1 — Home and Project Continuity, 2026-11-06
 
 The user approved the design package with refinements and explicitly authorized **V1 only**. Inspected clean tracked source at `1ade173` (supplied PTB package already untracked), reran the baseline and presented [requirement → UI → backend plan](v1-home-plan.md) before feature edits. [ADR 0006](adr/0006-home-project-continuity.md) records actual read ordering, continuity and boundaries. Source/test checkpoint: **0c5197c**; records are separately checkpointed. No push or agents.

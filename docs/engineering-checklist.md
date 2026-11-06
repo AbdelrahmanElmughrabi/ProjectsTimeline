@@ -1,6 +1,8 @@
 # ProjectsTimeline — Engineering checklist
 
-Current gate, 2026-11-06: the design package/five decisions are approved with refinements, and **V1 Home only** is implemented/automatically verified. Final **49 Node + 14 Electron + 3 rebuilt-packaged = 66/66 pass**, with build/typechecks and compact/wide screenshots. PTB stable ordering/parser/SQL remain future gates; no migration/dependency change or implementation agents. Stop for V1 acceptance before V2.
+Current activity: **V2 Phase A contract/collaboration setup only**, after the user's attached brief. Fresh existing baseline **49 Node + 14 Electron + 3 packaged = 66/66 passed**. Candidate DTO contract independently typechecks with no emit; parser pins/security/order and standalone Antigravity UI/report ownership await review. No implementation/install/migration; two lighter read-only reviewers used, Antigravity not launched. [Phase A](v2-preview-contract.md).
+
+Prior V1 checkpoint, 2026-11-06: the design package/five decisions are approved with refinements, and **V1 Home** is implemented/automatically verified. Final **49 Node + 14 Electron + 3 rebuilt-packaged = 66/66 pass**, with build/typechecks and compact/wide screenshots. No migration/dependency change or implementation agents at that checkpoint. V1 acceptance remains open; the current V2 Phase A authorization is recorded above.
 
 Updated: 2026-11-06. Foundation, Resume, Visual Foundation, Development Stages & Progress and the approved workflow milestone are implemented. Final workflow suite: **47 Node + 12 Electron + 3 packaged = 62/62 passed**, including build/typechecks, rebuilt Windows package, migration/restart recovery and compact UI checks. Manual acceptance remains open. Workflow decisions are recorded in ADR 0005; prior ownership authorization is recorded in ADR 0004.
 
@@ -82,3 +84,5 @@ These supplement preserved M1 evidence. The Continue Implementation brief approv
 | V1 Home | PA-01/18: default project cards, actual checkpoint/activity and project continuity | Implemented | Explicitly authorized slice complete, 66 checks pass; user manual acceptance pending |
 | V1 read model | Existing-record query, deterministic ties, no manufactured events or new migration | Verified | Two real-file Node scenarios prove isolation, empty legacy activity, timestamp/ID ties, no writes, no full-project loading and reopen equality; schema stays v3 |
 | V1 continuity/failure | Mounted drafts, same-project refresh, read retries and superseded responses/focus | Verified | Two real Electron scenarios plus packaged Home→Resume recovery pass; Workflows/Releases regressions retained; no V2 started |
+| V2 contract/collaboration | Preview-only parser/acquisition/session/DTO/states/order and separate UI ownership/reporting | Undecided | Candidate v2-preview-1, type-only docs artifact, proposed ADR 0007; requires user contract/dependency approval and manual Antigravity receipt before Phase B |
+| V2 baseline | Preserve actual working V1/release/workflow/persistence/security behavior | Verified | Fresh 49 Node + 14 Electron + 3 existing-packaged checks pass before changes; no V2 runtime/security coverage claimed |

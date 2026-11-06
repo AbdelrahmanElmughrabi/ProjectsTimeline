@@ -1,5 +1,7 @@
 # ProjectsTimeline — Product & Architecture Alignment
 
+Current authorization amendment: the user requested **V2 Phase A contract and collaboration setup**, not implementation. See [V2 contract](v2-preview-contract.md), [proposed ADR 0007](adr/0007-blueprint-preview.md), [typed preview](agent-handoffs/contracts/v2-preview.ts) and [Antigravity handoff](agent-handoffs/antigravity-v2-preview.md). Ordering, parser/security strategy and ownership are now concrete candidates; Phase B remains gated on approval and manual handoff. Existing V1/manual status below is preserved.
+
 2026-11-06 · **Design package approved with refinements; V1 only authorized.** Adopt explicit JSON-in-Markdown PTB, independent project-owned work/scopes, one current scope per action, audited lifecycle/moves, truthful development counts/Not Assessed and reviewed proposal/acceptance/source separation. Revisioned delivery capture is approved direction with its actual policy/schema deferred. [V1 plan](v1-home-plan.md) and [ADR 0006](adr/0006-home-project-continuity.md) describe the current implementation; V2/new migrations are not authorized. Existing ADRs/data remain intact.
 
 ## Current design package

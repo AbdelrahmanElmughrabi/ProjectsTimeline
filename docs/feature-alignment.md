@@ -1,5 +1,7 @@
 # ProjectsTimeline — Feature alignment and incremental roadmap
 
+Current work: **V2 Phase A only**. [Candidate implementation contract](v2-preview-contract.md) and [Antigravity prompt](agent-handoffs/antigravity-v2-preview.md) define deterministic preview, safe bounded acquisition, controlled UI/inspection and file-based reports. Fresh existing baseline 66/66 passes; dependencies are researched, not installed. Phase B waits for user approval/receipt/source-DTO readiness. No blueprint import, durable work, migration or agent UI implementation is started.
+
 Current milestone, 2026-11-06: **V1 Home and Project Continuity implemented; manual acceptance pending.** User approved the design package/refinements, authorizing V1 only. Final **49 Node + 14 Electron + 3 rebuilt-packaged = 66/66 pass**. One read-only summary uses existing records; schema v3, security and release/Resume rules stay unchanged. [V1 plan](v1-home-plan.md), [ADR 0006](adr/0006-home-project-continuity.md), [evidence](verification.md). No V2/new migration or agents started.
 
 Status: **Reusable Engineering Workflows implemented and automatically verified; manual acceptance pending.** Updated: 2026-11-06. Earlier Resume, Visual Foundation and Development Stages & Progress slices remain implemented. Workflow decisions are accepted in [ADR 0005](adr/0005-reusable-workflows.md). Schema v3; dependencies unchanged. Final suite: **47 Node + 12 Electron + 3 packaged = 62/62 passed**, with rebuilt Windows recovery and 800/1160/1440 UI checks. Stop before the next milestone.

@@ -1,0 +1,77 @@
+# V2 Blueprint Preview — Phase A implementation contract
+
+2026-11-06 · **Candidate v1 for approval. Phase A only; no V2 feature/parser/IPC implementation or dependency installation.** Fresh baseline at `9d638f2`: **49 Node + 14 Electron + 3 packaged = 66/66 passed**, including build/typechecks. Packaged checks executed the existing V1 executable; no new package was needed. V1 manual UX acceptance remains open.
+
+Read with [PTB v0.2](design/ptb-v0.2-contract.md), [worked fixtures](design/ptb-v0.2-examples.md), [domain](design/development-domain-contract.md), [connected UX](design/connected-workspace-design.md), [PA-02–05/13/18](design/product-traceability.md), ADRs 0001–0006 and the [UI reference](design/ui-reference.png). This narrows V2 to inspection; all V3a apply/acceptance language in broader documents remains future work.
+
+## 1. Boundary and deliverable
+
+Home → Select blueprint → inspect captured source, engineering outline, record inspector and diagnostics → Refresh or Cancel. No project/entity/action/requirement/scope/check creation, edits, acceptance, execution or import receipts in V2. No Apply/Import/Accept controls, progress, schedules, recommendation engine, model calls, migration or source-file writes. Existing database/history, release/workflow rules, Home/Resume and security remain unchanged.
+
+## 2. Parser choice for approval, not installation
+
+| Option | Fit / decision |
+| --- | --- |
+| **mdast-util-from-markdown 2.0.2** | Recommended direct CommonMark AST and positions without a plugin pipeline. ESM-only; use native dynamic import from current CommonJS main code, without changing app module mode. Tagged package includes types and a nontrivial micromark utility dependency tree. Packaged resolution must be proved in Phase B. [Maintainer API](https://github.com/syntax-tree/mdast-util-from-markdown), [tagged manifest](https://github.com/syntax-tree/mdast-util-from-markdown/blob/2.0.2/package.json). |
+| remark-parse + unified | Maintained AST route, but adds a pipeline not needed for read-only extraction. Maintainer recommends direct mdast utility when plugins are unnecessary. [Primary documentation](https://github.com/remarkjs/remark/tree/main/packages/remark-parse). Not selected. |
+| markdown-it | Maintained CommonMark alternative; token-oriented integration would need more context/source-range adaptation for this inspector. [Primary usage](https://github.com/markdown-it/markdown-it/blob/master/docs/usage.md). Not selected. |
+| **jsonc-parser 3.3.1** | Recommended scanner/visitor for syntax locations and decoded property names. Set `disallowComments:true`, `allowTrailingComma:false`, `allowEmptyContent:false`; reject every syntax error. Maintain a Set per object for duplicate decoded keys at every nesting level, including escaped-equivalent names. Use the scanner to enforce depth before recursive visitation, then `JSON.parse` only after checks pass. Do not use recovered/last-key-wins objects. [Tagged API](https://github.com/microsoft/node-jsonc-parser/blob/v3.3.1/src/main.ts), [manifest](https://github.com/microsoft/node-jsonc-parser/blob/v3.3.1/package.json). |
+
+These are inspected tagged **candidate pins**, not a claim about the newest registry version or a completed vulnerability audit. Review resolved transitive versions/advisories/integrity before approved installation and lock exact versions. No YAML parser, HTML renderer, schema framework, UI dependency or app-wide ESM migration. Dependency changes belong to Codex only. All normalized records are constructed from recognized own fields; unknown objects are never merged into prototypes/application state.
+
+## 3. Recognition, validation and spans
+
+- Use root-level Markdown AST code blocks, not regex discovery. Literal info `ptb` after surrounding whitespace; backtick or tilde fences, CommonMark indentation, explicit closing fence required. An unclosed root `ptb` fence is an invalid occurrence plus `PTB_FENCE_UNCLOSED`, not ignored or accepted as a typed record. Block quotes/lists, longer outer code fences and ordinary headings never create records. Additional fence info is ordinary source with an intent warning when appropriate. Closure policy is an explicit clarification for approval.
+- Preserve exact bytes/hash and decoded text; remove a single leading BOM only from parser input and map offsets back. Keep CRLF in capture. AST offsets are UTF-16 units ([unist](https://github.com/syntax-tree/unist#point)); emit original UTF-8 byte spans plus UTF-16 offsets, one-based line and Unicode-code-point columns. Metadata/narrative/field diagnostics refer to captured source, not reformatted output.
+- Use approved kind/prefix/schema/bounds, forward-reference resolution, same-project typed links, unique IDs, component cycle/depth and scope-local stage checks. No coercion or prose inference. Strict parsing precedes schema; schema precedes relationships. Unknown metadata warns and remains in source. No runtime status/outcome can be imported.
+- Keep invalid occurrences visible with distinct occurrence keys/source spans; malformed JSON never becomes a typed record. Duplicate IDs preserve every occurrence and related location; ambiguous links never select a first winner. Backend computes an acyclic component/feature outline; cyclic/dangling structures appear separately, not in recursive UI traversal.
+- Expected malformed/partial packages return captured source and diagnostics, including unavailable-document entries when safe to identify them. No unique project → null project key, not an inferred project title. Unread content gets no fabricated line/span. Operational failures use existing safe Result errors.
+
+Stable diagnostic catalog (message wording may improve; code/severity may not drift silently):
+
+| Severity | Codes |
+| --- | --- |
+| error | `FILE_TYPE`, `PATH_UNSAFE`, `PATH_ALIAS`, `FILE_UNAVAILABLE`, `UTF8_INVALID`, `SOURCE_CHANGED`, `LIMIT_EXCEEDED`; `PTB_FENCE_UNCLOSED`, `JSON_SYNTAX`, `DUPLICATE_KEY`; `FORMAT_VERSION`, `KIND_UNSUPPORTED`, `FIELD_TYPE`, `ID_KIND`, `PROJECT_MISSING`, `PROJECT_COUNT`, `PROJECT_OWNER`, `DUPLICATE_ID`, `DUPLICATE_LINK`, `LINK_TARGET`, `COMPONENT_CYCLE`, `STAGE_TARGET`, `WORKFLOW_PURPOSE` |
+| resolution | `WORKFLOW_UNRESOLVED` |
+| warning | `PTB_FENCE_INFO`, `ACCEPTANCE_MISSING`, `DONE_MISSING`, `RATIONALE_MISSING`, `CHECK_INCOMPLETE`, `UNKNOWN_FIELD`, `UNKNOWN_CAPABILITY`, `UNKNOWN_RULE` |
+
+Any error makes snapshot validation `invalid` and semanticSha256 null. With zero errors, resolutions/warnings make `needs-review`; with none, `valid`. Both zero-error states may have a source-semantic hash, including an unresolved workflow's explicit reference, **not a claim the referenced edition is usable**. Every invalid occurrence/unavailable required document produces an error; missing/duplicate project likewise blocks. No error is suppressed merely to draw a cleaner tree.
+
+## 4. Stable ordering and semantic equivalence
+
+1. Documents: selected entry first, then manifest `documents` order; no filesystem enumeration or recursive manifests. Occurrences: top-level block source order in each document. Identical input always has identical presentation; file/block moves may deliberately change authored presentation while keeping external identity.
+2. Sections: Project, Components/Features, Requirements, Scopes, Actions, Decisions, Checks, Invalid records. Component preorder is parent-before-child; siblings/features use occurrence order. Unplaced features follow valid component roots; invalid structure is flat/separate. Lists and reference links use their declared order. Inline stages use their explicit array order; Unassigned/Unscoped are honest separate groups.
+3. Diagnostics: error → resolution → warning; then document order, start byte, code and deterministic tie index. All duplicate locations remain available. Source headings retain actual depth/order; no synthesized parent headings.
+4. Semantic comparison: normalize known fields/defaults and LF narrative with outer blank lines removed; sort record IDs and object keys by code-point order, relation/capability/rule sets canonically, preserving acceptance/expected/alternative/stage order. Exclude source paths/spans, manifest document layout, presentation, tokens and capture time. Unknown fields affect exact source hashes, not acted-upon graph semantics. Blocked graphs have no semantic hash. Existing one/four-file fixtures must match equivalent repackaging by semantics, not snapshot token or source location.
+
+## 5. Safe acquisition and workflow resolution
+
+Main opens a modal single-file picker, Markdown filter, `openFile` and Windows `dontAddToRecent` ([Electron dialog](https://www.electronjs.org/docs/latest/api/dialog), also present in installed Electron types). Renderer supplies no paths, source text or filesystem calls. Parent of selected file grants the root; canonical containment is checked for selected entry and every declared file. No archive, scan, ordinary Markdown-link/image read or remote fetch.
+
+Retain PTB limits: 50 files, 1 MiB/file, 10 MiB total, 2,000 records, 20,000 links, component/JSON depth 16 and approved string/path bounds. Validate segments, Windows special paths, case/NFC collisions and physical aliases. Resolve links/junctions beneath the root; do not tighten this silently to “all symlinks forbidden.” Open regular-file handles, compare identity with authorized canonical checks, bound actual reads, recheck path/identity and observed size/time changes; reject an observed race before publishing. Strict UTF-8 decoding, one BOM accepted. This is not a claim of authenticated or writer-locked source. Test Windows junction/replacement cases; if identity enforcement cannot be made reliable, return for review rather than adding a native dependency or weakening containment.
+
+Current templates have `builtInKey`/version and mandatory protected closing stages, **no development purpose/portable user keys**. V2 does not migrate them. Inline stage plans resolve normally. A matching known release-only built-in reference is incompatible (`WORKFLOW_PURPOSE` error); unavailable development key/version yields `WORKFLOW_UNRESOLVED` resolution diagnostic. Never resolve by display name/internal ID or fabricate a development edition. Pending workflow stage assignments remain unresolved, not missing-stage errors guessed from an empty invented plan. Source must be edited externally then refreshed; no workflow mutation/removal/acceptance control in V2. Capability/rule registries are not implemented: unknown keys warn, with no recommendation evaluation.
+
+## 6. Named commands, snapshot lifecycle and view contract
+
+Normative types/example: [contracts/v2-preview.ts](agent-handoffs/contracts/v2-preview.ts). This is a type-only review artifact outside application source, not a live bridge. Codex lands agreed declarations in `src/shared/blueprint-preview.ts` before frontend implementation.
+
+| Future fixed command | Behavior |
+| --- | --- |
+| `chooseBlueprintPreview()` | Native chooser + bounded capture/validation. Returns snapshot or cancelled. Native chooser cancellation preserves an existing capture; choosing a new entry retires old authority. An operationally failed new selection offers reselect, never old data labeled current. |
+| `refreshBlueprintPreview({sessionId})` | Opaque main-owned selected-entry/root grant, never a path. Retire active snapshot before reread; successful/diagnostic capture returns a new snapshot ID. Operational failure retains the entry grant for retry and labels the previous capture stale. Expired/unknown grant returns NOT_FOUND. |
+| `cancelBlueprintPreview()` | Idempotently invalidate pending generation, snapshot and grant; discard in-memory buffers, return Home. Works before a snapshot exists. No durable write or history entry. |
+
+One session/snapshot per trusted window, bounded temporary memory, no saved tokens/preferences/cache/watchers. Per-window main generations and renderer request tokens prevent late dialog/read/parse responses from reviving cancellation or replacing newer captures. Superseded work returns cancelled/gets ignored. Cancel prevents publication but does not promise real-time interruption of a synchronous parser. Dispose ASTs after extraction; measure bounded adversarial workloads before proposing workers/extra limits. App-owned project tables/preferences/history/source stay unchanged; native/runtime OS internals are not imported engineering history.
+
+View states: idle, loading(choose/refresh), ready(valid/needs-review/invalid snapshot), stale(previous capture + reason), error(no active capture), expired, cancelling. Root Codex controller owns commands/session/selection and request guards. Antigravity renders controlled props and emits callbacks; local expansion/presentation state is allowed, no domain validation or persistence. Refresh remaps selection only by a unique matching external kind/ID in the same project; otherwise clears it, never guesses. Duplicate occurrences select by occurrence key. Selection includes an optional captured source anchor for heading/field/related-location navigation; controller validates its document/snapshot/range, and UI emits references already present in that snapshot. Source navigation is snapshot-only.
+
+V2 shows captured Markdown as inert readable text with heading/location navigation and selected-range highlighting; no HTML generation, raw HTML insertion, automatic URL opening or new network/image allowances. It preserves narrative without promising a rich Markdown renderer. All controls function through real parser data after integration; no Apply/Accept or fake future tabs.
+
+## 7. Ownership, tests and approval gate
+
+See [Antigravity assignment](agent-handoffs/antigravity-v2-preview.md) and [coordination record](agent-handoffs/v2-collaboration.md). Codex owns parser/schema/acquisition/session, shared declarations, IPC/preload, App/Home integration, controller, dependency manifests and backend/integration tests. Antigravity owns only new namespaced preview presentation files and its explicitly named UI test/report. No same-checkout overlapping edits.
+
+Phase B needs **user approval of this contract/dependencies plus confirmation the prompt reached Antigravity**, followed by Codex's agreed source-DTO commit. No production library/API has been installed or added in Phase A. A prepared UI worktree may be used for read-only contract review before that gate. No Antigravity launch by Codex.
+
+Required Phase B acceptance: both real fixtures; source/body/spans/BOM/CRLF/Unicode; nested/literal/non-PTB fences; malformed JSON, escaped duplicate keys/IDs, wrong-kind/cross-project links, cycles, stage/workflow problems, missing/unsafe/aliased/oversize files and replacement races; invalid partial graphs; capture/refresh/cancel/superseded results with no durable writes; V1 regressions; keyboard and 800/1160/1440 screenshots; build/packaged preview and old recovery/security. Stop before V3a. Only the **existing 66 baseline checks**, not these future V2 cases, ran in Phase A.

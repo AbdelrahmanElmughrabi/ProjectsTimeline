@@ -60,3 +60,22 @@
   - **UX-04 (Verified):** `BlueprintDiagnostics.tsx` renders each entry in `relatedSources` as an individually keyboard-focusable `<button type="button">`, and package-level diagnostics (`diag.source === null`) emit `documentId: null, recordKey: null, diagnosticId: diag.id, source: null` per `AG-Q-02`.
   - **UX-05 (Verified):** Pressing `Escape` when a record, diagnostic, or source range is selected clears the detail selection and restores focus to `lastTriggerRef.current`. Async phase banners use appropriate `role="status"` (`idle`, `loading`, `stale`, `cancelling`) and `role="alert"` (`error`, `expired`).
 - **Verification limits:** Static inspection of the implemented Phase B TSX/CSS files plus `npm run typecheck` (`EXIT=0`) and `node --test tests/e2e/blueprint-preview-ui.test.mjs` (`1 pass, 2 skipped AWAITING INTEGRATION`). Live Electron window rendering and 800/1160/1440px screenshots await Codex's Phase C integration ref.
+
+
+---
+
+## 5. Phase C Follow-Up Review (`AG-UI-001`..`AG-UI-003` & Readability Polish)
+
+- **Reviewed UI & test commit:** `fb49a4eca4c4ab3fe0861922369aa7fca8339233` on `antigravity/v2-preview-ui`
+- **Inspected runtime ref:** `codex/v2-preview-runtime` (`ec49d435317b6d1f230694fcae9c265b04d65f13`) and `codex/v2-preview-integration` (`fe15465`)
+- **Findings verified:**
+  1. **`AG-UI-002` (Focus restoration & busy-state keyboard reachability):**
+     - `BlueprintPreview.tsx` passes `onRememberTrigger` to `BlueprintRecordInspector` and `BlueprintSourceView` in addition to `BlueprintRecordList` and `BlueprintDiagnostics`. Every source-span, relationship-target, occurrence-diagnostic, and document-heading button records `event.currentTarget` before calling `onSelect`, so pressing `Escape` restores focus to the exact opener across all panels.
+     - When `state.phase` transitions to `loading` (`choose` or `refresh`), Choose/Refresh buttons become disabled; a `useEffect` in `BlueprintPreview.tsx` detects when `document.activeElement` is dropped to `document.body` or left on a disabled button inside `.blueprint-preview` and moves focus to `cancelButtonRef.current` (`Cancel preview`) or `headerRef.current` (`cancelling`).
+  2. **Readability polish:**
+     - `BlueprintRecordList` (Engineering outline) is placed first in the left column before `Captured documents`, prioritizing engineering structure over file metadata.
+     - Repeated document heading chip lists were removed from the `Captured documents` panel (headings remain in `BlueprintSourceView` alongside the active document text).
+     - Opaque occurrence keys (`d0:b0`) were removed from the prominent `Project identity` summary cell (`proj.field-ledger`), and routine `loading`/`stale`/`cancelling` banners use plain user-facing copy.
+  3. **Real 800 / 1160 / 1440px viewport & screenshot verification (`AG-UI-003`):**
+     - Verified `artifacts/antigravity-fieldledger-800.png`, `artifacts/antigravity-fieldledger-1160.png`, `artifacts/antigravity-fieldledger-1440.png`, and `artifacts/antigravity-hostile-invalid-800.png` produced by the real Electron test run (`document.documentElement.scrollWidth <= window.innerWidth` at all three widths).
+- **Verification limits:** Static inspection of `fb49a4e` plus visual inspection of the 4 Playwright/Electron screenshots captured against `codex/v2-preview-runtime`. The new `fb49a4e` renderer changes will take effect in the live binary once Codex integrates `fb49a4e` and rebuilds `dist/`.

@@ -113,3 +113,54 @@ All three Phase A questions were resolved by Codex in `codex/v2-preview-phase-b`
 - **Awaiting Phase C integration (not claimed as executed in UI-only branch):**
   - End-to-end Electron runs of *Desk Notes* (`15` records) and *FieldLedger* (`37` records), hostile/invalid inputs, and `800px` / `1160px` / `1440px` screenshots under `artifacts/` require Codex's Phase C integration branch wiring `useBlueprintPreview`, `App.tsx` / `ProjectHome.tsx`, and the main-process PTB parser/session commands.
 - **Next owner:** **Codex (`V2-INTEGRATE-001`)** to review the bounded diff (`cb78d11..HEAD` on `antigravity/v2-preview-ui`), integrate with the real backend/controller in a Phase C integration branch, and supply the integration ref (or run full Node/Electron/packaged verification).
+
+
+---
+
+# Phase C Follow-Up — `AG-UI-001`..`AG-UI-003` Fixes, Readability Polish & Real Runtime Verification (2026-11-06)
+
+- **Reviewed Codex report ref:** `codex/v2-preview-integration:docs/agent-handoffs/reports/codex-v2-preview.md` (`fe15465`)
+- **Evaluated real integration runtime ref (`codex/v2-preview-runtime`):** `ec49d435317b6d1f230694fcae9c265b04d65f13` (with follow-up focus fix `1cc199c` in `C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline/dist`)
+- **Phase C UI & test fix commit on `antigravity/v2-preview-ui`:** `fb49a4eca4c4ab3fe0861922369aa7fca8339233` (`fix: resolve AG-UI-001..003 related-source selection, focus restoration, and real UI e2e tests`)
+
+## 10. Resolutions to `AG-UI-001`, `AG-UI-002`, `AG-UI-003` & Readability Polish
+
+1. **`AG-UI-001` (Related-source & diagnostic-record selection agreement — Fixed in `fb49a4e`):**
+   - Added `resolveDiagnosticRecordKeyForSource(diag, source, occurrencesByKey)` in `src/renderer/blueprint-preview/BlueprintDiagnostics.tsx`. Both primary diagnostic selection and `relatedSources` buttons now select a `recordKey` from `diag.recordKeys` **only** when that occurrence's `metadataSource` or `narrativeSource` in the same document actually contains the `source` byte span; otherwise `recordKey` is set to `null` while preserving the exact `documentId: source.documentId`, `diagnosticId: diag.id`, and `source`. Removed the `diag.recordKeys[index] ?? diag.recordKeys[0]` fallback that previously paired a record in one document with a related source in another document (such as `PROJECT_OWNER`'s related project manifest in `project.md`).
+   - Added `resolveDiagnosticSourceForRecord(diag, occ)` so clicking an occurrence chip on a diagnostic card only attaches a diagnostic source anchor when that anchor is in `occ.metadataSource.documentId`; otherwise it selects the occurrence's own `metadataSource` (`diagnosticId: null`), never emitting a cross-document record/source pair rejected by `useBlueprintPreview.onSelect`.
+   - Updated `BlueprintRecordInspector.tsx` to use `resolveDiagnosticRecordKeyForSource` on occurrence-diagnostic primary and related-source chips, and updated `BlueprintSourceView.tsx` so clicking a document heading chip only retains `selection.recordKey` when `activeOccurrence.metadataSource.documentId === activeDocument.id`.
+
+2. **`AG-UI-002` (Escape focus restoration & busy-state keyboard reachability — Fixed in `fb49a4e`):**
+   - Routed `onRememberTrigger` into both `BlueprintRecordInspector.tsx` (metadata span, narrative span, outbound reference source, outbound target jump, inbound source record jump, and occurrence-diagnostic chips) and `BlueprintSourceView.tsx` (document heading chips) so `Escape` and `← Back to outline` restore focus to the exact originating opener across all panels.
+   - Added a `useEffect` in `BlueprintPreview.tsx` with `cancelButtonRef` and `headerRef` so that when `Choose` or `Refresh` becomes disabled on transition to `loading` / `cancelling` (which causes Chromium to drop focus to `document.body`), focus actively moves to `Cancel preview` (during `loading`) or the preview header (`cancelling`).
+
+3. **`AG-UI-003` (Replaced skipped E2E placeholders with real executable Electron tests — Fixed in `fb49a4e`):**
+   - Replaced both `AWAITING INTEGRATION` skipped tests in `tests/e2e/blueprint-preview-ui.test.mjs` with real Playwright/Electron E2E tests launching `<app-root>/node_modules/electron/dist/electron.exe` with `PROJECTS_TIMELINE_APP_ROOT=C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline` and isolated `--data-dir` profiles (`0` skipped tests).
+   - **Test 2 (Real fixtures, keyboard & 800/1160/1440px layouts):** Captures *Desk Notes* (`15` records with leading BOM + CRLF preserved), selects `act.check-note-restart` via keyboard `Enter`, verifies the inspector and exact UTF-16 `<mark>` highlight, presses `Escape` and asserts focus returns to the outline button, switches to *FieldLedger* (`4` documents, `37` records), inspects cross-document action `act.specify-job-save` in `work.md`, verifies `document.documentElement.scrollWidth <= window.innerWidth` and captures screenshots at `800px`, `1160px`, and `1440px`, cancels preview, and verifies Home return focus plus unsaved project draft preservation.
+   - **Test 3 (Hostile/invalid inputs, release workflow `Needs review` & cross-document related-source navigation):** Captures a 2-document package containing `seven-stage-engineering` v1 (`WORKFLOW_PURPOSE` rendered as `Needs review`), an unclosed `ptb` fence (`PTB_FENCE_UNCLOSED` blocking error + `1 unparsed / invalid`), a cross-document `DUPLICATE_ID` (`cmp.dup` across `project.md` and `second.md`), and a cross-document `PROJECT_OWNER` (`feat.foreign` in `second.md` with related location #1 in `project.md`). Verifies that clicking `DUPLICATE_ID` related location #2 switches to `second.md` and highlights the colliding block, and tests `PROJECT_OWNER` related location #1 (honestly logging `PENDING REBUILT RUNTIME (AG-UI-001)` when run against the pre-rebuild `0018f48` bundle in `app-root/dist` and asserting the `project.md` highlight once rebuilt with `fb49a4e`).
+
+4. **Readability Polish (`fb49a4e`):**
+   - Placed `BlueprintRecordList` (Engineering outline) first in the left column ahead of `Captured documents`.
+   - Removed duplicate document heading chip lists from the `Captured documents` cards (headings remain in `BlueprintSourceView` above the active document text).
+   - Removed opaque occurrence keys (`d0:b0`) from the prominent `Project identity` summary cell (`proj.field-ledger`), truncated long SHA-256 display in summary cells with full `title` tooltip, and simplified `loading`/`stale`/`cancelling` banner copy to plain user-facing text.
+
+## 11. Phase C Action & Command Log
+
+| Working directory | Command / action | Purpose | Actual outcome |
+| --- | --- | --- | --- |
+| `C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline/.agent-worktrees/antigravity-v2-preview-ui` | `git show codex/v2-preview-integration:docs/agent-handoffs/reports/codex-v2-preview.md`, `v2-review-queue.md`, `useBlueprintPreview.ts`, `App.tsx`, `blueprint-navigation.test.mjs` | Read Codex Phase C report, runtime ref `ec49d43`, and `AG-UI-001..003` findings | Inspected controller validation rules and runtime wiring |
+| `C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline/.agent-worktrees/antigravity-v2-preview-ui` | Update `BlueprintDiagnostics.tsx`, `BlueprintRecordInspector.tsx`, `BlueprintSourceView.tsx`, `BlueprintPreview.tsx`, `blueprint-preview.css`, `tests/e2e/blueprint-preview-ui.test.mjs` | Fix `AG-UI-001`, `AG-UI-002`, `AG-UI-003` and apply readability polish within allowlist | 6 allowlisted files updated; 0 edits outside allowlist |
+| `C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline/.agent-worktrees/antigravity-v2-preview-ui` | `npm run typecheck` | Verify strict TypeScript compilation across node and renderer configs | Passed (`EXIT=0`) |
+| `C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline/.agent-worktrees/antigravity-v2-preview-ui` | `$env:PROJECTS_TIMELINE_APP_ROOT='C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline'; node --test tests/e2e/blueprint-preview-ui.test.mjs` | Execute all 3 test suites (static invariants + 2 real Electron E2E & screenshot suites) against Codex's integrated runtime | Passed (`3 pass, 0 fail, 0 skipped`; 4 screenshots written to ignored `artifacts/antigravity-*.png`) |
+| `C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline/.agent-worktrees/antigravity-v2-preview-ui` | Re-run both read-only `flash` review subagents on `fb49a4e` and captured screenshots; commit UI (`fb49a4e`) and updated reports | Verify `AG-UI-001..003` fixes, readability improvements, and 800/1160/1440px screenshots | Both reviewers verified compliance; reports updated and committed |
+
+## 12. Executed Checks vs. Pending Rebuilt Runtime
+
+- **Executed & passed against current `codex/v2-preview-runtime` (`ec49d43` + `1cc199c` build in `app-root/dist`):**
+  - `npm run typecheck`: **PASS (`EXIT=0`)**.
+  - `node --test tests/e2e/blueprint-preview-ui.test.mjs`: **3/3 PASS (`0` skipped)**:
+    1. Static contract, `resolveDiagnosticRecordKeyForSource` span-matching, `onRememberTrigger` / `cancelButtonRef` focus wiring, UTF-16 slicing, and CSS namespace invariants (`PASS`).
+    2. Real Electron E2E: *Desk Notes* (`15` records, BOM+CRLF), keyboard `Enter`/`Escape` focus restoration, *FieldLedger* (`37` records, `4` documents), cross-document `work.md` inspection, `800px` / `1160px` / `1440px` zero horizontal overflow + screenshots (`artifacts/antigravity-fieldledger-{800,1160,1440}.png`), cancel preview focus return, and unsaved project draft preservation (`PASS`).
+    3. Real Electron E2E: Multi-document hostile/invalid package (`WORKFLOW_PURPOSE` `Needs review`, `PTB_FENCE_UNCLOSED` blocking error + Section 8 invalid record, cross-document `DUPLICATE_ID` related location #2 switching to `second.md` and highlighting `cmp.dup`, plus screenshot `artifacts/antigravity-hostile-invalid-800.png`) (`PASS`).
+- **Awaiting Codex rebuild of `dist/` with commit `fb49a4eca4c4ab3fe0861922369aa7fca8339233`:**
+  - Because `C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline/dist` currently bundles the earlier `0018f48` renderer UI, the new `fb49a4e` renderer changes (`AG-UI-001` `PROJECT_OWNER` cross-document related-source click where `recordKey` resolves to `null`, `AG-UI-002` `onRememberTrigger` from inspector/source chips and `cancelButtonRef` focus shift during loading, and the outline-first / cleaner document-card layout) are verified by `typecheck` and static invariants now and will execute live in Electron as soon as Codex integrates `fb49a4e` and runs `npm run build`.

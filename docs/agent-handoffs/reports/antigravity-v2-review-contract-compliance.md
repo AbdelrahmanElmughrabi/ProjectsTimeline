@@ -71,3 +71,21 @@
   - **CON-06 & CON-07 (Verified against `AG-Q-01..03`):** Both `WORKFLOW_PURPOSE` (`status: 'incompatible'`) and `WORKFLOW_UNRESOLVED` (`status: 'unresolved'`) display **Needs review** (`severity: 'resolution'`), never syntax errors or transferred release-confirmation stages. Package-level diagnostics (`source: null`) emit `{ snapshotId, documentId: null, recordKey: null, diagnosticId: diag.id, source: null }`. Counts are labeled `"X total occurrences · Y unparsed / invalid records"`.
   - **Security & boundary invariants (Verified):** Zero `window.workspace` calls, zero `dangerouslySetInnerHTML`, zero `window.open`, and all CSS selectors in `blueprint-preview.css` are scoped under `.blueprint-preview`.
 - **Verification limits:** Static inspection of Phase B implementation plus `npm run typecheck` (`EXIT=0`) and `node --test tests/e2e/blueprint-preview-ui.test.mjs` (`1 pass, 2 skipped AWAITING INTEGRATION`). Full parser/IPC Electron execution awaits Codex's Phase C integration ref.
+
+
+---
+
+## 5. Phase C Follow-Up Review (`AG-UI-001`..`AG-UI-003` & Controller Agreement)
+
+- **Reviewed UI & test commit:** `fb49a4eca4c4ab3fe0861922369aa7fca8339233` on `antigravity/v2-preview-ui`
+- **Inspected runtime ref:** `codex/v2-preview-runtime` (`ec49d435317b6d1f230694fcae9c265b04d65f13`) and `codex/v2-preview-integration` (`fe15465`)
+- **Findings verified:**
+  1. **`AG-UI-001` (Related-source & diagnostic-record selection agreement):**
+     - `resolveDiagnosticRecordKeyForSource(diag, source, occurrencesByKey)` in `BlueprintDiagnostics.tsx` selects a `recordKey` from `diag.recordKeys` **only** when that occurrence's `metadataSource` or `narrativeSource` in the same document actually contains the `source` byte span; otherwise it returns `null` while preserving `documentId: source.documentId`, `diagnosticId: diag.id`, and `source`. This eliminates the old `diag.recordKeys[index] ?? diag.recordKeys[0]` fallback that paired a record in one document with a related source in another document (e.g. `PROJECT_OWNER` referencing the project manifest in `project.md`).
+     - `resolveDiagnosticSourceForRecord(diag, occ)` ensures clicking an occurrence button on a diagnostic card never pairs `occ.metadataSource.documentId` with a diagnostic anchor from a different document.
+     - `BlueprintRecordInspector.tsx` uses `resolveDiagnosticRecordKeyForSource` on its diagnostic primary/related source buttons, and `BlueprintSourceView.tsx` clears `recordKey` to `null` when clicking a heading in a document different from `activeOccurrence.metadataSource.documentId`.
+  2. **`AG-UI-003` (Executable Electron E2E tests replacing skipped placeholders):**
+     - Both skipped placeholders in `tests/e2e/blueprint-preview-ui.test.mjs` are replaced by real Electron/Playwright tests running against `PROJECTS_TIMELINE_APP_ROOT=C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline`.
+     - Test 2 executes *Desk Notes* (`15` records, BOM+CRLF) and *FieldLedger* (`37` records across `4` documents), keyboard `Enter`/`Escape` focus restoration, 800/1160/1440px overflow and screenshot checks, and draft preservation on cancel.
+     - Test 3 executes a multi-document hostile/invalid package (`WORKFLOW_PURPOSE` `Needs review`, `PTB_FENCE_UNCLOSED` invalid record, cross-document `DUPLICATE_ID` related-source navigation, and `PROJECT_OWNER` cross-document related-source check, logging a diagnostic when run against the pre-rebuild `0018f48` bundle and asserting the highlight once rebuilt with `fb49a4e`).
+- **Verification limits:** Static verification of `fb49a4e`, `npm run typecheck` (`EXIT=0`), and real Electron test execution (`3/3 pass, 0 skipped`). The `fb49a4e` renderer bundle awaits Codex's rebuild in the integration branch.

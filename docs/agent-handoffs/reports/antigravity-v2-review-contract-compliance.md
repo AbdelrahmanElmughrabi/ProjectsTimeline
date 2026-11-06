@@ -54,3 +54,20 @@
 
 - Read-only static inspection of `docs/v2-preview-contract.md`, `docs/agent-handoffs/contracts/v2-preview.ts`, PTB v0.2 design docs, and the `small` / `complex` fixtures.
 - No parser, IPC command, or Electron UI was executed in Phase A.
+
+
+---
+
+## 4. Phase B Implementation Follow-Up Review (2026-11-06)
+
+- **Reviewed UI commit:** `0018f48cf87941a45b1c9975397dec9fa5ad9d66` on `antigravity/v2-preview-ui` (incorporating Codex shared-type commits `601a350bc44356a7886d650867b5ec7dcfe772a7` -> `a37ba50` and `838a8eb0223b94c6fca265efdfe57c7b48a164d5` -> `cb78d11`)
+- **Files inspected (read-only):** `src/shared/blueprint-preview.ts`, `BlueprintPreview.tsx`, `BlueprintRecordList.tsx`, `BlueprintRecordInspector.tsx`, `BlueprintSourceView.tsx`, `BlueprintDiagnostics.tsx`, `tests/e2e/blueprint-preview-ui.test.mjs`
+- **Disposition of CON-01..CON-07 & `AG-Q-01..03`:**
+  - **CON-01 (Verified):** All 8 outline sections (Project, Components/Features, Requirements, Scopes, Proposed Actions, Proposed Decisions, Planned Checks, Unparsed/Invalid Records) and all 9 domain relationship kinds are rendered in declared order without locale/title re-sorting.
+  - **CON-02 (Verified):** Every list item and selection callback keys by opaque `PreviewOccurrence.key`, ambiguous relationships render jump buttons for all `rel.targetKeys` without first-wins selection, and `relatedSources` render individual buttons.
+  - **CON-03 (Verified):** Component/feature hierarchy iterates `snapshot.structure.rows` (`{ recordKey, depth }`), followed by `unplacedFeatureKeys` and `invalidStructureKeys` without recursive parent traversal. `state: 'invalid-record'` occurrences render in Section 8.
+  - **CON-04 (Verified):** `BlueprintSourceView.tsx` slices `activeDocument.text` strictly by `span.start.utf16Offset` and `span.end.utf16Offset` without stripping BOM or normalizing CRLF.
+  - **CON-05 (Verified):** Unavailable documents (`status === 'unavailable'` or `text === null`) and `projectKey === null` snapshots render explicit unavailable/null states without fabricating line numbers or titles.
+  - **CON-06 & CON-07 (Verified against `AG-Q-01..03`):** Both `WORKFLOW_PURPOSE` (`status: 'incompatible'`) and `WORKFLOW_UNRESOLVED` (`status: 'unresolved'`) display **Needs review** (`severity: 'resolution'`), never syntax errors or transferred release-confirmation stages. Package-level diagnostics (`source: null`) emit `{ snapshotId, documentId: null, recordKey: null, diagnosticId: diag.id, source: null }`. Counts are labeled `"X total occurrences · Y unparsed / invalid records"`.
+  - **Security & boundary invariants (Verified):** Zero `window.workspace` calls, zero `dangerouslySetInnerHTML`, zero `window.open`, and all CSS selectors in `blueprint-preview.css` are scoped under `.blueprint-preview`.
+- **Verification limits:** Static inspection of Phase B implementation plus `npm run typecheck` (`EXIT=0`) and `node --test tests/e2e/blueprint-preview-ui.test.mjs` (`1 pass, 2 skipped AWAITING INTEGRATION`). Full parser/IPC Electron execution awaits Codex's Phase C integration ref.

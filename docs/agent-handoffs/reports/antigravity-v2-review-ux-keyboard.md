@@ -45,3 +45,18 @@
 
 - Read-only static inspection of candidate TypeScript DTOs, Markdown contracts, and existing renderer CSS/components in `.agent-worktrees/antigravity-v2-preview-ui`.
 - No UI component was rendered and no Electron/Playwright viewport or keyboard checks were executed in Phase A.
+
+
+---
+
+## 4. Phase B Implementation Follow-Up Review (2026-11-06)
+
+- **Reviewed UI commit:** `0018f48cf87941a45b1c9975397dec9fa5ad9d66` on `antigravity/v2-preview-ui` (incorporating Codex shared-type commits `601a350bc44356a7886d650867b5ec7dcfe772a7` -> `a37ba50` and `838a8eb0223b94c6fca265efdfe57c7b48a164d5` -> `cb78d11`)
+- **Files inspected (read-only):** `BlueprintPreview.tsx`, `BlueprintRecordList.tsx`, `BlueprintRecordInspector.tsx`, `BlueprintSourceView.tsx`, `BlueprintDiagnostics.tsx`, `blueprint-preview.css`
+- **Disposition of UX-01..UX-05:**
+  - **UX-01 (Verified):** `.bp-workspace` uses a 2-column grid (`minmax(0, 1.05fr) minmax(0, 0.95fr)`) above `1060px` (covering 1160px and 1440px outer window widths) and collapses to a single stacked column (`minmax(0, 1fr)`) via `@media (max-width: 1060px)` for 800px outer window widths. No 3rd or 4th column exists, and `min-width: 0` is applied across all grid/flex containers.
+  - **UX-02 (Verified):** `--preview-font-mono` is scoped to `.blueprint-preview` in `blueprint-preview.css`, and both `.bp-narrative-box` and `.bp-source-box` enforce `white-space: pre-wrap`, `overflow-wrap: anywhere`, `word-break: break-word`, `overflow-x: hidden`, and `tabIndex={0}`.
+  - **UX-03 (Verified):** `clearDetailSelection()` in `BlueprintPreview.tsx` emits `{ snapshotId: snapshot.snapshotId, documentId: preserveDocId, recordKey: null, diagnosticId: null, source: null }`, matching Codex's `AG-Q-01` resolution.
+  - **UX-04 (Verified):** `BlueprintDiagnostics.tsx` renders each entry in `relatedSources` as an individually keyboard-focusable `<button type="button">`, and package-level diagnostics (`diag.source === null`) emit `documentId: null, recordKey: null, diagnosticId: diag.id, source: null` per `AG-Q-02`.
+  - **UX-05 (Verified):** Pressing `Escape` when a record, diagnostic, or source range is selected clears the detail selection and restores focus to `lastTriggerRef.current`. Async phase banners use appropriate `role="status"` (`idle`, `loading`, `stale`, `cancelling`) and `role="alert"` (`error`, `expired`).
+- **Verification limits:** Static inspection of the implemented Phase B TSX/CSS files plus `npm run typecheck` (`EXIT=0`) and `node --test tests/e2e/blueprint-preview-ui.test.mjs` (`1 pass, 2 skipped AWAITING INTEGRATION`). Live Electron window rendering and 800/1160/1440px screenshots await Codex's Phase C integration ref.

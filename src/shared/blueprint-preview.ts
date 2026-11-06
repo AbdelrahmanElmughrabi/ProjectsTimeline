@@ -1,6 +1,6 @@
 /** Approved V2 preview contract v2-preview-1; type-only boundary.
  * No live WorkspaceApi, IPC, parser, controller or UI implementation.
- * Antigravity remains in Phase A review until explicitly released.
+ * Implementation authorization is recorded separately in the BEGIN handoff.
  */
 import type { ActionType, Result } from './contracts';
 
@@ -144,7 +144,7 @@ export interface BlueprintPreviewApi {
 
 export interface PreviewSelection {
   readonly snapshotId: string;
-  readonly documentId: string;
+  readonly documentId: string | null; // Null for package-level diagnostics/selection; never invent a document.
   readonly recordKey: string | null;
   readonly diagnosticId: string | null;
   readonly source: PreviewSourceRef | null; // Captured heading/field/related-location anchor, same documentId.

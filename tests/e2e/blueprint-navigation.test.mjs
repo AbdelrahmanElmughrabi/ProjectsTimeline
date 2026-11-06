@@ -49,6 +49,7 @@ test('Home preview connects actual records/source, preserves project drafts and 
   }
   await preview.getByRole('button', { name: 'Cancel preview', exact: true }).click();
   await page.getByRole('region', { name: 'Home', exact: true }).waitFor();
+  await page.waitForFunction(() => document.activeElement?.id === 'blueprint-select');
   assert.equal(await page.getByRole('button', { name: 'Preview blueprint', exact: true }).evaluate(el => el === document.activeElement), true);
   await page.getByRole('button', { name: 'Open project Continuity', exact: true }).click();
   assert.equal(await page.getByLabel('Action title', { exact: true }).inputValue(), 'Retain unsaved project draft');

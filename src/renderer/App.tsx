@@ -17,6 +17,7 @@ export default function App() {
   const library = useWorkflowLibrary();
   const preview = useBlueprintPreview();
   const previewNavigation = useRef(0);
+  const previewHomeFocus = useRef(false);
   const { projects, detail, selectedId, loading, listError, busy, notice, stale } = workspace;
   const [projectName, setProjectName] = useState('');
   const [actionTitle, setActionTitle] = useState('');
@@ -25,6 +26,13 @@ export default function App() {
   const [selectedReleaseId, setSelectedReleaseId] = useState<number | null>(null);
   const [view, setView] = useState<'home' | 'project' | 'workflows' | 'preview'>('home');
   const disabled = busy !== null || library.busy || stale || view === 'preview';
+
+  useEffect(() => {
+    if (view === 'home' && previewHomeFocus.current) {
+      previewHomeFocus.current = false;
+      document.getElementById('blueprint-select')?.focus();
+    }
+  }, [view]);
 
   async function navigate(next: 'home' | 'project' | 'workflows') {
     const token = ++previewNavigation.current;
@@ -39,17 +47,17 @@ export default function App() {
     setView('preview');
     const outcome = await preview.choose();
     if (token === previewNavigation.current && outcome === 'cancelled') {
+      previewHomeFocus.current = true;
       setView('home');
-      requestAnimationFrame(() => document.getElementById('blueprint-select')?.focus());
     }
   }
 
   async function cancelPreview() {
     const token = ++previewNavigation.current;
     if (await preview.cancel() && token === previewNavigation.current) {
+      previewHomeFocus.current = true;
       setView('home');
       void workspace.refreshHome();
-      requestAnimationFrame(() => document.getElementById('blueprint-select')?.focus());
     }
   }
 

@@ -16,3 +16,5 @@ Status: Implemented under the user's milestone/ownership approval, 2026-11-06; u
 The user reviews policy, persistence, errors, security and manual acceptance. Remaining hard-to-reverse future decisions are correction/withdrawal of frozen releases, cross-release reuse, formula-version compatibility and automated provenance. No irreversible shortcut for them is implemented. Checkpoint journals and Resume remain project-scoped/append-only; per-action checkpoint links are deferred. Unsaved release drafts clear on project/release navigation; no dirty-draft warning system is added.
 
 See [verification and file map](../verification.md). Stop after this focused slice; do not start workflows, publishing or the next milestone.
+
+Later authorization, 2026-11-06: the user requested [Reusable Engineering Workflows Phase A](../workflow-library-plan.md). It proposes independent template copies and guards for new action details while preserving this ADR's release policy/freeze/provenance decisions. Approval is required before migration or feature implementation; no accepted data decision is changed by the proposal.

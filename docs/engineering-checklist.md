@@ -39,7 +39,7 @@ States: **Undecided → Designed → Implemented → Verified**. Undecided inclu
 
 Latest evidence: [verification.md](verification.md): baseline 25/25 before stage edits; final **44/44** (33 Node + 9 Electron + 2 packaged), build/typechecks/package pass. New stage UI checked at 800/1160/1440, keyboard, real failed-write/stale refresh and full restart; populated v1 also upgraded in the final packaged executable. Startup/security/protocol, shipped 001 and dependency files are unchanged. Automated verification does not establish user acceptance or a comprehensive accessibility/security audit.
 
-Next gate: manually accept this slice: review calculations, commit/unassign/exclude/reopen work, verify null scope-review behavior, record real verification and confirm/restart, then ensure another release does not change the first. Review migration, provenance/security/error paths and remaining Visual/Resume checks. Stop before workflows, full stage editing or publishing.
+Next gate: the user authorized **Phase A design review** for Reusable Engineering Workflows. Review the [schema/copy/library proposal and five decisions](workflow-library-plan.md); stop for approval before migration or feature code. Prior manual results remain unrecorded unless provided; that does not block the authorized planning. No workflow implementation is implied by the rerun baseline.
 
 ## New roadmap decisions
 
@@ -70,3 +70,7 @@ These supplement preserved M1 evidence. The Continue Implementation brief approv
 | History | Atomic in-app transition history | Verified | Actual action/scope/verification/confirmation events retain before/after values; failure rolls back state/revision/history. Visible audit feed labels actions; legacy history not invented |
 | History | Per-action checkpoint association | Undecided | Existing explicit project journals preserved; linking checkpoints to actions remains outside this focused slice |
 | Manual stage acceptance | User checks real scope, provenance, frozen history, keyboard/compact layouts and recovery | Designed | Pending user; stop before next milestone |
+| Workflow requirements | Reusable definitions copied independently into new releases; practical library/editor | Designed | User brief authorizes implementation after Phase A approval; no rules engine, sync, marketplace or dependencies |
+| Workflow data/copy model | Four new tables, nullable origin snapshots, immutable built-in editions and user edit versions | Undecided | workflow-library-plan.md; migration 003 not written; five approval decisions include commitment and protected closing behavior |
+| Workflow acceptance | Template CRUD/order/duplication, copy isolation, rollback/legacy/frozen guards, restart and compact UI | Undecided | Proposed acceptance criteria in workflow-library-plan.md, not implemented or verified workflow behavior |
+| Workflow planning baseline | Verify actual repository before relying on prior milestone claims | Verified | Clean source at a8620fa; fresh npm test 33/33, Electron 9/9 and existing packaged 2/2 pass; no feature/schema changes |

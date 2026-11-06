@@ -1,5 +1,21 @@
 # ProjectsTimeline — Verification record
 
+## Reusable Engineering Workflows — Phase A inspection, 2026-11-06
+
+Inspected actual schema 001/002, store creation/mutation/query paths, pure policy, all 13 fixed bridge methods, existing sidebar/project/release UI, current tests/packaging and engineering records. Started with a clean working tree at a8620fa. Local main is three commits ahead of its recorded origin/main reference; no fetch/push or claim of remote synchronization. Current policy already supports variable included-stage counts; current release creation hardcodes seven definitions, and actions have no rich checklist details or template provenance.
+
+Fresh actual baseline, before any feature changes:
+
+| Command | Result |
+| --- | --- |
+| npm test | **33/33 passed**, including build and both TypeScript targets |
+| npm run test:e2e | **9/9 passed**, real Electron with authorized desktop/process access |
+| npm run test:packaged | **2/2 passed**, existing packaged executable: recovery plus populated-v1 upgrade/provenance restart |
+
+Total **44/44** rerun successfully. No new package was produced for this design-only pass; existing packaged behavior was executed, not inferred. No workflow behavior has been implemented or verified. Previous user manual acceptance results are not inferred from this baseline.
+
+Prepared [Phase A proposal](workflow-library-plan.md): four tables and nullable release origin fields; master-version values captured without live child links; app-managed protected closing stage; new detail-table freeze guards; atomic copy with actual audit events; reviewed candidate starter content; UI/acceptance plan and five decisions. Reviewed primary [SQLite ALTER TABLE](https://www.sqlite.org/lang_altertable.html) and [foreign-key](https://www.sqlite.org/foreignkeys.html) guidance. No SQL migration, source/bridge/UI/test/dependency changes or production-profile edits. Only planning/checklist/roadmap/ADR-pointer/verification and the authorized concise Obsidian note changed. Stop for the user's requested approval before Phase B.
+
 ## Development Stages & Progress implementation — 2026-11-06
 
 The user changed the ownership agreement and authorized AI implementation of the approved policy/integrations. Inspected the contract before coding: superseded its personal-coding gate, distinguished no selected release from invalid configuration, retained included-empty/null behavior, and kept confirmation provenance outside arithmetic. Explained release membership as commitment, one-release action ownership, manual revision-bound evidence and frozen confirmation before implementation. [ADR 0004](adr/0004-release-progress.md) records these choices and future correction/withdrawal/versioning limits. Earlier entries below are historical, including their then-current ownership restrictions.

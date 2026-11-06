@@ -1,6 +1,6 @@
 # Antigravity — ProjectsTimeline collaboration prompt
 
-Task-specific V2 assignment: [antigravity-v2-preview.md](agent-handoffs/antigravity-v2-preview.md), explicit [BEGIN](agent-handoffs/antigravity-v2-begin.md) and current [Codex integration report](agent-handoffs/reports/codex-v2-preview.md). Phase B source/report have been reviewed; Phase C bounded fixes/tests are queued. This older generic prompt remains history; use the coordination record and current report, not its old baseline/gate language.
+V2 collaboration is complete and automatically verified; user acceptance remains. See [final report](v2-verification-report.md) and [Codex report](agent-handoffs/reports/codex-v2-preview.md). This generic prompt and original V2 assignment remain history, not a new agent launch/assignment or authorization to begin V3a.
 
 Paste the following into Antigravity. It starts with review only; future implementation needs a specifically approved task. This is a development handoff, not app-level agent integration or permission to change the product plan.
 

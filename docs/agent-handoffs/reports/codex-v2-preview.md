@@ -1,8 +1,16 @@
 # Codex → Antigravity / user — V2 report
 
-2026-11-06 · **Current: Phase C real integration candidate; Phase B explicitly authorized.** Earlier Phase A gates/results below are historical, superseded by [BEGIN](../antigravity-v2-begin.md). Contract `v2-preview-1`, selection fix 838a8eb. Integration owner: Codex. Antigravity is manually operated, never launched by Codex.
+2026-11-06 · **Current: V2 automatically verified, user acceptance pending.** Final source bb2fd95 on codex/v2-preview-integration. Earlier Phase A/C findings/instructions below are historical and resolved. Integration owner: Codex; Antigravity stopped at its boundary, no further agent edits requested. [Final report/screenshots/manual checklist](../../v2-verification-report.md).
 
-## Phase C — runtime ready and Antigravity feedback
+## Final integration outcome
+
+Reviewed all three updated AG reports and integrated **fb49a4e** / **489c9c7** as **b5f7875** / **d8dca59**, preserving its branch/history. Codex bb2fd95 removed the residual same-document fallback and conditional old-runtime test bypass; live tests exposed/fixed focus restoration after disappearing inspector controls. AG-UI-001–003 now have mandatory rebuilt-UI evidence, not only static claims.
+
+Actual final run: **78/78 Node**, **21/21 Electron/UI** (20 real app cases + 1 static boundary invariant), **4/4 rebuilt-packaged**, **zero skips**. Build/both TS targets/package pass. New UI layout identity is asserted; live source-heading, metadata-inspector Escape fallback and busy Cancel focus are exercised. Related-source PROJECT_OWNER jumps and occurrence-field return are unconditional. Final ASAR renderer bytes match dist; packaged UI is also exercised after restart. Current screenshots inspected at all three widths.
+
+Security result is split: production audit **zero known vulnerabilities**; full build/runtime audit **12 moderate inherited dev-chain findings**, zero high/critical, due to existing glob/minimatch advisories in Forge. All flagged versions match pre-V2 lock and flagged package code is absent from ASAR. Separate maintenance review remains, no force-fix/major change applied. No migration/import/model call or V3a. Manual acceptance remains in the final report. Stop here; main/push unchanged.
+
+## Historical Phase C — runtime and feedback (resolved above)
 
 Exact real integration runtime **codex/v2-preview-runtime = ec49d435317b6d1f230694fcae9c265b04d65f13**. Backend **76321b5**: actual installed/locked parser versions, 78 Node + 16 real Electron checks passed. Integrated reviewed AG source **0018f48** and reports **07f89d8/87fb73e** on a separate `codex/v2-preview-integration` branch; AG branch/report ancestry left intact. Home now has **Preview blueprint**, root controller/typed bridge/main snapshot service/real parser are wired, all stages/entities are read-only source. Existing mounted project drafts survive. Candidate build passes.
 

@@ -1,6 +1,6 @@
 # Copy-ready Antigravity assignment — V2 Blueprint Preview UI
 
-Current status: initial assignment below is historical. Phase B was explicitly opened via [BEGIN](antigravity-v2-begin.md); source 0018f48/report 87fb73e have been reviewed. Phase C fixes/tests are in [Codex report](reports/codex-v2-preview.md) and the live queue. Do not restart from the original Phase A base or treat the old closed gate as current.
+Current status: this initial assignment is historical. Final AG fb49a4e/489c9c7 delivery is reviewed/integrated; rebuilt UI/package verified in [final report](../v2-verification-report.md). Agent stopped, no additional assignment or V3a authorization. Do not restart from this original prompt; earlier closed/open gate language records the completed workflow.
 
 Copy this prompt into Antigravity. **Final contract directions approved; Phase A report-only review remains active. IMPLEMENTATION CLOSED.** Codex must not launch Antigravity. This prompt does not require access to the chat.
 

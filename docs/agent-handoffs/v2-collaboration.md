@@ -1,6 +1,6 @@
 # V2 collaboration — one integration owner, isolated work
 
-2026-11-06 · **Phase C reviewed integration candidate.** User confirmed receipt/review and explicitly opened Phase B; [BEGIN](antigravity-v2-begin.md) at b3db26b supersedes initial closed-gate language below. AG source 0018f48/report 87fb73e reviewed and integrated on separate codex/v2-preview-integration, not main. [Codex report](reports/codex-v2-preview.md) nominates runtime/AG-UI-001–003 fixes and tests. No launch by Codex. User requested status before forwarding feedback; preserve file ownership while waiting. [Contract](../v2-preview-contract.md) · [Original assignment](antigravity-v2-preview.md) · [Queue](v2-review-queue.md).
+2026-11-06 · **V2 automatically verified; user acceptance pending.** User-authorized BEGIN led to bounded backend/UI work and final AG fb49a4e/489c9c7 delivery. Codex reviewed/integrated it and verified rebuilt UI/package at bb2fd95; AG-UI-001–003 closed with runtime evidence. AG stopped, no additional agent work requested. Existing report/ref/ownership protocol below is retained as history/process, not a new assignment. [Final report](../v2-verification-report.md) · [Queue](v2-review-queue.md). No main merge/push/V3a or launch by Codex.
 
 ## Checkouts and owners
 
@@ -9,7 +9,7 @@
 | Codex | Current checkout codex/v2-preview-integration; backend checkpoint codex/v2-preview-backend | Integration owner; backend, shared contracts/commands, root navigation/controller, dependencies, security, integration/regression tests and engineering records |
 | Frozen Phase A base | Local ref `codex/v2-preview-phase-a` | Reviewable candidate snapshot, not approval or a production API |
 | Final contract | Local ref `codex/v2-preview-contract` | Final documents/canonical source types; no BEGIN or permission to implement |
-| Antigravity | `C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline/.agent-worktrees/antigravity-v2-preview-ui`, branch `antigravity/v2-preview-ui` | Bounded Preview presentation/UI-test/report files; assigned integration fixes/tests remain open |
+| Antigravity | `C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline/.agent-worktrees/antigravity-v2-preview-ui`, branch `antigravity/v2-preview-ui` | Delivery complete at 489c9c7; own branch/history preserved, agent stopped |
 
 Codex prepares the local review worktree from the Phase A ref, excludes only `.agent-worktrees/` in local `.git/info/exclude`, and verifies it. This is Git setup, not application state/dependency installation. Do not share node_modules between checkouts, edit the parent's files from the child, reset another agent's branch, or run concurrent mutations in one checkout. No remote push or Antigravity launch is implied. If the prepared path/branch is unavailable or already owned by another task, report it instead of replacing/deleting it.
 

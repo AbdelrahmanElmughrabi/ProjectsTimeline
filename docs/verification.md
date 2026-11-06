@@ -1,5 +1,13 @@
 # ProjectsTimeline — Verification record
 
+## V2 final integration — rebuilt UI verified, acceptance pending, 2026-11-06
+
+**Final report: [v2-verification-report.md](v2-verification-report.md).** Source **bb2fd95a10148416e8191e5abfb04bf76c9e2aab** on `codex/v2-preview-integration`; integrated AG fixes fb49a4e and report 489c9c7 without altering its branch/history. Tightened the remaining same-document source fallback and removed conditional old-runtime test bypass. A real disappearing-inspector focus failure was fixed after React commit, then tested with source-heading, outline and busy-chooser focus in the new renderer.
+
+Final actual runs: **npm test 78/78**, **npm run test:e2e 21/21** (20 real Electron + one static UI-boundary invariant), **npm run test:packaged 4/4**, all **zero skips**; **103 passing cases** counted once. Both TS targets/build and Windows x64 packaging passed. The package UI itself exercises FieldLedger after restart; bundled ESM/session expiry and all old recovery scenarios pass. JS `index-D-yPq0yx.js` and CSS `index-LlugB3VP.css` match dist byte-for-byte inside ASAR; tests/docs/artifacts/worktrees excluded. Current 800/1160/1440, invalid-package and packaged screenshots captured and visually inspected.
+
+Security distinction: actual production audit **exit 0 / zero known vulnerabilities**; broader audit **exit 1 / 12 moderate existing dev-tool chain findings**, zero high/critical, rooted in glob 13.0.6/minimatch 10.2.6. Flagged versions match the pre-V2 lock; actual flagged package code is absent from ASAR (empty Forge scope folder only). This is documented follow-up, not a clean full-audit claim or silent dependency upgrade. Advisory links, hashes, logs, limitations and manual checklist are in the final report. Protected migrations 001–003, startup/security, pure release-progress/Resume and ADRs 0001–0006 unchanged. Preview remains non-mutating/schema v3; no V3a/model/runtime AI. All AG-UI issues closed by rebuilt-UI evidence; user acceptance/build-tool maintenance remain open.
+
 ## V2 Phase C — reviewed implementation candidate, not final acceptance, 2026-11-06
 
 User confirmed manual delivery and AG review commit **07f89d830ae196cb74e3cde978faead4e3e2920f**, then explicitly authorized V2 Phase B. Read all three reports, resolved AG-Q-01/02/03 (nullable package-level selection; no invented source; exact occurrence/invalid counts), verified clean AG ancestry/combined type patch and published BEGIN at **b3db26b**, ref `codex/v2-preview-phase-b`. AG report commits were preserved on its branch; no launch/reset by Codex.

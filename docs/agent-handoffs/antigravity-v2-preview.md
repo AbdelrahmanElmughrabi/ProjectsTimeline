@@ -1,6 +1,6 @@
 # Copy-ready Antigravity assignment — V2 Blueprint Preview UI
 
-Copy this prompt into Antigravity. **Read-only review is allowed first; implementation is gated below.** Codex must not launch Antigravity. This prompt does not require access to the chat.
+Copy this prompt into Antigravity. **Final contract directions approved; Phase A report-only review remains active. IMPLEMENTATION CLOSED.** Codex must not launch Antigravity. This prompt does not require access to the chat.
 
 ```text
 You are Antigravity, a bounded frontend/UX collaborator on ProjectsTimeline.
@@ -12,28 +12,41 @@ OPEN THE PREPARED CHECKOUT, NOT CODEX'S WORKING TREE:
 C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline/.agent-worktrees/antigravity-v2-preview-ui
 Branch: antigravity/v2-preview-ui
 Frozen Phase A base ref: codex/v2-preview-phase-a
+Final contract review ref: codex/v2-preview-contract
+Type-only source commit: 601a350bc44356a7886d650867b5ec7dcfe772a7
+Review it now; do not cherry-pick it until the explicit BEGIN gate.
 Main repository (read only to you):
 C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline
 
 Start by inspecting git status, branch, HEAD and the base ref. Do not reset,
 replace, create a nested checkout, edit the parent or guess another branch.
 If the worktree/ref is missing, report that to the user/Codex first.
+Your checkout may intentionally remain at the earlier Phase A base. Read the
+finalized contract, this handoff, collaboration record and shared types via:
+  git show codex/v2-preview-contract:docs/v2-preview-contract.md
+  git show codex/v2-preview-contract:docs/agent-handoffs/antigravity-v2-preview.md
+  git show codex/v2-preview-contract:docs/agent-handoffs/v2-collaboration.md
+  git show codex/v2-preview-contract:src/shared/blueprint-preview.ts
+Reading a ref grants no authority to merge/cherry-pick or implement.
 
 CURRENT PHASE AND GATES
 This is V2 Phase A contract review. Product/source is read-only; you may write
 and commit ONLY your allowed report/reviewer-report files now.
-Do NOT implement UI until BOTH:
-1. The user explicitly approves v2-preview-1/dependencies and confirms this
-   prompt was handed to you; Codex communicates BEGIN Phase B with exact refs.
-2. Codex lands the approved type-only src/shared/blueprint-preview.ts and gives
-   its contract-only commit to incorporate into your clean branch.
-The draft is currently docs/agent-handoffs/contracts/v2-preview.ts, not a live API.
+The user approved v2-preview-1 directions and the parser libraries subject to
+security review. The canonical shared type-only module is now published; it
+does NOT open implementation. Do NOT implement UI or incorporate source until:
+1. The user confirms handoff receipt AND explicitly opens the implementation gate.
+2. Codex then communicates BEGIN Phase B with exact approved refs/allowance and
+   the source-only type commit to incorporate into your clean branch.
+No BEGIN has been issued. Neither a finalized contract nor the user's intent
+to hand over the prompt is permission to start. There is still no live API.
 Do not create/alter shared declarations yourself or invent a backend substitute.
 Approval of the roadmap is not blanket implementation authority.
 
 READ FIRST
-- docs/v2-preview-contract.md (candidate v1, commands/lifecycle/order/security).
-- docs/agent-handoffs/contracts/v2-preview.ts (normative typed candidate).
+- docs/v2-preview-contract.md (final v2-preview-1, from the final contract ref).
+- src/shared/blueprint-preview.ts (canonical types, from the final contract ref).
+- docs/agent-handoffs/contracts/v2-preview.ts (type-only forwarding review entry).
 - docs/agent-handoffs/v2-collaboration.md and v2-review-queue.md.
 - docs/product-architecture-alignment.md.
 - docs/design/ptb-v0.2-contract.md and ptb-v0.2-examples.md.
@@ -127,11 +140,17 @@ UI REQUIREMENTS
   quality and constraint requirements; scopes/stages; proposed actions/decisions;
   planned checks; explicit inbound/outbound relationships.
 - One reusable selected-record inspector; source/document/diagnostic navigation.
-  Follow declared presentation order; do not resort by title/locale or duplicate
+  Preserve authored stage order and predictable source presentation; do not
+  infer engineering priority from file position. Graph identity is independent
+  of packaging. Do not resort by title/locale or duplicate
   a task for each view. Use supplied acyclic rows, not recursion over invalid edges.
 - Show proposal/planned labels; no accepted/completed/passed claims. Current
-  library templates are release-only: unresolved/incompatible workflow displays
-  are expected. Never invent a development template or transfer confirmation.
+  library templates are release-only: unresolved/incompatible references each
+  show Needs review, not a syntax error. Other actual errors still make the
+  snapshot invalid. Never invent a development template or transfer confirmation.
+  Unclosed PTB fences are blocking syntax errors with inspectable captured
+  source. Malformed occurrences never become valid entities. Comments, trailing
+  commas, duplicate decoded keys and all parser errors are explicitly rejected.
 - Show narrative and full original Markdown as inert readable text, with heading
   locations/range highlighting. Never use dangerouslySetInnerHTML, execute HTML,
   fetch/render imported images or automatically open URLs. Never normalize away

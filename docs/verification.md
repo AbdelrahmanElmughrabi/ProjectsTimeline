@@ -1,5 +1,19 @@
 # ProjectsTimeline — Verification record
 
+## V2 Phase A — finalized policy and type-only source boundary, 2026-11-06
+
+User approved Phase A review and directed final parser/order/strict JSON/partial-invalid/workflow policies. Final `v2-preview-1` maps **both unavailable and incompatible workflow references to Needs review**; syntax/schema/relationship errors still block. Authored stage order is semantic; physical presentation has no implied priority and packaging is excluded from graph identity. Unclosed PTB fences retain source and block. Canonical types committed separately as **601a350bc44356a7886d650867b5ec7dcfe772a7**; docs review entry type-forwards them. Source-only module does not extend WorkspaceApi, register channels, implement parser/controller/UI or install dependencies. Final review ref: `codex/v2-preview-contract`. No BEGIN or Antigravity branch edits/launch.
+
+Actual follow-up execution:
+
+- **npm test: 49/49 Node passed, exit 0**, including build/both TypeScript targets. Existing renderer asset hashes unchanged (index-BZzTd8r3.js/index-X768Ofa9.css). Strict no-emit check of forwarding entry also passed.
+- Checked emitted `dist/shared/blueprint-preview.js`: only CommonJS module metadata, no runtime imports/values. Existing main/preload/renderer/contracts/tests/scripts/manifests/config/migrations/ADRs 0001–0006 have no diff from 92531b9. An auxiliary installed compiler-API probe was unavailable; exact emitted-output assertion replaced it and passed.
+- Resolved only metadata in ignored `artifacts/v2-preview-dependency-review/`, using `--package-lock-only --ignore-scripts --no-audit --no-fund`. Restricted DNS attempt failed ENOTFOUND and was stopped; authorized retry with zero retries/15s timeout succeeded. **36 non-root packages**, all registry HTTPS/integrity metadata/MIT/no declared install scripts. Scratch node_modules absent; app manifest/lockfile/node_modules unchanged. This did not fetch/execute candidate package code.
+- `npm audit --omit=dev --json` on that scratch graph **exit 0, zero known vulnerabilities**. Tagged manifest/upstream advisories reviewed; exact evidence hashes and commands in [Codex report](agent-handoffs/reports/codex-v2-preview.md). Advisory metadata is not code/tarball integrity verification, a complete audit, performance proof or guarantee.
+- One lighter read-only reviewer (gpt-6-luna) found no material DTO/policy/gate gaps; stale report wording was corrected. No Antigravity work is claimed. Local document links/whitespace checked before checkpoint.
+
+Previous **66/66** baseline remains in the initial Phase A entry below. **Electron 14/14 and packaged 3/3 were not rerun for this type-only follow-up**, and no new package/V2 runtime/UI verification is claimed. Remaining technical gates: re-audit actual combined lock/integrity on Phase B install, native ESM/package loading, Windows containment/replacement tests and bounded hostile-input responsiveness. No new product-policy decision is outstanding. Handoff receipt is still unconfirmed; explicit implementation gate opening and Codex BEGIN remain required. V1 manual acceptance stays open.
+
 ## V2 Phase A — preview contract and collaboration setup, 2026-11-06
 
 Read the attached V2 brief and current PTB/alignment/examples/domain/UX/traceability/roadmap/ADRs, reference image, actual source/security/library schema and build/tests at `9d638f2`. Tracked baseline was clean; the supplied `projectstimeline_ptb_v0.1/` package was already untracked and remains unchanged.

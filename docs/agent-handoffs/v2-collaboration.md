@@ -1,6 +1,6 @@
 # V2 collaboration — one integration owner, isolated work
 
-2026-11-06 · **Phase A.** Contract candidate: `v2-preview-1`. User launches Antigravity manually. No frontend/backend implementation starts before user contract/dependency approval **and** confirmation the handoff reached Antigravity. A DTO source-module readiness commit is then required before frontend code. [Contract](../v2-preview-contract.md) · [Prompt](antigravity-v2-preview.md) · [Queue](v2-review-queue.md).
+2026-11-06 · **Phase A report-only review; IMPLEMENTATION CLOSED.** Contract `v2-preview-1` finalized under the user's decisions; parser direction approved subject to dependency review. Canonical source types are available without a live API. User launches Antigravity manually. Receipt confirmation and an explicit implementation gate-opening decision remain required before Codex issues BEGIN Phase B with exact refs/ownership. Contract finalization/type readiness alone grants no implementation authority. [Contract](../v2-preview-contract.md) · [Prompt](antigravity-v2-preview.md) · [Queue](v2-review-queue.md).
 
 ## Checkouts and owners
 
@@ -8,11 +8,14 @@
 | --- | --- | --- |
 | Codex | Current repository; future `codex/v2-preview-backend` | Integration owner; backend, shared contracts/commands, root navigation/controller, dependencies, security, integration/regression tests and engineering records |
 | Frozen Phase A base | Local ref `codex/v2-preview-phase-a` | Reviewable candidate snapshot, not approval or a production API |
+| Final contract | Local ref `codex/v2-preview-contract` | Final documents/canonical source types; no BEGIN or permission to implement |
 | Antigravity | `C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline/.agent-worktrees/antigravity-v2-preview-ui`, branch `antigravity/v2-preview-ui` | Read-only contract review now; after gates, bounded new Preview presentation/UI-test files only |
 
 Codex prepares the local review worktree from the Phase A ref, excludes only `.agent-worktrees/` in local `.git/info/exclude`, and verifies it. This is Git setup, not application state/dependency installation. Do not share node_modules between checkouts, edit the parent's files from the child, reset another agent's branch, or run concurrent mutations in one checkout. No remote push or Antigravity launch is implied. If the prepared path/branch is unavailable or already owned by another task, report it instead of replacing/deleting it.
 
-Codex's frontend-ready message must identify the approved contract version, contract-only source commit, exact UI allowance, and BEGIN Phase B authorization. It lands `src/shared/blueprint-preview.ts` first, without a partially implemented bridge. Antigravity may cherry-pick that **specified** contract-only commit while its checkout is clean. Backend/runtime wiring stays with Codex. This lets the UI typecheck without fake window APIs or another agent editing shared files.
+Antigravity's checkout can remain at the original base while reviewing finalized files with `git show codex/v2-preview-contract:<path>`. Codex does not alter its owned branch or pending reports. The canonical `src/shared/blueprint-preview.ts` imports/exports types only; original docs entry type-reexports it. WorkspaceApi, IPC channels/preload, runtime implementation and dependencies remain unchanged. The source-only commit is documented in Codex's report.
+
+After the user confirms receipt and explicitly opens the gate, Codex's frontend-ready message must identify approved version, source-only commit, exact UI allowance and BEGIN Phase B authorization. Only then may Antigravity cherry-pick that **specified** commit while its checkout is clean. Backend/runtime wiring stays with Codex. No BEGIN has been issued; preparation/readiness is not authorization.
 
 ## Allowed communication and later review of actions
 

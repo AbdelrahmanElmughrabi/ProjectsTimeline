@@ -4,7 +4,7 @@ A Windows-first desktop workspace for project actions and development checkpoint
 
 Resume Development now displays the latest saved accomplishment, next steps and timestamp, with no inferred action/stage context. The product direction is project memory, reusable engineering workflows, evidence and verified releases; see the [full roadmap](docs/feature-alignment.md), including future release preparation/publication/final verification.
 
-The approved Visual Foundation adds graphite/violet surfaces, reusable color/type/spacing/layout tokens and presentational sidebar/header/panels. Resume is beside the working column on wide windows and first above Actions on compact windows. Existing data/state/security boundaries are preserved; future views and stage-progress logic are not implemented. See [visual verification and screenshots](docs/verification.md) and [ADR 0003](docs/adr/0003-visual-foundation.md).
+The Visual Foundation uses graphite/violet tokens and reusable sidebar/header/panels. Resume stays beside the working column on wide windows and first on compact windows. Development Stages & Progress now adds real release selection, the original seven stages, equal-weight readiness, reasoned exclusions, Unassigned scope review, action audit history and manual verification/protected confirmation. [Verification/screenshots](docs/verification.md) and [ADR 0004](docs/adr/0004-release-progress.md) record decisions and limits.
 
 ## Run and verify
 
@@ -46,7 +46,7 @@ Main creates the profile directory if needed. Do not point a test profile at dat
 
 Read [the approved foundation](docs/foundation-plan.md), [decisions](docs/adr/0001-foundation.md), [verification evidence](docs/verification.md), and the [engineering checklist](docs/engineering-checklist.md).
 
-For this slice, start with [ADR 0002](docs/adr/0002-resume-workspace.md), `src/main/resume.ts`, `src/renderer/useProjectWorkspace.ts` and `src/renderer/ResumePanel.tsx`. The stage-progress algorithm remains reserved for your personal implementation in its later milestone.
+Start with [ADR 0004](docs/adr/0004-release-progress.md), [policy contract](docs/progress-policy-contract.md), `src/main/progress.ts`, `src/main/data/database.ts` and `src/renderer/ReleaseWorkspace.tsx`. The user authorized AI implementation; review/understanding and manual acceptance remain user-owned. Resume behavior is retained under ADR 0002.
 
 Line-by-line review priorities:
 
@@ -59,4 +59,6 @@ Your manual acceptance check: create a project and two actions, complete one, sa
 
 Also check Resume: confirm both saved fields and its timestamp, switch to an empty project and see an honest empty state, then restart and verify the first project's context. The panel's controls focus the existing action/checkpoint forms; they do not restore an external editor/session.
 
-No installer/signing/updates, cloud, Obsidian sync, editing/deletion/reopening, workflow engine, or AI features are included. SQLite calls are synchronous and kept small; move them off main if measured UI blocking warrants it. `node:sqlite` remains an RC API in Node 24, and Playwright's Electron support is experimental.
+Also review the stage flow: add a suggestion to backlog, create/select a release, explicitly commit/assign work, resolve empty or Unassigned scope, complete/reopen/exclude work, record actual manual verification and evidence for the current revision, then confirm and restart. Confirmed scope is frozen; a new release does not change it. Existing data upgrades to schema v2 with a backup and remains Unassigned without invented history. Manual records do not independently authenticate artifacts or execute tests.
+
+No installer/signing/updates, cloud, Obsidian sync, title editing/deletion, full stage/template editing, automated publishing or AI features are included. Confirmed-release correction/withdrawal is deferred. SQLite calls remain short and synchronous; move them off main if measured UI blocking warrants it. `node:sqlite` remains an RC API in Node 24, and Playwright Electron automation is experimental.

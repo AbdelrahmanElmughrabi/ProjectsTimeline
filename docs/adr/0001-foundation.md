@@ -2,6 +2,8 @@
 
 Status: Accepted by user, 2026-11-05. Source: [foundation plan](../foundation-plan.md) and approval in the project chat.
 
+Current amendment: [ADR 0004](0004-release-progress.md) supersedes the later personal-stage-coding restriction below and extends the original bridge/schema for the approved stage slice. Earlier wording records history; AI implementation is now authorized and user review remains required.
+
 Use Windows-first Electron + React/TypeScript with Vite building the renderer. Compile main and sandboxed preload separately. Main alone owns a stable app-data SQLite database; expose six named operations through a context-isolated bridge and validate the sender and payload on main.
 
 Use built-in `node:sqlite`, conditional on actual Electron and packaged-runtime verification. This avoids another SQLite binding/native dependency. Accept the Node 24 RC API and synchronous short-query tradeoffs. No ORM or generic repository framework. A different binding or worker is a later decision justified by compatibility or measured blocking.

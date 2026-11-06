@@ -2,6 +2,8 @@
 
 Status: User approved and implemented, 2026-11-06. Automated verification complete; user manual acceptance pending. Scope: existing project workspace presentation. See [approved proposal](../visual-foundation-plan.md) and [verification](../verification.md).
 
+Ownership supersession: [ADR 0004](0004-release-progress.md) authorizes AI stage-policy/integration implementation under the user's later instruction. This ADR's historical personal-coding restriction no longer applies; visual/security boundaries remain intact.
+
 Use a distinctive graphite/violet dark foundation with semantic CSS roles in `src/renderer/tokens.css`. Colors, typography, spacing, focus, feedback duration and layout widths have reusable tokens. No theme provider, preferences schema, new icon/font dependency or customization controls are introduced.
 
 Separate presentation into ProjectSidebar, WorkspaceHeader and a small Panel primitive; reuse ResumePanel. App keeps form drafts/event wiring and useProjectWorkspace remains the single state owner. These boundaries accommodate real future views without adding routes, fake navigation or missing domain features now.

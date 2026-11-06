@@ -1,8 +1,8 @@
 # Development Stages & Progress Tracking — design alternatives
 
-Status: **Direction selected; calculation contract/design review pending.** Updated: 2026-11-06. The user selected release scope, applicable committed checklist actions, equal weighting across included stages, protected confirmation and visible legacy Unassigned backlog. Empty included stages now withhold the overall percentage until scope review is resolved. The current [contract and essential test proposal](progress-policy-contract.md) supersedes unresolved alternatives below. No application, migration, bridge or executable test changes. The user personally designs/writes the core policy; integration is authorized after approval of their calculation design and availability of their implementation.
+Status: **Selected direction implemented; user acceptance pending.** Updated: 2026-11-06. The user authorized AI implementation of the approved policy and complete slice, superseding personal coding. [ADR 0004](adr/0004-release-progress.md), [implemented contract](progress-policy-contract.md) and [verification](verification.md) are current. The comparison below preserves rationale; unsupported future-system scenarios remain proposals.
 
-Current baseline: projects, project-owned actions and append-only project checkpoints in schema v1. No releases, stages, applicability, commitment or transition history exist yet. Resume, Visual Foundation, SQLite and Electron boundaries stay intact. Existing verified work is saved in Git checkpoint **78a7758**; last recorded application result is 25/25 passing, with remaining user manual checks still pending.
+Pre-stage baseline: schema v1 had projects, project-owned actions and append-only checkpoints, without releases/stages/applicability/commitment/history. Checkpoint 78a7758 and its 25/25 result preserve that earlier work. The current v2 implementation/results are linked above; Resume, Visual Foundation and Electron boundaries stay intact. Manual acceptance remains pending.
 
 ## Original intent confirmed by the user
 
@@ -126,9 +126,9 @@ Unless stated otherwise: seven included stages, at least one counted item in eac
 
 The user may revise/add cases and expected outputs before coding. These are specification examples, not executable tests or verified behavior.
 
-## Reviewable implementation sequence — only after design approval
+## Implementation sequence — historical plan, completed for the focused slice
 
-1. User settles scope/counting/empty/customization/confirmation rules, designs the pure policy and its result states, then writes the core. AI reviews the design/code and helps test approved cases without supplying the algorithm.
+1. Ownership amended: user approved the policy direction and authorized AI implementation. Core policy and tests are now implemented; personal coding is no longer a gate.
 2. Review the minimal release/stage/action/history schema and safe migration separately. Preserve project backlog/checkpoints; add release/stage creation and explicit assignment/commit commands with ownership/rollback/restart checks. No full publishing/template engine.
 3. Integrate the user's policy into one main query and the existing workspace state/refresh pattern. Add real release selection, stage configuration/assignment and ordered progress/current-stage UI only when backed by working commands. Preserve all existing operations and 25 regression checks.
 4. Add the separately approved protected manual-confirmation/frozen-context path and tests so 100% has its intended meaning. Keep automated publishing and broader release management in E. Rebuild/retest the packaged application and obtain user manual acceptance before calling the milestone complete.
@@ -139,12 +139,12 @@ The existing UI/state/IPC/SQLite boundaries are retained. A release-aware query 
 
 The user requested both: **Git checkpoints per reviewable engineering increment**, and **in-app history per action/scope change**. Git checkpoint 78a7758 preserves the tested Resume/Visual Foundation work, and bac15e9 saves the original scope comparison. The current contract review is a separate documentation increment; no retroactive per-action commits are fabricated.
 
-In-app history is planned, not implemented: validated action/scope mutations append events in the same SQLite transaction. Existing checkpoints already preserve append-only journal entries, but have no per-action association. Proposed action/checkpoint links make that association explicit; any unified activity feed references the real saved checkpoint rather than inventing a transition. Checkpoint text remains user-written, with no auto-authored accomplishments or inferred next steps. Source Git history and application history remain separate responsibilities.
+Action/scope/verification/confirmation history is implemented atomically with mutations, without fabricated legacy events. Existing checkpoints remain user-written append-only project journals; per-action checkpoint links are deferred. Git history and application history remain separate responsibilities.
 
 ## Remaining review gates
 
-- Review the [minimal input/output contract and seven essential test groups](progress-policy-contract.md); user approves their calculation design and personally supplies the core implementation.
-- Review concrete release/stage/action/history constraints and migration, including explicit legacy commitment and stage exclusion/mandatory-obligation protection. Scope/counting/empty-stage choices are no longer open questions.
-- Review the minimal confirmation command/frozen context; correction/withdrawal remains a future explicit policy, not an editing shortcut.
+- Review/accept persisted stages, backlog commitment, exclusions, calculations/history, compact layout and recovery against the [implemented contract](progress-policy-contract.md).
+- Review migration/provenance constraints in ADR 0004. Manual records do not claim independently authenticated artifacts or automated verification.
+- Correction/withdrawal, cross-release reuse, full customization and automated evidence remain later explicit decisions.
 
-The selected direction does not supply or implement the user's algorithm. Once their calculation design is approved and core available, integrate one complete slice and stop for review. Visual manual checks remain pending unless the user records completion; positive appearance feedback does not mark them complete.
+The complete focused slice is implemented and stops for review. Prior Visual/Resume manual gates remain pending unless the user records completion.

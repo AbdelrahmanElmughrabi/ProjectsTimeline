@@ -1,6 +1,6 @@
 # Progress policy — contract for user review
 
-Updated: 2026-11-06. **Contract proposal, not implementation.** The user writes the calculation function. Integration starts after the user approves their calculation design and supplies the core implementation. No source, bridge, migration or executable tests are changed in this review step.
+Updated: 2026-11-06. **Implemented under the user's revised ownership agreement.** The user explicitly authorized AI policy, tests, persistence and UI. The personal-coding restriction is superseded by [ADR 0004](adr/0004-release-progress.md). Manual acceptance remains pending; this contract describes the implemented slice.
 
 ## Direction selected by the user
 
@@ -8,9 +8,9 @@ Release-scoped stages; committed, applicable checklist actions; equal weight acr
 
 **Empty-stage decision confirmed:** an included stage with no applicable committed actions needs explicit scope review. Withhold the overall percentage until scope is resolved; do not silently omit that stage or count it as complete. Its own percentage is null, while populated stages can still show their individual results. A reasoned explicit stage exclusion or real committed work can resolve the empty scope; unnecessary work must not be invented to fill it.
 
-## Proposed input/output contract
+## Input/output contract
 
-Types below are review material only, not added to application contracts. No function body or pseudocode is supplied.
+Types below describe [shared contracts](../src/shared/contracts.ts); [calculateReleaseProgress](../src/main/progress.ts) implements the policy. Main validates/normalizes stored provenance; arithmetic does not authenticate a supplied boolean.
 
 ```ts
 type ProgressInput = Readonly<{
@@ -55,15 +55,15 @@ One input snapshot produces one result. All percentages use **0–100**, without
 
 `currentStageId` is the earliest included stage with unfinished applicable committed work, or null if there is none. An empty stage contains no unfinished action, so it is reported in emptyStageIds rather than made current. A null current stage does not imply confirmed or complete. A pending confirmation action can make the closing stage current while an earlier empty stage still requires scope review.
 
-## Boundary responsibilities — proposed minimal mapping
+## Boundary responsibilities
 
 The main-side caller supplies a validated, consistent snapshot for one release. Positive numeric IDs match the existing app; no new ID framework or generic workflow engine is needed.
 
 - Main validates ownership, unique IDs, stage ordering and existing references. Actions are selected-release actions plus optional project backlog, never actions from another release. A committed, applicable action with a non-null stage must reference an included stage; excluding its container cannot silently discard that obligation. Reassign or explicitly exclude the work first. Inapplicable records can retain their original stage link for history.
-- **Minimal commitment proposal:** explicitly assigning an action to a release is its commitment; suggestions remain project backlog. The input's committed flag is derived from that membership, not an additional mutable SQLite boolean. This leaves release-specific uncommitted suggestions for a later need. Legacy backlog may already be completed, but remains uncommitted until the user explicitly assigns it. Release membership with a null stage remains visible as committed Unassigned work and withholds overall progress.
+- Explicit release membership is commitment, not a second SQLite flag. Suggestions remain project backlog until accepted, including already completed legacy work. A null stage on committed work withholds overall progress. Membership cannot move to another release; stage reassignment is allowed until confirmation.
 - Applicable/excluded state comes from persisted decisions. Domain commands require nonblank exclusion reasons and preserve history. The calculation receives normalized flags, not text/evidence to parse. Uncommitted or inapplicable actions do not become unassigned-scope blockers.
 - Every selected release must have at least one included stage and exactly one protected final-confirmation action, committed/applicable and assigned to its included closing stage. Missing/duplicate/excluded gates or zero included stages are invalid configuration, rejected by the domain; no numeric assessment is returned. They are different from having no selected release.
-- For the protected action, completed is derived only from the genuine confirmation record. An ordinary action-completion command must reject that action. The confirmation command requires all other applicable committed work and scope review to be resolved, records the user's real confirmation/reference atomically and freezes that release context. Its exact schema/command is reviewed before integration.
+- Protected completion derives only from the confirmed release record. Ordinary action commands reject the gate. Confirmation requires all other work/scope review resolved plus the latest passed verification at the same scope revision, records confirmation/history atomically and freezes the release. Verification stores artifact identity, evidence reference, summary, outcome, main time and scope revision. Changes stale old evidence; recording evidence does not invalidate itself.
 - Full engineering requirements, automated verification-run/freshness systems and publishing integrations are not built here. A minimal manual confirmation records the user's actual check of the released version; a progress number is not proof of independent verification. Later required evidence gates belong in the confirmation domain operation, not a fabricated testing statistic or an always-true policy input.
 - Renderer formats the result and uses state/scope warnings to describe it. It never computes a second percentage. If an incomplete value would round to 100.00%, display <100% with an incomplete state. No percentage cache, localStorage mirror, clock access, event writing or React/SQLite dependency belongs in the pure policy.
 
@@ -79,7 +79,9 @@ Invalid relationships/configuration produce the existing validated operation err
 6. With fixed scope, completing work cannot lower progress and repeating evaluation changes nothing. Reopening, adding committed scope, exclusions and reassignment may legitimately change/decrease it. Confirmed-release mutation is blocked by the domain, not silently recalculated into a new release.
 7. Evaluation is deterministic and does not mutate its input. Titles, timestamps, UI state, database access and Git history have no effect on its arithmetic. Work on another release cannot change the selected release result.
 
-## Seven essential policy test groups — specifications, not executed tests
+## Seven essential policy test groups
+
+These requirements are exercised by eight policy test groups plus store/Electron/packaged checks; see [actual results](verification.md). The table is a behavior specification, not a claim that every broader P01–P21 future-system case is implemented.
 
 Unless stated otherwise, every included stage has at least one eligible action. A zero-progress stage means pending work, not an empty stage. The protected confirmation action remains pending except in the valid-confirmed example.
 
@@ -93,13 +95,13 @@ Unless stated otherwise, every included stage has at least one eligible action. 
 | T6 Recalculation | In an active release with assessed scope, reopen completed work or add a new pending committed action | Counts/current stage and percentage reflect the change; progress may decrease. Fixed-scope ordinary completion never decreases it |
 | T7 Purity and stability | Evaluate the same deeply frozen input twice; evaluate another independent release, then the original again | Same result, no input mutation; no cross-release state or time dependence |
 
-Additional mandatory **integration** checks, after approval: generic completion/exclusion of confirmation is rejected; invalid ownership/missing gates/unsafe stage exclusions fail without writes; failed audit/confirmation writes roll back state and history; populated-v1 migration preserves IDs/timestamps/checkpoints and leaves actions Unassigned; confirmed release A stays unchanged when B starts; no selected release shows Not assessed; Resume/project/action/checkpoint/restart/security/error regressions still pass. These are not new obligations inside the pure calculation function.
+Integration coverage: protected completion/unsafe stage changes rejected; invalid ownership/FKs and invalid commands fail; audit/confirmation failures roll back state/history/revision; populated-v1 upgrade preserves IDs/timestamps/checkpoints as Unassigned; confirmed A stays unchanged during B; no selection is Not assessed; Resume/security/error/restart regressions pass. These remain separate from pure arithmetic.
 
-## One complete vertical slice after approval
+## Implemented vertical slice
 
-1. User reviews/revises this contract and the essential cases, approves their calculation design and writes the core. AI can review the implementation and help add the agreed tests; it will not supply the function body.
-2. Integrate through the existing main domain/store, numbered migration and typed bridge: release creation with the original seven instances/protected obligation; explicit backlog commitment/assignment and reasoned exclusion; transactional action/scope history; real manual confirmation with a frozen context. Review concrete constraints and command shapes before changing them. No generic repository/service/state framework or full template/publishing system.
-3. Existing workspace gets real release selection, included-stage summaries, scope-review/Unassigned controls and protected confirmation flow. Keep project-level Resume and explicit checkpoint journal behavior, existing native forms and graphite/violet tokens. Add controls only with working persistence/commands.
-4. Rerun the existing baseline before application changes, then run approved policy/domain/migration/IPC/Electron/packaged checks and inspect compact/normal/wide, keyboard, empty and error states. Record actual results, update checklist/checkpoint, commit the complete slice and stop for review.
+1. AI implemented the pure policy/tests after the user's ownership amendment and direction approval.
+2. Existing store, migration 002 and 13 named bridge methods integrate membership, exclusions, completion/reopening, atomic history, revision-bound manual evidence and protected frozen confirmation.
+3. Existing workspace renders persisted release/stage progress, warnings, Unassigned controls, verification/history and confirmation; project Resume/journals/native controls/tokens are preserved.
+4. Baseline reran before edits; current Node/Electron/packaged results are recorded. User manual acceptance is next. No template engine, stage CRUD, publishing or unrelated UI rewrite.
 
-The immediate handoff is contract/design review, not permission to invent the user's calculation implementation. Existing 25/25 evidence remains historical; no application tests were rerun for this documentation-only step.
+Stop after this slice. Prior 25/25 evidence is preserved as baseline history; current verification is recorded separately.

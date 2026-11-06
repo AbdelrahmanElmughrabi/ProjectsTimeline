@@ -1,5 +1,49 @@
 # ProjectsTimeline — Verification record
 
+## Development Stages & Progress implementation — 2026-11-06
+
+The user changed the ownership agreement and authorized AI implementation of the approved policy/integrations. Inspected the contract before coding: superseded its personal-coding gate, distinguished no selected release from invalid configuration, retained included-empty/null behavior, and kept confirmation provenance outside arithmetic. Explained release membership as commitment, one-release action ownership, manual revision-bound evidence and frozen confirmation before implementation. [ADR 0004](adr/0004-release-progress.md) records these choices and future correction/withdrawal/versioning limits. Earlier entries below are historical, including their then-current ownership restrictions.
+
+Fresh pre-edit baseline: **17 Node + 7 Electron + 1 packaged = 25/25 passed**, including build/typechecks. The sandbox prevented Electron launch; rerunning with desktop/process access passed. Final results:
+
+| Command | Actual outcome |
+| --- | --- |
+| npm test | **33/33 passed**, including build and both TypeScript targets |
+| npm run test:e2e | **9/9 passed**, retaining all seven original scenarios plus two release/UI/error/restart scenarios |
+| npm run package | **Passed**, final Windows x64 executable rebuilt after the final renderer change |
+| npm run test:packaged | **2/2 passed**, original recovery plus populated-v1 upgrade and confirmed-release/provenance recovery after full restart |
+
+**44/44 final automated checks pass.** Initial packaging fetch failed inside the sandbox; the authorized runtime-cache/download rerun succeeded. One fixture comparison initially failed because SQLite rows have null prototypes; corrected value comparisons without changing production serialization. Review caught an impossible 100%-before-confirmation UI gate and generic controls on the protected action. Screenshot inspection then caught a hidden confirmation row despite its counted obligation; restored its explicit read-only row and strengthened the UI assertion to require its presence, then rebuilt/reverified. Lighter-model agents implemented isolated policy/UI/tests and reviewed the backend; the primary agent integrated and checked the final result.
+
+Evidence:
+
+- [Pure policy tests](../tests/unit/progress.test.mjs): equal included-stage weights, custom averaging set/exclusions, eligibility, overlap/current order, empty/unassigned null scope, protected completion, recalculation, frozen-input purity and invalid graphs. No DB/clock/React dependency in policy.
+- [Release integration](../tests/unit/releases.test.mjs): original IDs/text/exact timestamps and checkpoint context survive v1→v2 with a readable backup and no fabricated release/history; FK checks; same-project/composite ownership; unique/protected gate; failed/stale/wrong-release/older-pass evidence rejected; null committed-Unassigned scope; confirmed A unchanged during B; invalid commands and actual audit/confirmation-trigger failures roll back state/revision/history. Repeat completion adds no timestamp/event/revision.
+- [Original store tests](../tests/unit/database.test.mjs) retain lock/error/newer-schema/refusal/backup/multi-migration rollback assertions with versions extended for 002. Shipped 001, main startup/security/protocol, dependencies and lockfile have no diff.
+- [Release Electron scenarios](../tests/e2e/progress.test.mjs): actual UI create/select/commit/complete and manual-record/confirm flow; protected action has no generic buttons; real aborted verification write retains form draft and later succeeds once; committed release save followed by failed read hides progress, clears acknowledged draft and retries read-only; full restart preserves provenance and project Resume.
+- Existing Resume, project/action/checkpoint, sender/runtime, stale-response, error, keyboard/contrast/motion/max-content and three-window scenarios still pass. All 13 bridge methods are explicitly enumerated; sandbox/contextIsolation/Node-disabled settings remain asserted.
+- [Packaged progress recovery](../tests/packaged/progress-recovery.test.mjs): actual final executable upgrades a populated v1 profile, preserves legacy completion/checkpoints as Unassigned with empty invented-history/release sets, backs up, then persists confirmed stages/provenance and recovers the exact snapshot after restart. Existing packaged recovery is retained.
+
+Inspected new [800px](../artifacts/progress-800.png) and [1440px](../artifacts/progress-1440.png) screenshots; automated layout checks also cover [1160px](../artifacts/progress-1160.png), all without horizontal overflow. Resume stays first when compact and beside the working column when wide. [Full confirmed-stage view](../artifacts/progress-confirmed.png) is a real isolated test profile, not production sample data. Screenshots are ignored local artifacts.
+
+Changed-file review map:
+
+| Area | Files |
+| --- | --- |
+| Pure policy | src/main/progress.ts |
+| Persistence | src/main/data/database.ts; src/main/data/migrations/002_release_progress.sql |
+| Typed/security boundary | src/shared/contracts.ts; src/main/ipc.ts; src/preload/index.ts |
+| Existing workspace UI/state | src/renderer/App.tsx; src/renderer/ReleaseWorkspace.tsx; src/renderer/useProjectWorkspace.ts; src/renderer/styles.css |
+| Tests | tests/unit/progress.test.mjs; tests/unit/releases.test.mjs; tests/unit/database.test.mjs; tests/e2e/progress.test.mjs; tests/e2e/workspace.test.mjs; tests/packaged/progress-recovery.test.mjs |
+| Current agreement/records | README.md; docs/foundation-plan.md; docs/engineering-checklist.md; docs/feature-alignment.md; docs/progress-policy-contract.md; docs/stages-progress-design.md; docs/verification.md; docs/adr/0001-foundation.md; docs/adr/0002-resume-workspace.md; docs/adr/0003-visual-foundation.md; docs/adr/0004-release-progress.md |
+| External checkpoint | Authorized ProjectsTimeline - Development Log.md in the ProjectsTimeline Notes vault; no vault scan/sync or vault Git changes |
+
+**Manual acceptance pending:** use your actual project/backlog; review stage scope/exclusion reasons and equal weights; complete later-stage work early, reopen/reassign and observe recalculation/null Unassigned state; record an actual artifact/evidence check, change scope and see staleness, reverify/confirm/restart; begin another release and compare the first; review compact density, keyboard and preserved Resume/checkpoints. Review source/security/migration decisions line by line. Earlier Visual/Resume manual gates stay open.
+
+Local source/test checkpoint: **7d2ea2e**. Ownership/roadmap/checklist/evidence documentation is checkpointed separately; no push this turn. A final whitespace-only EOF cleanup does not change the tested renderer behavior. The persisted-stage-order assertion was strengthened to choose a different unfinished stage, and all 33 Node checks reran successfully. Local document links and final staged whitespace checks pass.
+
+Limits: manual provenance is a user-recorded assessment, not authenticated external evidence or automatically executed testing. No full stage CRUD/templates, requirement/check runner, automated publishing, cross-release action sharing, confirmed-release correction/withdrawal or per-action checkpoint links. No separate clean Windows machine, power-loss/corruption-repair, screen-reader/high-contrast/scaling audit or large-history benchmark. Confirmed formula compatibility is versioned for future review; current version is 1. Stop before the next milestone.
+
 ## Progress calculation contract review — 2026-11-06
 
 Repository started clean at bac15e9; local main matched its recorded origin/main tracking reference (no network fetch performed). Reviewed current action/project/checkpoint contracts, domain error handling, schema v1 and Resume tests. A lighter-model agent provided an independent read-only review of contract boundaries and essential cases; no agent wrote implementation.

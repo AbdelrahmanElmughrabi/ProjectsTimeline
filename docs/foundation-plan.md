@@ -82,7 +82,9 @@ The user approved these criteria on 2026-11-05. Personal verification of importa
 
 **AI drafts, user reviews line by line:** all persistence/migration code, state changes, algorithms, error handling, concurrency and security logic. Label these review points as each increment is delivered.
 
-**Ownership amendment, 2026-11-05:** the user requested that AI implement the components and the user check them. This replaces the original requirement to personally implement a core component. Preserve the line-by-line review requirement for persistence, state changes, errors, concurrency and security; implementation does not demonstrate the user's understanding by itself.
+**Current ownership amendment, 2026-11-06:** the user explicitly removed the later stage-progress personal-coding requirement and authorized AI core logic, tests, database/bridge and UI implementation. See [ADR 0004](adr/0004-release-progress.md). Significant choices stay explained/reviewable; manual acceptance and understanding remain user-owned.
+
+**Earlier ownership amendment, 2026-11-05:** the user requested that AI implement the components and the user check them. This replaced the original requirement to personally implement a core component. Preserve line-by-line review of persistence, state, errors, concurrency and security; implementation alone does not demonstrate understanding.
 
 Later amendment, same date: the new feature-alignment brief restores personal design/implementation of an important domain component for future work. Selection and next-slice approval are pending in [feature-alignment.md](feature-alignment.md); the prior M1 implementation is retained.
 

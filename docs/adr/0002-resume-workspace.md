@@ -2,6 +2,8 @@
 
 Status: Accepted by user, 2026-11-05, through the Continue Implementation brief; implementation record updated 2026-11-06. Scope: Resume slice only. See [feature alignment](../feature-alignment.md) and [verification](../verification.md).
 
+Ownership supersession, 2026-11-06: [ADR 0004](0004-release-progress.md) records the user's permission for AI core stage-policy implementation. The historical personal-coding restriction below no longer applies. Resume decisions remain unchanged.
+
 ProjectsTimeline preserves project memory, reusable engineering workflows, evidence and verified release progress. Resume surfaces saved context rather than inferring development state from a task list.
 
 Extend ProjectDetail with `resume: Checkpoint | null`. Main selects the newest project-owned checkpoint by UTC createdAt string, then highest ID on ties. The pure selector returns actual stored text/timestamps without mutation. No checkpoint means null. No new table, schema version, migration, IPC channel or dependency is needed.

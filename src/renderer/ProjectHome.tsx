@@ -1,14 +1,15 @@
 import type { HomeProjectSummary } from '../shared/contracts';
 
-export function ProjectHome({ projects, loading, error, stale, disabled, onOpen, onRefresh, onCreate }: {
+export function ProjectHome({ projects, loading, error, stale, disabled, onOpen, onRefresh, onCreate, onPreview }: {
   projects: HomeProjectSummary[]; loading: boolean; error: string; stale: boolean; disabled: boolean;
   onOpen: (projectId: number) => void; onRefresh: () => void; onCreate: () => void;
+  onPreview: () => void;
 }) {
   const ready = !loading && !error && !stale;
   return <section className="project-home" aria-label="Home">
     <header className="home-header">
       <div><p className="eyebrow">Home · Development workspace</p><h1>{ready && !projects.length ? 'Start with a project' : 'Your projects'}</h1><p className="lede">Keep your projects recognizable. Leave a clear place to continue.</p></div>
-      <button type="button" className="button button-light" onClick={onRefresh} disabled={disabled || loading}>Refresh Home</button>
+      <div className="home-controls"><button id="blueprint-select" type="button" className="button button-primary" onClick={onPreview} disabled={disabled}>Preview blueprint</button><button type="button" className="button button-light" onClick={onRefresh} disabled={disabled || loading}>Refresh Home</button></div>
     </header>
     {loading ? <p className="empty-copy" role="status">Loading saved project context…</p> : error ? <div className="home-error" role="alert"><h2>Home could not be loaded</h2><p>{error}</p><p>Refresh Home to read saved data again.</p></div> : stale ? <p className="empty-copy" role="status">Refresh Home to read the latest saved project context.</p> : projects.length ? <>
       <p className="home-count">{projects.length} {projects.length === 1 ? 'project' : 'projects'} · Ordered by recorded activity</p>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useProjectWorkspace } from './useProjectWorkspace';
 import { ResumePanel } from './ResumePanel';
@@ -9,18 +9,57 @@ import { ReleaseWorkspace } from './ReleaseWorkspace';
 import { WorkflowLibrary } from './WorkflowLibrary';
 import { useWorkflowLibrary } from './useWorkflowLibrary';
 import { ProjectHome } from './ProjectHome';
+import { BlueprintPreview } from './blueprint-preview/BlueprintPreview';
+import { useBlueprintPreview } from './useBlueprintPreview';
 
 export default function App() {
   const workspace = useProjectWorkspace();
   const library = useWorkflowLibrary();
+  const preview = useBlueprintPreview();
+  const previewNavigation = useRef(0);
   const { projects, detail, selectedId, loading, listError, busy, notice, stale } = workspace;
   const [projectName, setProjectName] = useState('');
   const [actionTitle, setActionTitle] = useState('');
   const [accomplished, setAccomplished] = useState('');
   const [nextSteps, setNextSteps] = useState('');
   const [selectedReleaseId, setSelectedReleaseId] = useState<number | null>(null);
-  const [view, setView] = useState<'home' | 'project' | 'workflows'>('home');
-  const disabled = busy !== null || library.busy || stale;
+  const [view, setView] = useState<'home' | 'project' | 'workflows' | 'preview'>('home');
+  const disabled = busy !== null || library.busy || stale || view === 'preview';
+
+  async function navigate(next: 'home' | 'project' | 'workflows') {
+    const token = ++previewNavigation.current;
+    if (view === 'preview' && !await preview.cancel()) return;
+    if (token !== previewNavigation.current) return;
+    setView(next);
+    if (next === 'home') void workspace.refreshHome();
+  }
+
+  async function startPreview() {
+    const token = ++previewNavigation.current;
+    setView('preview');
+    const outcome = await preview.choose();
+    if (token === previewNavigation.current && outcome === 'cancelled') {
+      setView('home');
+      requestAnimationFrame(() => document.getElementById('blueprint-select')?.focus());
+    }
+  }
+
+  async function cancelPreview() {
+    const token = ++previewNavigation.current;
+    if (await preview.cancel() && token === previewNavigation.current) {
+      setView('home');
+      void workspace.refreshHome();
+      requestAnimationFrame(() => document.getElementById('blueprint-select')?.focus());
+    }
+  }
+
+  async function selectProject(id: number) {
+    const token = ++previewNavigation.current;
+    if (view === 'preview' && !await preview.cancel()) return;
+    if (token !== previewNavigation.current) return;
+    if (view === 'home' || view === 'preview') void openFromHome(id);
+    else { setView('project'); void workspace.openProject(id); }
+  }
 
   useEffect(() => {
     if (detail) { setActionTitle(''); setAccomplished(''); setNextSteps(''); setSelectedReleaseId(null); }
@@ -59,10 +98,10 @@ export default function App() {
       <a className="skip-link" href="#workspace-main" onClick={event => { event.preventDefault(); document.getElementById('workspace-main')?.focus(); }}>Skip to workspace</a>
       <ProjectSidebar
         projects={projects} selectedId={selectedId} view={view} loading={loading} listError={listError}
-        navigationDisabled={(busy !== null && busy !== 'open') || library.busy || loading}
+        navigationDisabled={(busy !== null && busy !== 'open') || library.busy || loading || preview.state.phase === 'cancelling'}
         retryDisabled={loading || busy !== null || library.busy}
-        onViewChange={(next) => { setView(next); if (next === 'home') void workspace.refreshHome(); }}
-        onSelect={(id) => { if (view === 'home') void openFromHome(id); else { setView('project'); void workspace.openProject(id); } }} onRetry={() => void workspace.retryLoading()}
+        onViewChange={next => void navigate(next)}
+        onSelect={id => void selectProject(id)} onRetry={() => void workspace.retryLoading()}
       >
         <form className="create-form" onSubmit={createProject}>
           <label htmlFor="project-name">New project</label>
@@ -72,13 +111,14 @@ export default function App() {
       </ProjectSidebar>
 
       <main className="main-content" id="workspace-main" tabIndex={-1}>
+        {view === 'preview' && <BlueprintPreview state={preview.state} selection={preview.selection} onChoose={() => void preview.choose()} onRefresh={() => void preview.refresh()} onCancel={() => void cancelPreview()} onSelect={preview.onSelect} />}
         {view === 'workflows' && <WorkflowLibrary {...library} onRetry={() => void library.refresh()} />}
-        {view !== 'workflows' && <>
+        {view !== 'workflows' && view !== 'preview' && <>
         {notice && <div className={`notice ${notice.kind}`} role={notice.kind === 'success' ? 'status' : 'alert'}>{notice.text}</div>}
         {(stale || notice?.kind === 'warning' || (selectedId !== null && !detail && busy === null)) && <div className="refresh-state"><p>Displayed information may be out of date. Reload saved data before making more changes.</p><button className="button button-primary" disabled={busy !== null} onClick={() => void workspace.retryLoading()}>Retry loading</button></div>}
         </>}
         {view === 'home' && <ProjectHome projects={workspace.homeProjects} loading={workspace.homeLoading} error={workspace.homeError} stale={workspace.homeStale} disabled={disabled}
-          onOpen={id => void openFromHome(id)} onRefresh={() => void workspace.refreshHome()} onCreate={() => document.getElementById('project-name')?.focus()} />}
+          onOpen={id => void openFromHome(id)} onRefresh={() => void workspace.refreshHome()} onCreate={() => document.getElementById('project-name')?.focus()} onPreview={() => void startPreview()} />}
         <div className="workspace-project" hidden={view !== 'project'}>
         {detail ? <>
           <WorkspaceHeader name={detail.project.name} />

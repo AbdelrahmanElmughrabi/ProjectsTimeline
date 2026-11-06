@@ -4,7 +4,7 @@ import type { Project } from '../shared/contracts';
 export function ProjectSidebar({ projects, selectedId, view, loading, listError, navigationDisabled, retryDisabled, onViewChange, onSelect, onRetry, children }: {
   projects: Project[];
   selectedId: number | null;
-  view: 'home' | 'project' | 'workflows';
+  view: 'home' | 'project' | 'workflows' | 'preview';
   loading: boolean;
   listError: string;
   navigationDisabled: boolean;

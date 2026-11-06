@@ -3,6 +3,9 @@ import type { WorkspaceApi } from '../shared/contracts';
 
 // Sandboxed preload imports only Electron at runtime; each bridge method has a fixed channel.
 const api: WorkspaceApi = {
+  chooseBlueprintPreview: () => ipcRenderer.invoke('workspace:chooseBlueprintPreview'),
+  refreshBlueprintPreview: (input) => ipcRenderer.invoke('workspace:refreshBlueprintPreview', input),
+  cancelBlueprintPreview: () => ipcRenderer.invoke('workspace:cancelBlueprintPreview'),
   listProjects: () => ipcRenderer.invoke('workspace:listProjects'),
   getHomeSummary: () => ipcRenderer.invoke('workspace:getHomeSummary'),
   createProject: (input) => ipcRenderer.invoke('workspace:createProject', input),

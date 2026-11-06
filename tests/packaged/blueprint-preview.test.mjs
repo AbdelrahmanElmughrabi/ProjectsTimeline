@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { resolve, join } from 'node:path';
+import { temporaryDirectory } from '../helpers.mjs';
+import { launchWorkspace } from '../electron-flow.mjs';
+
+test('packaged preview resolves bundled ESM and drops temporary sessions after full restart', { timeout: 90000 }, async t => {
+  const executable = resolve(process.env.PROJECTS_TIMELINE_EXECUTABLE ?? 'out/ProjectsTimeline-win32-x64/ProjectsTimeline.exe');
+  let application;
+  const directory = temporaryDirectory(t, () => application?.close());
+  const profile = join(directory, 'profile');
+  application = await launchWorkspace(profile, executable);
+  let page = await application.firstWindow();
+  await page.getByRole('heading', { name: 'Start with a project' }).waitFor();
+  assert.equal(await application.evaluate(({ app }) => app.isPackaged), true);
+  await application.evaluate(({ dialog }, file) => { dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [file] }); }, resolve('docs/design/examples/ptb-v0.2/complex/project.md'));
+  const result = await page.evaluate(() => window.workspace.chooseBlueprintPreview());
+  assert.equal(result.ok, true, JSON.stringify(result));
+  assert.equal(result.value.snapshot.counts.occurrences, 37);
+  assert.equal(result.value.snapshot.validation, 'valid');
+  assert.equal(result.value.snapshot.relationships.length, 82);
+  assert.equal((await page.evaluate(() => window.workspace.listProjects())).value.length, 0);
+  await application.close(); application = undefined;
+  application = await launchWorkspace(profile, executable);
+  page = await application.firstWindow();
+  await page.getByRole('heading', { name: 'Start with a project' }).waitFor();
+  const expired = await page.evaluate(sessionId => window.workspace.refreshBlueprintPreview({ sessionId }), result.value.snapshot.sessionId);
+  assert.equal(expired.error.code, 'NOT_FOUND');
+  assert.equal((await page.evaluate(() => window.workspace.listProjects())).value.length, 0);
+  assert.deepEqual(await page.evaluate(() => [typeof window.process, typeof window.require]), ['undefined', 'undefined']);
+});

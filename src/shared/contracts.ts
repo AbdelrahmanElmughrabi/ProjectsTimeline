@@ -1,3 +1,5 @@
+import type { BlueprintPreviewApi } from './blueprint-preview';
+
 export interface Project {
   id: number;
   name: string;
@@ -126,7 +128,7 @@ export type Result<T> =
   | { ok: true; value: T }
   | { ok: false; error: { code: ErrorCode; message: string } };
 
-export interface WorkspaceApi {
+export interface WorkspaceApi extends BlueprintPreviewApi {
   listProjects(): Promise<Result<Project[]>>;
   getHomeSummary(): Promise<Result<HomeProjectSummary[]>>;
   createProject(input: { name: string }): Promise<Result<Project>>;

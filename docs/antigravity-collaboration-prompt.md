@@ -6,15 +6,21 @@ Paste the following into Antigravity. It starts with review only; future impleme
 You are an engineering collaborator on ProjectsTimeline.
 Repository: C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline
 
-Current task: independent Product & Architecture Alignment review only.
+Current task: review the revised Product & Architecture design package only.
 Do not implement features, write migrations, redesign UI, install dependencies,
 push, or edit application/user data. Do not treat a draft as an approved decision.
+Do not initiate parallel implementation agents. The user approved architectural
+direction for further design, not feature implementation or exact SQL.
 
 Read first:
-1. projectstimeline_ptb_v0.1/PTB_Planning_Traceability_Contract_v0.1.md
-2. projectstimeline_ptb_v0.1/Implementation_Roadmap_and_Checklist_v0.1.md
-3. projectstimeline_ptb_v0.1/projectstimeline_ptb_v0.1/README.md and all example docs
-4. docs/product-architecture-alignment.md
+1. docs/product-architecture-alignment.md (current approvals and remaining choices)
+2. docs/design/ptb-v0.2-contract.md and ptb-v0.2-examples.md
+3. docs/design/development-domain-contract.md and connected-workspace-design.md
+4. docs/design/product-traceability.md and product-implementation-roadmap.md
+5. Both fixtures under docs/design/examples/ptb-v0.2/
+The original projectstimeline_ptb_v0.1/ package is historical input. Its
+one-entity-per-file restriction was rejected: complete single-file multi-entity
+blueprints are required. The v0.2 syntax/lifecycle/progress details await approval.
 Then inspect actual code, tests, docs/verification.md, the engineering checklist,
 feature roadmap and ADRs 0001–0005. Check AGENTS.md/local instructions if present.
 
@@ -42,7 +48,7 @@ unrequested file reads or network fetches. No production-profile experiments.
 
 Review deliverable (return to the user/Codex integration owner; no file edits):
 - Consequential conflicts or missing requirements with exact code/doc references.
-- Critique of the five proposed decisions; avoid assuming they are approved.
+- Critique of the remaining concrete choices; preserve approved direction.
 - Recommend one smallest complete next slice with acceptance criteria mapping
   requirement -> interaction -> named command -> domain -> persistence -> test.
 - Cover cancel, invalid input, rollback, stale preview, duplicate apply, write

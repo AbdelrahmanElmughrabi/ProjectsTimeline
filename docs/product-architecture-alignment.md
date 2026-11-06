@@ -1,88 +1,63 @@
 # ProjectsTimeline — Product & Architecture Alignment
 
-Current authorization amendment: **V2 implemented/automatically verified, acceptance pending.** [Final report](v2-verification-report.md), [contract](v2-preview-contract.md), [ADR 0007](adr/0007-blueprint-preview.md) and [queue](agent-handoffs/v2-review-queue.md). Reviewed AG source/reports and Codex source bb2fd95 pass all 103 cases on rebuilt runtime/package. Preview only; no migration/import/model calls. User acceptance and inherited build-tool advisory maintenance remain; no V3a authorization. Original V1 approval history below is preserved.
+2026-11-06 · **V3 Product Experience design/review only.** V1 Home and V2 Deterministic Preview are implemented and automatically verified; user acceptance remains separate. No V3 app feature, migration or dependency installation is authorized by this package. [V2 final report](v2-verification-report.md) preserves exact runtime evidence; the earlier alignment/design history remains in Git at b16f212 and prior checkpoints.
 
-Original V1 approval checkpoint, 2026-11-06: **Design package approved with refinements; V1 only authorized at that time.** Adopt explicit JSON-in-Markdown PTB, independent project-owned work/scopes, one current scope per action, audited lifecycle/moves, truthful development counts/Not Assessed and reviewed proposal/acceptance/source separation. Revisioned delivery capture is approved direction with its policy/schema deferred. [V1 plan](v1-home-plan.md) and [ADR 0006](adr/0006-home-project-continuity.md) preserve that implementation history; later V2 authorization is recorded above. Existing ADRs/data remain intact.
+## Current review package
 
-## Current design package
-
-| Deliverable | Review document |
+| Deliverable | Canonical document |
 | --- | --- |
-| Revised PTB and validation | [PTB v0.2 contract](design/ptb-v0.2-contract.md): explicit entity blocks, single/multi-file equivalence, source/approval rules |
-| Development ownership/lifecycle | [Domain contract](design/development-domain-contract.md): scope states, commitment, guarded moves/reopening and separate progress |
-| Connected UX / information architecture | [Home/Project/Stages/Features/History/Resume](design/connected-workspace-design.md): reference-inspired visual continuity, selection and failures |
-| Requirements through implementation | [Traceability map](design/product-traceability.md): PA-01–18 → screens → commands/domain → persistence → acceptance |
-| Dependency roadmap | [Implementation slices](design/product-implementation-roadmap.md): usable paths and schema/policy gates |
-| Worked specification review | [Two examples and release-free journeys](design/ptb-v0.2-examples.md): 15-record single-file Desk Notes and 37-record/four-file FieldLedger |
+| V3 Product Experience Contract | [Outcomes, real examples and five decisions](design/v3-product-experience-contract.md) |
+| Connected Workspace UX Blueprint | [Hierarchy, alternatives, screens/states and context recovery](design/connected-workspace-design.md) |
+| Blueprint Adoption & Merge Policy | [New formation, explicit attachment, source authority and three-way review](design/blueprint-adoption-merge-policy.md) |
+| Domain-to-View Mapping | [PA-01–24 → screens → candidate operations → persistence → acceptance](design/product-traceability.md) |
+| V3 Implementation Roadmap | [Small complete paths, dependencies and schema/verification gates](design/product-implementation-roadmap.md) |
+| Antigravity V3 design handoff | [Standalone copy-ready prompt](agent-handoffs/antigravity-v3-workspace-design.md); manually delivered by the user, no launch |
+| Reviewable visual study | [Standalone interactive simulation](design/v3-workspace-prototype.html); no app integration, storage or model |
 
-The original v0.1 package stays unchanged as design history. v0.2 syntax is adopted, but not an installed format/parser; stable PTB presentation/order and concrete parser tooling must be finalized before V2. Rich linked continuation is prioritized immediately after V3a. No implementation agents have been started. Earlier inspection findings below remain useful; the current contracts supersede the rejected file-per-entity recommendation.
+Approved foundation contracts remain [PTB v0.2](design/ptb-v0.2-contract.md), [development ownership/lifecycle](design/development-domain-contract.md), [V2 preview-1](v2-preview-contract.md) and [ADRs 0001–0007](adr/0007-blueprint-preview.md). New V3 refinements are explicitly drafts, not retroactive changes to those approvals. The original supplied v0.1 folder stays untouched/untracked.
 
-## Evidence and current implementation versus intended product
+## Actual implementation versus intended product
 
-Read the [PTB contract](../projectstimeline_ptb_v0.1/PTB_Planning_Traceability_Contract_v0.1.md), [roadmap](../projectstimeline_ptb_v0.1/Implementation_Roadmap_and_Checklist_v0.1.md), nested [README](../projectstimeline_ptb_v0.1/projectstimeline_ptb_v0.1/README.md) and all eight [example documents](../projectstimeline_ptb_v0.1/projectstimeline_ptb_v0.1/example/project.md) first. Root/nested contract and roadmap copies are byte-identical; README/example are nested only. The supplied, currently untracked package stays unchanged. PTB remains draft.
+Inspection is grounded in src/shared/contracts.ts; renderer App, ProjectHome, ResumePanel, ReleaseWorkspace, WorkflowLibrary and blueprint-preview; main acquisition/parser/graph/session, IPC/store; migrations 001–003; existing tests and ADRs. Baseline source bb2fd95 / records b16f212. Last executed full suite: **78 Node + 21 Electron/UI + 4 packaged = 103 passing cases, zero skips**. This design phase does not rerun those app tests or claim V3 runtime verification.
 
-Inspected source at `f1c8b76`, schemas 001–003, contracts/IPC/security, renderer/hooks, test cases, existing roadmap and ADRs. Last **recorded**, not freshly rerun here: **47 Node + 12 Electron + 3 packaged = 62 checks** ([evidence](verification.md)). Manual acceptance remains separate. This pass changes documentation only.
-
-| Area | Actual code | Intended evolution / reuse |
-| --- | --- | --- |
-| Project formation/Home | Projects store only name/time; sidebar selection and welcome screen ([App](../src/renderer/App.tsx), [001](../src/main/data/migrations/001_initial.sql)) | Recognizable Home, goal/overview and factual activity; PTB preview/formation. Reuse project creation/navigation, shell, Panel and design tokens. |
-| Development work | Project actions can already be completed without releases; rich definitions exist. Commitment, stages, exclusions and revisions belong to releases ([store](../src/main/data/database.ts), [contracts](../src/shared/contracts.ts)). | Permanent components/features/requirements, explicit proposals/commitments and optional development scopes. Preserve lightweight unscoped work. |
-| Workflows/progress | Independent copied definitions, version checks, full editor; every loaded template requires one protected final stage. Release progress requires its confirmation action ([workflow data](../src/main/data/workflows.ts), [policy](../src/main/progress.ts)). | Reuse authoring/copy/isolation patterns; add explicitly development-oriented workflows and a separately approved development policy. No automatic release gate. |
-| Context/history | Project-level accomplishment/next-step checkpoint, deterministic latest selector, action audit; no problem/intention/questions or feature/scope links ([Resume](../src/renderer/ResumePanel.tsx), [selector](../src/main/resume.ts)) | Preserve journals; add optional authored context/links and connected History/inspector. No inferred intent, sessions or elapsed time. |
-| Traceability/views | No component, feature, requirement, decision, check-plan, source-document or import entities. No Stages/Features/History switcher. | Three projections of shared identities; exact readable Markdown and explicit relationships. A planned check is not a run; completion is not verification. |
-| Reliability/security | Main-owned SQLite, transactional writes, backup/version/FK migration checks; 30 named APIs; sandbox, sender/frame/exact-URL validation and restrictive CSP | Retain these boundaries and acknowledged-write/read-only-retry semantics. Add bounded named import commands, not renderer filesystem access or generic IPC. |
-
-## Conflicts, contract gaps and migration risks
-
-1. **Release ownership:** `release_actions.action_id` is a primary key; membership cannot move/delete, and confirmed actions/details/stages freeze ([002](../src/main/data/migrations/002_release_progress.sql), [003](../src/main/data/migrations/003_workflow_templates.sql)). Renaming releases to scopes, hiding confirmation or sharing their action rows with mutable development work breaks invariants. Preserve active and confirmed v3 releases without automatic conversion.
-2. **Workflow semantics:** release verification/preparation/distribution content remains release-specific even after removing the gate. User templates/stages have no portable author-facing keys. Resolve PTB `workflow_key`/`stage_hint` explicitly, never by title or silent default.
-3. **Executable syntax:** finalize ID grammar/prefixes, types/enums/defaults/bounds, capability/rule registries and draft-version compatibility. Specify YAML duplicate keys/aliases/tags, UTF-8/BOM/newlines, directory/archive input, path case/junction/symlink behavior and limits. YAML/Markdown parsers are absent; approve maintained parser dependencies before implementation, not handwritten YAML.
-4. **One-file and relationships:** the v0.1 one-entity/document restriction was rejected. The revised v0.2 uses multiple explicit record blocks per file, typed links and goal metadata; arbitrary headings still create nothing. New single/multi-file examples and review results are linked above. Missing acceptance warns; malformed/dangling/cyclic ownership blocks; unknown metadata stays inert. Production parsing/security and actual application journeys remain unimplemented.
-5. **Approval/change authority:** project creation cannot approve decisions, commit all actions or produce verification. Define per-action adoption, workflow selection and preserved proposal origins. File renames change provenance, not identity. Preview changes, repeat imports, local/source conflicts, requirement revisions and evidence freshness need policies. Later rule deduplication needs rule/version/target bindings; `covers_rule_ids` alone can hide distinct obligations.
-
-Migration tests must compare populated v3 IDs/text/times/completion, journals/events, release scope/policy/origin, verification/confirmation and templates. Keep release-bound actions bound; offer explicit legacy-backlog adoption without invented approvals/imports. Append numbered migrations (004 next if unchanged), preserve 001–003, backup/rollback/newer-schema refusal. Use isolated profiles.
-
-## Proposed architecture evolution
-
-Keep React → typed preload/IPC → main validation/domain → SQLite. Add focused parser/planning code and store methods as their slices need them; no new execution engine, ORM, parallel durable UI store or architecture rewrite.
-
-- **Permanent records:** acyclic components, persistent features, revisioned requirements/acceptance and explicit same-project links, including many-to-many requirement relationships. Workflows do not own requirements; action type `requirement` does not create a requirement.
-- **Independent work:** reuse ordinary `actions`/`action_details` with explicit proposal/commitment context and optional scope/stage membership. Recommend one current scope/action; features span scopes. Unscoped commitments remain valid. Keep v3 release-bound rows outside this mutable path; preserve reassignment history. Concrete tables/lifecycle require approval.
-- **Organization:** future development/release template purpose; existing editions remain release-purpose. Explicit new development editions have no protected release gate. Reuse editor/copy/isolation with purpose-specific validation; stage list/progress need approval.
-- **Source:** immutable bytes/text/hash, path, source locations, PTB identity and import receipts, separate from accepted state/events. Use `(workspace project, PTB ID)` and package-wide uniqueness, never filename/title/SQLite import identity. Preserve proposed decisions/planned checks and their links without approvals/runs. Add only slice-needed tables.
-- **Delivery later:** retain v3 releases; capture selected development revisions/definitions/source links in independent snapshots. Mutable development completion must not drive historical readiness. Approve capture/evidence rules separately.
-
-Import boundary: main-owned picker/root → bounded declared-file reads → pure validated graph → immutable main-owned preview → approved transactional apply/receipt. Never trust renderer-supplied graphs or silently reread changed input. Preview/cancel writes nothing. Source-byte hashes and semantic identity are distinct. Inert source rendering must not execute HTML/scripts, fetch links/images or broaden filesystem serving. Reimport waits for reviewed conflicts.
-
-## Journeys, UX and backend dependencies
-
-Names below are candidate operations, not implemented APIs.
-
-| Journey/screen | Operations / domain / persistence dependencies |
+| Current code | Intended evolution / reuse |
 | --- | --- |
-| Home → project overview → Resume | Extend project summary query with latest **recorded** checkpoint/event and authored identity/goal where available. Empty activity stays empty. Reuse navigation/Resume; avoid fetching every full project per card. |
-| Choose PTB → source/graph preview → review/cancel | Named chooser/preview command; safe acquisition → strict parse → typed validation/diagnostics → deterministic proposals. No SQLite writes or required model/network. |
-| Approve project → inspect feature/requirement → adopt action | Named atomic apply/adopt commands; source receipt/IDs, permanent graph, optional scope and explicit commitment. Imported decision stays proposed; check stays planned. |
-| Work in optional scope → Stages / Features / History | Scope/stage assignment and completion commands; shared project action IDs and relationship queries. Stage-less work shows Unspecified; tabs retain selection. Feature state is not an inferred percentage. History combines actual events/journals with stable links, not fabricated migration events. |
-| Save context → reopen → continue | Extend checkpoint with optional problem/intention/questions/record links while preserving old fields/times. Keep project isolation, deterministic latest choice, draft/error and stale-read behavior. |
-| Choose delivery → verify → confirm | Later explicit snapshot/revision commands; existing release provenance, latest passed current-revision requirement and frozen history remain separate from development completion. |
+| Home reads actual project/checkpoint/activity summaries; Project stores name/time, not an authored product goal | Reuse Home/shell/Panel/tokens; add recognizable goal, explicit focus and linked next step only when those records exist. No inferred sessions/stats. |
+| Deterministic V2 capture/parse/strict validation, exact source and useful diagnostics; renderer emphasizes eight technical entity groups | Reuse the parser/acquisition and technical source tools. Lead future review with goal/features/organization/effects and progressive disclosure, not another raw inventory. |
+| Existing ordinary actions can be completed without releases; rich checklist details and project checkpoints work | Add project graph, definition revisions and guarded proposal/commitment context. Preserve legacy action IDs/completion/history and old journals without fabricated adoption events. |
+| Releases own stages, progress, protected confirmation, evidence revisions and frozen historical releases | Keep delivery separate. Independent development scopes must never repurpose release rows or transfer their gates/percentages. |
+| Workflow copying/versioning/isolation and editor exist; templates are release-purpose | Reuse architecture later for explicit development-purpose editions. Valid inline PTB stage plans can organize early work without a new library prerequisite. |
+| Resume returns to a generic action input; checkpoints hold accomplishment/nextSteps, no durable engineering target/problem/questions | Linked optional context, current/historical record navigation and exact saved-intention recovery, prioritized immediately after formation. |
+| Main SQLite transactions, backup/version checks; fixed 34-method typed bridge; sandbox, context isolation, trusted sender/frame/URL and restrictive CSP | Preserve trust boundaries and acknowledged-write/read-only-retry behavior. Add named validated commands per slice, not a filesystem/SQL/graph execution channel. |
 
-## Prioritized complete slices and acceptance criteria
+These are product gaps, not automatic evidence that the V2 parser/backend failed. The primary acceptance path becomes **understand blueprint → approve explicit work → organized development → saved context → Continue**, without creating a release.
 
-The [updated dependency roadmap](design/product-implementation-roadmap.md) replaces the initial broad slice list. It separates Home, safe preview, lightweight project formation, optional scoped work, reusable development workflows, rich context, decisions, evidence, reviewed reimport, suggestions and later delivery capture. Each usable path traces to [PA-01–18](design/product-traceability.md), with concrete schema/policy and user-acceptance gates. Existing tests/security/history remain preservation requirements. Git/Obsidian product integration, models, personalization and pattern recognition remain future proposals.
+## Real-case review and contract gaps
 
-## Approval record and remaining gates
+The exact Vivarium package was read from C:/Users/fireball/OneDrive/Desktop/3d pet generator/projects-timeline-test, without running/editing that application. Existing compiled V2 capture accepts both valid versions: **47 records, 86 links, seven features, one four-stage scope**. Nine actions are scoped, one unscoped. Desk Notes (15/29) proves lightweight unscoped work; FieldLedger (37/82) supplements two-scope behavior. The deliberate invalid Vivarium package remains inspectable/blocked.
 
-The user approved the five design decisions with refinements. Do not request those approvals again or infer blanket implementation authorization:
+Single/multi Vivarium metadata/relationships agree, but four narrative bodies differ, so narrative-inclusive hashes correctly differ. Reviewer questions include the clean-room wording versus proposed Three.js, performance reference hardware and reproducibility environment. They are human questions, not app-detected contradictions or automatically accepted decisions. Full findings/walkthroughs are in the experience contract.
 
-1. **Format adopted:** PTB v0.2 explicit JSON/Markdown, single/multiple files, Markdown-aware recognition, duplicate-key rejection, intact narrative and deterministic relationship validation. Stable presentation/order and parser choice are pre-V2 gates; no parser is implemented in V1.
-2. **Domain adopted:** independent project records, optional scopes, one current scope/action, explicit lifecycle and audited reassignment. Concrete additive SQL/DTO/constraint design remains a separate pre-migration review; no release conversion.
-3. **Progress adopted:** truthful counts and Not Assessed initially. No development percentage or release gate transfer until a separate development percentage policy is approved.
-4. **Application adopted:** explicit requirement/action acceptance, proposals uncommitted by default, immutable source provenance, atomic/idempotent reviewed import and no implicit overwrite. No AI runtime/model needed.
-5. **Roadmap adopted as direction:** V1 only now; richer linked recovery immediately after V3a, before optional scoped/library depth. Recommendations remain a separate later slice and are absent initially. V2, evidence freshness and delivery snapshot policy/schema require their explicit future gates.
+PTB v0.2 does not express task priority/dependencies/blockers/schedule/start hints. Stage order is organization, not readiness or urgency. Recommend ordinal stage and feature workmaps first, explicit local ordering/blockers later; separately approve versioned metadata before supporting dependency/calendar/recommendation behavior. No automatic current stage, development percentage or critical path.
 
-## Antigravity collaboration
+## Architecture evolution and risks
 
-Use the [copy-ready handoff prompt](antigravity-collaboration-prompt.md) for an independent review now and bounded assigned implementation after approval. Antigravity is an external development collaborator, not an application feature. One integration owner controls each slice, migrations and shared contracts. The initial inspection used lighter read-only agents; this revised-design phase started no agents or Antigravity session. Parallel implementation remains unapproved.
+Keep React → typed preload/IPC → main domain validation → SQLite. Existing helpers/controllers/patterns remain; no generic execution engine, ORM or second durable renderer store.
 
-**Stop:** after V1 verification/manual review. This design approval authorizes no V2 implementation, migration or dependency installation.
+- Permanent components/features/revisioned requirements and same-project typed links; one action identity across Stages/Features/History. Action type requirement does not itself create a requirement entity.
+- Immutable source/capture/location plus project-bound external IDs and idempotent reviewed receipts, separate from local revisions and operational history. A name/file path never identifies a merge target.
+- Additive development context on ordinary action IDs/details with commitment/work-state guards, optional independent scope/stage instances and membership history. Old generic completion/assign APIs must not bypass those guards. Confirmed release ownership/triggers are protected.
+- Capture/source approval is not requirement verification. Preserve proposed decisions/check definitions first; accepted decisions and actual assessment/freshness interactions wait for explicit slices/policies.
+- Later revisioned delivery snapshots remain approved direction only; schema/migration stays deferred. No live join from mutable development completion to historical release readiness.
+
+Before any concrete numbered migration, review keys/constraints/revision semantics and populated-v3 preservation tests: IDs/text/times/completion, events/checkpoints, template origins, active/frozen release scope/evidence/confirmation. Keep 001–003 unchanged; consistent backup, pending-batch rollback, FK checks, newer-schema refusal and rebuilt packaged recovery remain mandatory. Do not convert legacy releases into scopes or invent past import/approval events.
+
+## Approval and collaboration boundary
+
+Already approved: explicit JSON-in-Markdown single/multi-file PTB and deterministic source capture; independent project-owned records/optional scopes and audited lifecycle; counts/Not assessed; reviewed acceptance/source/proposal separation; no required AI runtime. Do not reopen those decisions.
+
+Only **five new consequential choices D1–D5** are requested in the experience contract: first useful delivery/bulk effects; workspace visual model; source binding/update authority; explicit work state/focus/blockers; version boundary for missing planning semantics. Concrete SQL/DTO review still precedes implementation. Git/Obsidian product integration, models, personalization, pattern recognition, workflow synchronization and release snapshots are later work.
+
+Codex owns canonical architecture/integration documents. Antigravity independently challenges UX in its isolated V3 design branch/worktree and writes only assigned reports/prototypes; no assumed live communication, production edits or automatic merge. Two lighter Codex read-only reviewers informed this proposal; no parallel implementation agents were launched. Exact frozen handoff ref and report protocol are in the standalone prompt.
+
+**Stop for user/Antigravity design review. Do not implement V3 or install dependencies from this document.**

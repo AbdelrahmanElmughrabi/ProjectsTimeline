@@ -1,3 +1,5 @@
+@import "./shadcn.css";
+
 * { box-sizing: border-box; }
 html { min-width: 320px; min-height: 100%; background: var(--surface-app); }
 body { min-width: 320px; min-height: 100vh; margin: 0; color: var(--text-primary); background: var(--surface-app); font-size: var(--font-body); line-height: 1.5; }

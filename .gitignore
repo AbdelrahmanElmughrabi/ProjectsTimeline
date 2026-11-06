@@ -4,6 +4,7 @@ dist/
 out/
 .cache/
 artifacts/
+/.agent-worktrees/
 coverage/
 playwright-report/
 test-results/
@@ -34,3 +35,8 @@ test-results/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Additional Playwright outputs and local authentication
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

@@ -1,62 +1,93 @@
-# Connected workspace — information architecture and interaction proposal
+# Connected Workspace UX Blueprint — V3 review draft
 
-2026-11-06 · **Design direction approved; only V1 Home implemented.** Existing project/Resume/Workflows/Releases stay intact; PTB and connected development views remain later authorized slices. [Domain](development-domain-contract.md) · [Traceability](product-traceability.md) · [Roadmap](product-implementation-roadmap.md) · [V1](../v1-home-plan.md).
+2026-11-06 · **Design only, not an implemented UI redesign.** Preserves approved graphite/violet tokens, project-owned records, optional scopes and V1/V2 behavior. New interaction recommendations require [D1–D5](v3-product-experience-contract.md). [Prototype](v3-workspace-prototype.html) · [adoption policy](blueprint-adoption-merge-policy.md) · [mapping](product-traceability.md).
 
-## Visual continuity and navigation
+## The connected shell
 
-Reviewed the existing [reference](ui-reference.png), [visual plan](../visual-foundation-plan.md), real App/Resume/Release/Workflow components and [tokens](../../src/renderer/tokens.css). Keep graphite/violet surfaces, Segoe UI/system typography, semantic colors, 4–32px spacing, 40px controls, 8/12px radii, 2px focus rings and reduced-motion-aware 140ms feedback. Reuse ProjectSidebar, WorkspaceHeader, Panel, ResumePanel and native control styles. No new brand assets, ornamental statistics, Gantt dates or broad restyling.
+Home → Use blueprint → Understand & review → Choose destination/effects → Apply reviewed plan → Project Overview → Stages / Features / History → Save context → Home Continue.
 
-Proposed navigation:
+Existing Workflows and Releases remain reachable as their current independent features. New development-purpose library functionality is a later slice. Do not add dormant Engineering/Ideas/Settings destinations to fill the reference sidebar. No global command/search icon before a real search operation exists.
 
 ```text
-Home: projects and recorded activity
-  Project: overview, goal and Resume
-    Development workspace
-      Filter: All development / Unscoped / selected scope
-      Stages | Features | History
-      One selected-record inspector / original source
-    Releases: existing independent delivery workspace
-Workflows: existing library, explicit Development / Release purpose
+Wide project workspace
+┌ project sidebar ┬ project name, goal, source review status ─────────────┐
+│ Home           │ Overview | Stages | Features | History               │
+│ Projects       │ Find within project…        All / Unscoped / Scope   │
+│   Vivarium     ├──────────────────────────────┬────────────────────────┤
+│ Workflows      │ Feature map OR stage workmap │ RESUME DEVELOPMENT     │
+│                │ selected feature's work      │ Saved problem / next   │
+│                │ and contextual relationships │ Continue saved target  │
+│                │                              ├────────────────────────┤
+│                │ Inspector expands here or    │ optional quick context │
+│                │ replaces detail content      │ entry, not statistics  │
+└────────────────┴──────────────────────────────┴────────────────────────┘
+Compact: project heading → Resume → view/filter → map/list → selected detail
+with explicit Back; no fourth rail and no forced horizontal text scrolling.
 ```
 
-Home is a real destination, not a release list. Projects stay directly reachable from the sidebar; Workflows remains functional. Ideas/Engineering/Settings/Git destinations are added only with functioning domain features. Releases remains accessible with its current functionality; no forced conversion or loss of controls.
+The prototype deliberately explores a simple stacked inspector within the work column; Antigravity should compare it with replacing the map by a compact detail surface. A right rail is reserved for recovery, not another raw entity list. The original mountain art, notification icons, decorative progress and calendar bars are not requirements.
 
-## Screens and shared data
+## Primary screens and contracts
 
-| Screen/view | Primary job and actual information | Main interactions / dependencies |
+Candidate operation names below are design contracts, **not existing WorkspaceApi methods**. IDs/revisions and source links are secondary to goal, feature titles, work meaning and authored context.
+
+| Surface | Primary goal / emphasized information | Actions and connection | Backend/domain requirement |
+| --- | --- | --- | --- |
+| Home | Recognize the project and its saved next step. Compact goal/identity, latest authored checkpoint and relevant real event; no repeated full journals on every card | Continue linked work, Open overview, Create ordinary project, Use blueprint. Activity disclosure opens filtered History | Extend getHomeSummary from actual project metadata/checkpoint/focus/events; avoid N full project loads. Legacy goal absent, not generated |
+| Blueprint understanding | Understand proposed capabilities and engineering organization before approval. Project goal, feature/component map, scope/stage plans, key review choices | Inspect a feature/requirement/decision, expand technical validation/source, proceed to destination. Invalid syntax links to exact source | Existing immutable capture/graph projected into human groups; no second parser, AI summary or inferred records |
+| Destination + effects review | Know where records will go and what user approval changes | New project / explicit existing target; group/subset selection; separate requirement acceptance, commitments and activation; final exact summary; Cancel | PrepareReviewedApplication reads expected target revisions/bindings; ApplyReviewedBatch transaction/receipt; no durable writes before apply |
+| Project overview | Understand product shape, explicit current focus, work to review and where to continue | Feature card → same context; Start chosen work; quick action; Review remaining proposals; Resume; separate Releases | Read project goal/features/scope instances/commitments/blockers/checkpoint; no release readiness join or inferred feature progress |
+| Stages | See authored organization and work distribution without a schedule fiction | Choose scope, open same task, commit proposal, Start/Done/Reopen, explicit reassign/exclude when those slices exist | Scope-local ordered stage instances, proposed vs actual membership, work-state commands/revision guards. No globally merged stage from equal labels |
+| Features | Understand capabilities and engineering support in context | Expand component; choose feature; open requirements/actions/decisions/checks, including labelled indirect “via requirement” links | Stable project records + direct typed relations; one action ID across views; query projection deduplicates global counts |
+| History | Explain what actually changed and why | Time-ordered import/approval/edit/start/reopen/move/checkpoint/decision/assessment events; filter by selected record; inspect historic revision/current version | Existing events plus additive development history; actual times and actors; import narrative never becomes historical execution |
+| Selected detail | Understand why this work matters and inspect linked context | Title/instructions/definition of done first; source/IDs/hash/revisions under Details. Native links route to same identity; editing target labelled Local working definition | Typed selection, source capture refs, stable record and revision; edit command keeps original source immutable |
+| Resume / checkpoint | Return to an explicitly saved engineering problem | Accomplishment/next step fast entry; optional problem/questions and visible target; Save appends; Continue opens target + saved context | Optional checkpoint context and typed links preserve old two-field journals/time ordering; restart and missing-target fallback |
+
+Requirements/decisions/checks are contextual detail groups, not three more mandatory top-level tabs. Project-wide and unassigned records have explicit homes. A feature not linked to a component is “Project-wide / unplaced,” not discarded. Project search spans all supported record kinds and can open the same detail from any view; first use is a bounded main-side title/ID query, not a new search service.
+
+## Map and roadmap alternatives
+
+| Alternative | Value | Cost / decision |
 | --- | --- | --- |
-| Home | Recognize projects by saved name/goal and a deterministic initial mark; latest recorded checkpoint/event, unresolved authored question if available | Open project, create ordinary project, import blueprint. Summaries are named read queries, not N full-workspace loads or fabricated “hours spent.” No activity → honest empty state. |
-| Project overview | Goal/source narrative, explicitly selected scope/focus, latest checkpoint/next step | Continue from saved context, add unscoped work, save checkpoint, open development or releases. Selected focus is user choice, not inferred from recent completion. |
-| Import/review | Original Markdown plus component/feature outline, requirements, scope/stage plans, proposals and diagnostics | Choose file, preview, refresh/cancel, explicit requirement acceptance/scope activation/action commitment, atomic create. Blocking diagnostics link to source location; warnings remain visible. Default action selection is none. |
-| Stages | Work organization, grouped by scope/workflow; separate Unscoped and in-scope Unassigned areas | Commit proposals, complete/reopen, assign/reassign, reasoned exclude/restore. Different workflow stages are never merged into a fictitious global current stage. No workflow → stage-less scope, no percentage. |
-| Features | Component/feature tree with requirements, actions, decisions and planned checks | Expand, filter, select the same action, open source. Project-wide requirements and features with no component have explicit groups. An action linked to two features may appear twice as a reference, but is counted once by identity. |
-| History | Actual import/adoption/edit/move/completion/checkpoint/decision/evidence events and their recorded reasons | Filter by record/scope, open linked record/source and historical revision. Narrative describes the plan; importing it records an import now, not events that never happened. |
-| Inspector / Resume | Selected record details versus saved continuation context, clearly labeled | Inspector opens source, linked records and current/historical revision. Resume shows authored problem, intention, changes, unresolved questions, next step and links when present. Old checkpoints retain their two original fields. |
+| Flat entity list / eight tabs | Exact technical inventory | Repeats V2's reading burden; retain as advanced inspection, not primary experience |
+| Component/feature map + selected-context links | Recognizable product shape; a requirement can explain several features without duplicating tasks | Primary Overview/Features pattern. Group labels derive from declared relationships; no guessed priority or capability |
+| Ordinal stage workmap | Uses existing inline plan and placement immediately; supports overlap and later-stage work | Recommended Stages view: authored columns/lane order, proposed/committed/doing/done counts and honest Unassigned/Unscoped. No date axis or dependency arrows |
+| Date Gantt/calendar | Useful for explicitly scheduled work | Deferred until date/duration/timezone semantics exist; never stretch actions into fabricated bars |
+| Full dependency graph | Explains actual prerequisites when recorded | Defer graph editor/critical-path engine; mere requirements/features links are not dependencies. Context mini-map follows explicit links only |
 
-Features and History can operate without scopes. Stages can show Unscoped work without creating a scope. Project overview and Resume remain usable for legacy projects with no imported structure. No feature percentage or verified badge is inferred from action counts. A planned check shows Not run; absent evidence shows Not assessed.
+Vivarium Overview shows seven capability cards, not 47 entity rows. Stages uses its one four-stage plan with nine scoped actions plus the unscoped documentation task. FieldLedger has two scope workmaps; their three same-named stages do not become one project stage. Small Desk Notes can ignore its draft plan and work normally through its unscoped task.
 
-## Selection and context rules
+A count is labelled exactly: “3 committed actions; 1 marked done,” “5 requirements without a linked planned check,” or “2 saved questions in this checkpoint.” No feature completion percentage, automatic next-stage claim or “all tests passed” label is derived. Requirements and checks begin Not assessed/Not run, distinct from accepted definitions and completed work.
 
-Keep one selection tuple `(project ID, scope filter, view, selected record ID)` and one authoritative project snapshot/query owner. View changes retain record identity and inspector. If a filter hides the selection, explain and offer Clear filter; do not silently duplicate/move the record. Switching projects clears incompatible selection. A historical event opens its recorded revision by default, with an explicit current-record link. No new client-side persistence store; startup tab/filter persistence is deferred.
+## Efficient review and starting work
 
-Resume stays separate from the inspector: changing tabs must not replace authored context. Continue navigates to an explicitly saved linked action/feature/scope; with no link it retains current action-form focus behavior. A missing/inaccessible target leaves the checkpoint readable and offers the project overview; never guess a substitute. Quick checkpoint entry keeps accomplishment/next step first, with optional problem/intention/questions and links disclosed as needed. Save appends; it does not edit old history.
+- Default approval selections are empty. “Select all named actions in this plan” is an explicit reversible review choice; it is not an automatic acceptance rule. A final batch summary exposes effects and retained proposals, with scope activation separate.
+- Filter/selection controls show all-matching versus visible-page scope. Selection survives expanding a group; clearing a filter never changes commitment. A batch may be corrected before apply without editing dozens of fields.
+- Proposed scope/stage placement is preserved from source. Committing scoped actions needs explicit activation, deferral or deliberate unscoped placement. That choice is not a mandatory setup wizard for small work.
+- Starting point hierarchy: explicit saved checkpoint target; then user-chosen focus; then an explicit future ordered list if supported; otherwise choose work by feature/stage/search. Show “Priority/prerequisites not recorded” rather than a speculative recommendation. No source order priority.
+- A selected inspector does not mark work In progress. Start work is a deliberate command if D4 approved; completion, reopening and authored blockers have their own actual history. Start is not a timer or session detector.
+- Local edits disclose their target and preserve source. A Done action offers Reopen and revise / follow-up, rather than silently changing what its old completion satisfied. Bulk mistaken commitments use explicit reasoned exclusion, not a destructive generic Undo.
 
-Ordinary and imported work use the same quick title entry and optional engineering details. Proposal rows offer Accept/Edit/Reject, not Complete. Adoption retains identity/source and validates placement; closed/cancelled scopes offer explicit Reopen. Multi-feature links do not create multiple tasks. Scope/filter changes with dirty drafts require explicit keep/discard handling before adding that navigation; a failed write always retains input.
+## Shared selection, drafts and context
 
-## Window sizes, keyboard and failure states
+Candidate location: `(projectId, view, scopeFilter, selectedRecordId, revision?, anchor?)`. Internal record identity is separate from PTB ID and V2 occurrence key. Switch Stages/Features/History with one selection; multi-feature appearances are references, not cloned tasks. Historical events open their recorded revision first, with an explicit current-record link.
 
-At wide widths, preserve the existing sidebar/work column/Resume rail. The inspector replaces a portion of working content or opens a labeled detail view rather than adding a fourth cramped column. At compact widths Resume is first under the project heading; tabs/tree/inspector become one logical stacked/detail flow with a Back-to-selection control. Verify actual 800/1160/1440px windows and maximum-length text; no decorative reference panels fill unused space.
+If filtering hides selection, keep the detail with “Outside this filter” and Clear filter; do not move/reassign it. Project switching clears foreign selection but retains project-owned unsaved drafts according to an explicit keep/discard policy. Reopening a saved checkpoint uses its saved target/view/filter; if that filter no longer fits, show the target with an explanation. A removed/retired target leaves the authored checkpoint visible and offers history/overview. No substitute intention is inferred.
 
-Use native tab/button semantics, labeled fields and tree disclosure controls, logical headings, visible focus and keyboard access to source diagnostics. Tab changes preserve meaningful focus; Escape closes a transient inspector and restores its opener. History/source content wraps; no compulsory horizontal scrolling for ordinary text. Reduced motion disables nonessential transitions.
+Resume and inspector are separate: browsing a record does not overwrite saved context. Source Details do not silently switch the current work target. The minimal persistent continuation is the explicit checkpoint; restoring arbitrary last tabs/windows is optional future personalization, not required to get back to a saved problem. No extra durable UI store.
 
-| State | Required behavior |
-| --- | --- |
-| Empty/legacy | Show what is absent and a real next action; no sample records or fake components. |
-| Loading/navigation race | Withhold previous project's details; ignore superseded read responses. |
-| Invalid blueprint | Remain in preview; exact field/source diagnostic, no graph applied. |
-| Cancel/refresh preview | Cancel writes nothing; refresh creates a new reviewed snapshot and invalidates the old token. |
-| Failed write/stale revision | Keep draft/choices, explain failure/conflict, offer reload/review. No optimistic completion claim. |
-| Saved but refresh failed | Clear only acknowledged submission, mark data stale and retry reads only. Repeated import apply uses receipt, never duplicates the project. |
-| Historical/frozen | Clearly label legacy release/confirmed scope data; retain existing release mutation guards and provenance. Development closure is separately reopenable. |
+## Loading, empty, failure and scale behavior
 
-These are acceptance targets, not claims of a rendered or accessibility-tested new UI. Implement and inspect one usable screen path at a time after approval.
+| Surface | Loading / empty | Error / stale / correction | Large project |
+| --- | --- | --- | --- |
+| Home | Stable card skeletons; no fabricated activity; legacy name-only card | Withhold failed/superseded summaries; retry reads only | Paged summaries + find; no full graph per project |
+| Blueprint review | Capturing label; no previous plan shown as current; zero proposed work is valid | Blocking source diagnostics accessible; target/conflict/unknown workflow review before apply; cancel writes nothing | Group summaries, search and counted all-matching selection; progressive detail, not 2,000 expanded forms |
+| Overview | Goal absent → ask author; all-proposed plan → Review work; no checkpoint → save one | Retain user's draft, label stale read; confirmed apply plus failed refresh shows “Saved, reload view,” never resubmits | Feature summaries + explicit counts; load details on selection |
+| Stages | No active scope → normal unscoped work + preserved draft plans; empty stage says no work assigned | Invalid/retired placement shown; no invented stage, lifecycle guards/revision conflict retain choices | Filter by scope; bounded stage/card groups; no global stage merge |
+| Features/detail | Unlinked/project-wide groups remain reachable | Missing/retired link gets readable fallback; local edit conflict retains draft | Collapsed component groups, list alternative to map, bounded results with stable selection |
+| History | No events → honest empty state, not a synthetic imported session | Historical/current distinction; failed next-page load preserves known entries | Time/ID cursor paging and selected-record filter, not every event loaded at once |
+| Resume/context | No checkpoint/focus → explicit chooser, not fake session | Save failure retains input; missing target preserves exact text; acknowledged save retry reads only | Short next step primary; expand long problem/questions, readable at 800px |
+
+Native controls, logical headings and visible focus are mandatory. View switches announce the view/retained selection; filtering announces hidden selection. Escape closes transient detail, returning to the surviving opener or stable selected list entry/header after render. Search results/disclosures have keyboard paths; do not introduce a custom ARIA tree/grid unless its full keyboard model is implemented. Focused disabled loading controls transfer focus to a usable cancel/status target. Reduced motion respects the existing tokens. At 800/1160/1440px, normal text wraps and detail is reachable without a fourth column.
+
+The [prototype](v3-workspace-prototype.html) simulates review, work selection, shared-view navigation and checkpoint resumption with real definitions only. It is not a production architecture/accessibility/restart test, an attachment editor, an evidence recorder, or a promise every illustrated interaction is approved for the first migration. Compare its tradeoffs independently in Antigravity's design review.

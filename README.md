@@ -6,6 +6,10 @@ Resume Development now displays the latest saved accomplishment, next steps and 
 
 The Visual Foundation uses graphite/violet tokens and reusable sidebar/header/panels. Resume stays beside the working column on wide windows and first on compact windows. Development Stages & Progress now adds real release selection, the original seven stages, equal-weight readiness, reasoned exclusions, Unassigned scope review, action audit history and manual verification/protected confirmation. [Verification/screenshots](docs/verification.md) and [ADR 0004](docs/adr/0004-release-progress.md) record decisions and limits.
 
+Reusable Engineering Workflows adds a persisted Workflow Library: duplicate the read-only seven-stage template, or create an empty user template, then edit its name, description, stages and checklist actions. Quick-add needs only a title; optional engineering details cover instructions, applicability, definition of done, evidence guidance and type. The built-in's eight ordinary actions are a starter foundation, not a complete engineering checklist. [ADR 0005](docs/adr/0005-reusable-workflows.md) records the copy/versioning model.
+
+Choose a template when creating a release to commit independent copies of its stages and actions, with the source name/version captured. Later master edits do not change those copies. Active releases support their own action details/order and stage add/rename/order; tracked work uses reasoned exclusions rather than deletion. Exactly one app-managed confirmation stays in the closing stage, the original seventh stage for the default workflow. Stages Only remains available; confirmed releases stay frozen.
+
 ## Run and verify
 
 Use Node 24.15+ within the Node 24 release line, and npm. Exact dependencies are recorded in package-lock.json. Electron supplies its own Node runtime when running the desktop app.
@@ -46,7 +50,7 @@ Main creates the profile directory if needed. Do not point a test profile at dat
 
 Read [the approved foundation](docs/foundation-plan.md), [decisions](docs/adr/0001-foundation.md), [verification evidence](docs/verification.md), and the [engineering checklist](docs/engineering-checklist.md).
 
-Start with [ADR 0004](docs/adr/0004-release-progress.md), [policy contract](docs/progress-policy-contract.md), `src/main/progress.ts`, `src/main/data/database.ts` and `src/renderer/ReleaseWorkspace.tsx`. The user authorized AI implementation; review/understanding and manual acceptance remain user-owned. Resume behavior is retained under ADR 0002.
+Start with [ADR 0004](docs/adr/0004-release-progress.md), [ADR 0005](docs/adr/0005-reusable-workflows.md), [policy contract](docs/progress-policy-contract.md), `src/main/progress.ts`, `src/main/data/database.ts`, `src/main/data/workflows.ts` and the release/library screens. The user authorized AI implementation; review/understanding and manual acceptance remain user-owned. Resume behavior is retained under ADR 0002.
 
 Line-by-line review priorities:
 
@@ -59,6 +63,8 @@ Your manual acceptance check: create a project and two actions, complete one, sa
 
 Also check Resume: confirm both saved fields and its timestamp, switch to an empty project and see an honest empty state, then restart and verify the first project's context. The panel's controls focus the existing action/checkpoint forms; they do not restore an external editor/session.
 
-Also review the stage flow: add a suggestion to backlog, create/select a release, explicitly commit/assign work, resolve empty or Unassigned scope, complete/reopen/exclude work, record actual manual verification and evidence for the current revision, then confirm and restart. Confirmed scope is frozen; a new release does not change it. Existing data upgrades to schema v2 with a backup and remains Unassigned without invented history. Manual records do not independently authenticate artifacts or execute tests.
+Also review the stage flow: add a suggestion to backlog, create/select a release, explicitly commit/assign work, resolve empty or Unassigned scope, complete/reopen/exclude work, record actual manual verification and evidence for the current revision, then confirm and restart. Confirmed scope is frozen; a new release does not change it. Existing data upgrades to schema v3 with a backup; legacy IDs, completion, journals and release history are preserved, with unspecified template origins/details and no invented history. Manual records do not independently authenticate artifacts or execute tests.
 
-No installer/signing/updates, cloud, Obsidian sync, title editing/deletion, full stage/template editing, automated publishing or AI features are included. Confirmed-release correction/withdrawal is deferred. SQLite calls remain short and synchronous; move them off main if measured UI blocking warrants it. `node:sqlite` remains an RC API in Node 24, and Playwright Electron automation is experimental.
+For workflow acceptance: duplicate/customize a template, apply it to two releases, complete work in one and compare the other. Edit the master and confirm both existing releases retain their copied definitions and source version. Edit an active release, verify older evidence becomes stale, then fully restart the packaged app and compare library, release and Resume state. Check compact layouts and keyboard use with your real content. Current automated result: **47 Node + 12 Electron + 3 packaged = 62/62 passed**; user acceptance remains pending.
+
+No installer/signing/updates, cloud, Obsidian sync, standalone backlog-title editing, template archive/delete, workflow import/export/sync, automated publishing or AI features are included. Template versions are edit counters with captured release snapshots, not a full master revision archive. Confirmed-release correction/withdrawal is deferred. SQLite calls remain short and synchronous; move them off main if measured UI blocking warrants it. `node:sqlite` remains an RC API in Node 24, and Playwright Electron automation is experimental.

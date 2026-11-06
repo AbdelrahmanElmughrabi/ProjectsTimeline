@@ -1,6 +1,6 @@
 # ADR 0005 — Reusable workflow definitions and independent release copies
 
-Status: User approved all five Phase A decisions with clarifications, 2026-11-06. Implementation in progress. [Approved plan](../workflow-library-plan.md); the first duplicate/select/copy/display/isolation path passes 40 Node and 10 Electron checks. Final editor/packaged verification is recorded separately when executed.
+Status: Approved and implemented, 2026-11-06; manual acceptance pending. [Approved plan](../workflow-library-plan.md). First path checkpoint `7263c75` passed 40 Node and 10 Electron checks; completed editor checkpoint `6b6fbed` passes **47 Node + 12 Electron + 3 packaged = 62 checks**, including rebuilt Windows recovery. [Verification](../verification.md) records actual coverage and remaining manual checks.
 
 Migration 003 adds template headers, ordered template stages/actions and independent action details, plus nullable release origin ID/version/name. Migrations 001/002 and existing data remain unchanged; older releases retain unspecified origins/details. Built-in seven-stage v1 is read-only and contains eight ordinary starter actions, not an exhaustive checklist. Editable duplicates get independent IDs/version 1; user edits advance their template version. Future immutable built-in editions use later migrations, not startup patching.
 
@@ -8,4 +8,8 @@ Applying a chosen template commits fresh incomplete actions in one transaction w
 
 Local release definition/order/stage changes use existing editable-release guards, scope revisions and atomic before/after audit, invalidating previous verification. New action detail rows obey confirmed/protected-action freeze guards. Tracked work is excluded with reasons, not destructively deleted. Template stage/action definitions may be edited/reordered/removed independently; the protected closing stage cannot be removed or placed earlier.
 
-No progress formula, Electron trust/document boundary, data location, dependency or architecture framework change. No AI generation, conditional rule engine, sync, packs or marketplace. Complete the authorized editor, verify regressions/packaged recovery and stop for manual acceptance before the next milestone.
+Template versions are optimistic edit counters, not retained master revision archives; captured release definitions and source ID/version/name preserve their own historical context. No-op edits do not advance versions. Ordered updates validate exact owned sets; the closing stage stays last. Existing title-only actions receive detail/order rows only when explicitly committed or edited, preserving their completion timestamps and recording the actual current operation.
+
+The library and release screens distinguish failed writes from acknowledged writes followed by failed reads. Write failures retain drafts; after acknowledgement, retries only reload data. Stale template selections cannot silently create a Stages Only release, and unsubmitted unrelated editor drafts survive a failed refresh.
+
+No progress formula, Electron trust/document boundary, data location, dependency or architecture framework change. No AI generation, conditional rule engine, sync, packs or marketplace. The authorized editor and packaged/regression verification are complete. Stop for manual acceptance before the next milestone.

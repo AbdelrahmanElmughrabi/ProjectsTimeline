@@ -1,5 +1,51 @@
 # ProjectsTimeline — Verification record
 
+## Reusable Engineering Workflows — implementation and verification, 2026-11-06
+
+The user approved all five design decisions, migration 003 and the complete implementation, clarifying the built-in's starter scope, single confirmation in the existing seventh stage, committed copies, Stages Only option and independent active-release customization. [ADR 0005](adr/0005-reusable-workflows.md) records the consequential choices. First complete duplicate → select → copy → details → independent-progress path was saved as **7263c75**, after 40 Node and 10 Electron checks passed. Completed editing and regression coverage is saved as **6b6fbed**. Documentation is checkpointed separately; no push was performed.
+
+Fresh pre-feature baseline was **44/44** (33 Node + 9 Electron + 2 packaged), recorded in Phase A below. Final actual execution:
+
+| Command | Actual outcome |
+| --- | --- |
+| npm test | **47/47 passed**, including build and both TypeScript targets |
+| node --test tests/unit/*.test.mjs | **47/47 passed** again after adding cross-project copy assertions to the existing isolation scenario |
+| npm run test:e2e | **12/12 passed**, actual Electron; all original scenarios retained |
+| npm run package | **Passed**, final Windows x64 executable rebuilt from the completed source |
+| npm run test:packaged | **3/3 passed**, executing that rebuilt executable and full restart recovery |
+| Focused workflow editor Electron scenario | **1/1 passed** after a screenshot-only test adjustment to collapse the creation disclosure; regenerated final screenshots, no application-source change |
+
+**62 unique automated checks pass: 47 Node + 12 Electron + 3 packaged.** Repeated executions above are not counted twice. Desktop/process and runtime-cache access were authorized for Electron/packaging. All final commands completed successfully; no production profile was modified. Tests use isolated temporary profiles and deliberate fault triggers.
+
+Recorded behavior:
+
+- [Workflow Node tests](../tests/unit/workflows.test.mjs), 14 scenarios: persistent seed/duplicate/reopen; fresh identities and independent progress in two releases plus another project; Stages Only; stale versions and invalid ownership/order; actual detail/audit copy failures with complete transactional rollback; template name/description/stage/action edits, movement/order/removal and no-op versioning; built-in API/SQL guards; master edits/removal leaving active and confirmed snapshots unchanged; local definition/order/stage changes advancing scope and staling verification; failed local writes rolling back metadata/revision/history; title-only legacy assignment preserving completion; populated-v2 migration/backup and exact frozen recovery.
+- Existing [database](../tests/unit/database.test.mjs), [release](../tests/unit/releases.test.mjs), pure progress, Resume and security checks remain. Schema assertions advance to v3; later synthetic migration versions advance accordingly. Migrations **001/002**, `progress.ts`, `resume.ts`, main startup/security/protocol, package dependencies and lockfile have **no diff from pre-feature 0354346**. The unchanged progress policy already handles custom included-stage counts.
+- [Workflow Electron tests](../tests/e2e/workflows.test.mjs), three scenarios: real library duplication/copy/engineering details and A/B completion isolation with Resume restart; full master and local editor paths, keyboard submission, action movement/order/removal and real aborted local write/draft retention/retry; actual failed copy plus acknowledged-copy/failed-refresh/read-only retries without duplicate releases. Unrelated unsubmitted editor drafts survive failed reads. Stale template selection cannot fall back silently to Stages Only.
+- Existing Electron regressions pass, including project/action/checkpoint/Resume/restart, sender/frame/exact-URL trust, sandbox/context isolation and Node-disabled renderer, stale response supersession, protected confirmation/provenance and failure feedback. The fixed bridge whitelist now enumerates **30 named methods**, with no generic SQL/file/channel exposure.
+- New [packaged workflow recovery](../tests/packaged/workflow-recovery.test.mjs): final executable upgrades a populated schema-v2 profile with backup, preserves legacy work/checkpoints, edits a duplicated master, copies two independent releases, confirms/freeze-checks A, edits/removes master definitions without altering A/B snapshots, customizes B and verifies exact library/project/provenance recovery after full restart plus FK consistency. Both original packaged recovery scenarios also pass, including populated-v1 upgrade.
+
+Integration checks caught and corrected disabled project navigation during a superseded read, missing return-to-project view selection and stage headings replaced by edit forms. Restored navigation and semantic stage headings with contextual Stage options; preserved functional assertions. UI details now follow persisted within-stage order and metadata limits match main validation. Tests separately prove failed-write draft retention and acknowledged-write read-only recovery. Fixture corrections followed actual schema ownership/position semantics; no failing functional checks were removed.
+
+Responsive evidence: [800px](../artifacts/workflows-800.png), [1160px](../artifacts/workflows-1160.png), [1440px](../artifacts/workflows-1440.png), plus [first release copy/details](../artifacts/workflow-first-copy.png). Actual Electron checks all three sizes without page overflow; final 800/1440 screenshots were visually inspected. Library list/editor stack at compact widths; existing project Resume layout/keyboard/error/long-content/reduced-motion checks pass. Screenshots contain isolated test records, not fabricated production data, and remain ignored local artifacts.
+
+Changed-file review map (this milestone):
+
+| Area | Files |
+| --- | --- |
+| Persistence/domain | src/main/data/migrations/003_workflow_templates.sql; src/main/data/workflows.ts; src/main/data/database.ts |
+| Typed application boundary | src/shared/contracts.ts; src/main/ipc.ts; src/preload/index.ts |
+| UI/state | src/renderer/WorkflowLibrary.tsx; src/renderer/useWorkflowLibrary.ts; src/renderer/ReleaseWorkspace.tsx; src/renderer/useProjectWorkspace.ts; src/renderer/App.tsx; src/renderer/ProjectSidebar.tsx; src/renderer/styles.css |
+| Node tests | tests/unit/workflows.test.mjs; tests/unit/database.test.mjs; tests/unit/releases.test.mjs |
+| Electron tests | tests/e2e/workflows.test.mjs; tests/e2e/workspace.test.mjs; tests/e2e/progress.test.mjs; tests/e2e/visual-foundation.test.mjs |
+| Packaged tests | tests/packaged/workflow-recovery.test.mjs; tests/packaged/progress-recovery.test.mjs |
+| Engineering records | README.md; docs/workflow-library-plan.md; docs/adr/0005-reusable-workflows.md; docs/engineering-checklist.md; docs/feature-alignment.md; docs/verification.md |
+| External checkpoint | Authorized ProjectsTimeline - Development Log.md only; no vault scan/sync or vault Git changes |
+
+**Manual acceptance remaining:** review the eight starter actions for your engineering context; duplicate/edit a real workflow and inspect title-first/detail-editor density at your preferred window sizes; use keyboard navigation through library and project controls; apply to two real releases, compare independent progress and unchanged copies after master edits; edit active scope and observe stale evidence, then record genuine verification, confirm, restart and compare frozen history and Resume. Review migration/copy/versioning/security code as desired. Automated results do not complete earlier manual or understanding gates.
+
+Limits: user template versions are increasing edit counters, not a complete revision archive; captured release definitions/source identity remain independent. Template archive/delete, existing-release apply/merge, import/export, automatic synchronization, AI and conditional rules are outside this slice. Ordinary tracked release work is excluded with a reason rather than deleted. Manual verification is a user-recorded assessment, not independently authenticated artifact provenance. No separate clean Windows installation, screen-reader/high-contrast/scaling audit, power-loss repair or large-library benchmark was performed. No unresolved automated failures. Stop before the next milestone; a possible next proposal after acceptance is Engineering Decisions/Evidence, requiring its own approved scope.
+
 ## Reusable Engineering Workflows — Phase A inspection, 2026-11-06
 
 Inspected actual schema 001/002, store creation/mutation/query paths, pure policy, all 13 fixed bridge methods, existing sidebar/project/release UI, current tests/packaging and engineering records. Started with a clean working tree at a8620fa. Local main is three commits ahead of its recorded origin/main reference; no fetch/push or claim of remote synchronization. Current policy already supports variable included-stage counts; current release creation hardcodes seven definitions, and actions have no rich checklist details or template provenance.

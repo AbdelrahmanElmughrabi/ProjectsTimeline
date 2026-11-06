@@ -1,6 +1,6 @@
 # Blueprint Adoption & Merge Policy — V3 review draft
 
-2026-11-07 · **Proposed behavior, not SQL/commands already implemented.** Preserves [PTB v0.2](ptb-v0.2-contract.md), source capture and approved development/release separation. The visual redirection changes workspace composition, not these integrity rules. [Experience/VD3–VD5](v3-product-experience-contract.md) · [multi-format boundary](multi-format-ingestion-design.md). No migration is authorized here.
+2026-11-07 · **Proposed behavior, not SQL/commands already implemented.** Preserves [PTB v0.2](ptb-v0.2-contract.md), source capture and approved development/release separation. Reviewed after AG 92a7129. Visual improvements do not authorize its replacement-Set adoption behavior; these integrity rules remain authoritative. [Experience/VD3–VD5](v3-product-experience-contract.md) · [multi-format boundary](multi-format-ingestion-design.md). No migration is authorized here.
 
 ## Identities and authority
 
@@ -105,3 +105,25 @@ Use existing ordinary action IDs/details where safe, with main/DB guards so old 
 - Populated schema-v3 projects/actions/events/checkpoints/templates/confirmed releases match before/after and after packaged restart. Migrations 001–003 immutable; backup/rollback/FK/newer-schema refusal retained.
 
 Not claimed: implemented apply/merge, crash-recovery receipts, migration safety or usability testing of production V3. These require the separately approved vertical slices and tests.
+
+## Reviewed adoption combinations and transition safety
+
+The three independent groups remain requirement acceptance, scope activation and action commitment. **Default none means no new transitions selected.** Existing accepted/active/committed state is displayed read-only in this form, not copied into reversible checkboxes. Apply contains explicit deltas and expected revisions. Clear affects transient new choices only. Reject/exclude/revise/reassign/pause/close/reopen are dedicated reasoned commands; adoption never silently revokes them or rewrites completion/history.
+
+| Selected effect | Validity / guard |
+| --- | --- |
+| Requirement acceptance only | Valid for the exact current Draft revision; no action/scope/evidence implication. |
+| Scope activation only | Valid reviewed independent plan; no automatic action commitment. Empty plan/work shows counts/Not assessed, not completion. |
+| Unscoped action only | Valid with explicit placement and accepted linked definitions or a deliberate acknowledgement of exact remaining Draft revisions. No scope required. |
+| Source-scoped action + target activation | Valid in one transaction after same-project/stage/plan checks. Existing Active/Paused scope is eligible; terminal or unresolved plan is not silently opened/resolved. |
+| Source-scoped action without eligible target | Reject unless user defers commitment or explicitly chooses unscoped placement. Preserve source proposal. |
+| Mixed scoped/unscoped choices | Plan carries per-action placement; group helpers may set defaults but disclose each effect. First UI can require two reviewed batches if simpler; global mode must never reinterpret existing commitments. |
+| Linked Draft requirement without acknowledgement | Reject; selecting all actions or scopes **cannot auto-check** acknowledgement. Changing selected definitions/revisions invalidates the acknowledged set. |
+| Reopened review of committed/Done work | Existing status/membership/completion stays unchanged. Adopting another requirement cannot move or uncommit it. |
+| No effective changes / duplicate submission | No new transitions/history. Identical completed submission returns the stored receipt; failed refresh retries reads only. |
+
+Main validates binding/capture/expected revisions, all same-project typed links, eligibility/placement/acknowledgements and supported PTB 0.2. Validate the complete effect set first, then write definitions/acceptances/activations/memberships/history/receipt atomically. No separate createProject followed by graph writes. Receipt lookup for an identical completed retry precedes expired/consumed capture rejection. Cancellation before Apply is non-mutating; after commit use explicit corrective transitions, not deletion/Undo.
+
+The current main preview session keeps a file grant, not a cached authoritative graph. Its next implementation must retain the exact reviewed main-owned snapshot/plan; never accept a renderer graph or silently recapture changed disk source during Apply. No persistent preview draft is required.
+
+Exact document hash, narrative-inclusive semantic SHA and a possible future structural signature have distinct roles. Do not require a second stored graph digest in the first schema without a versioned normalization contract; never auto-merge/approve on graph equality. Existing semantic hash behavior/parser remains unchanged. Generated JSON is a labelled definition view, never an exact-source fallback.

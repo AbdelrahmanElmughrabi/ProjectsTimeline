@@ -1,5 +1,25 @@
 # ProjectsTimeline — Verification record
 
+## Consolidated Antigravity C review — actual design-only checks, 2026-11-07
+
+Input: AG **92a712908223756d984abf675bc542dad65f77eb**, frozen base **63c18e90f6a3ff26cc724c3a6fe2c8d65ee66aca**. All 27 changed paths match assigned reports/prototype/screenshots; clean AG worktree, no cherry-pick/merge. Nine existing root Codex screenshot modifications were present before review and are hash-preserved. [Detailed findings](design/v3-consolidated-review.md), [real capability matrix](design/v3-capability-audit.md).
+
+| Actual check | Outcome / scope |
+| --- | --- |
+| Build exact AG source using existing root Vite/config with output override | **Pass** into artifacts/v3-c-review/build. Known use-client/large-chunk warnings remain; no dependency install or production configuration change. |
+| Copied AG check.mjs with only imports/output/profile redirected and finite wait timeout | **Pass**, pure model + real isolated Electron/Playwright walkthrough; all 16 screenshots go to review artifacts, not either committed image folder. Outside-lens reveal, source-return, simulated adoption/start/checkpoint/Continue and widths 800/1160/1540 exercised; zero runtime/console/CSP errors/external requests, no Node/app bridge in tested paths. This is not full application integration. |
+| Additional runtime-probe.mjs, including settled layout frames | **Reproduced:** selection refits zoom; drag displacement x=0/y=0; Close inspector focus BODY; bulk helper auto-checks Draft acknowledgement; clearing commitments after completion yields **0 committed / 1 done / 10 proposed**; explicitly unscoped action remains visible yet gets false outside-filter banner. Baseline pass did not cover these behaviors. No DB involved. |
+| Temporary TypeScript Base UI prop probe | **Expected TS2322 reproduced:** onCloseAutoFocus is not Dialog.Popup's installed prop; finalFocus is supported. Not an application build failure; source dialog's passing return uses default library behavior. |
+| Actual existing parser on real Vivarium single/multi and repository supplements | Both Vivarium packages Valid 47/86, equal normalized known metadata/links, different narrative-inclusive semantic hashes b0fbefb8… / 23245ab6…; four differing narratives, including a real added project paragraph. Desk Notes Valid 15/29 and FieldLedger Valid 37/82. No source application code executed/files edited. |
+| Supplementary model/source comparison | Desk metadata matches after missing-empty-default normalization; FieldLedger **15 records differ in non-default fields**. All 15/37 supplemental records lack UTF-16 source offsets; embedded source texts/hashes are abbreviated/placeholders. Counts/canonical digest literals do not prove exact fixture/source fidelity. |
+| Derived-edge model probe | Four native resolved primary-component edges in the determinism neighborhood are marked path-2hop/dashed by node distance. They remain explicit source assertions; the reviewed model separates route distance from edge origin. |
+| Visual and connected-code review | Compared committed A/B/C wide/narrow; C best initial scanning, narrow grid still needs legibility improvements. Read model/UI/tests/README/config, all three reports, real shared/preload/IPC/session/store/migrations and existing controller/source logic. Two lighter read-only domain/UX reviewers added findings; no implementation agents. |
+
+Logs/scripts/results and independently rendered screenshots remain in ignored artifacts/v3-c-review (build.log, baseline-check.log/check-result.json, model-probe.json, runtime-probe.json, base-ui-type-probe.log, preserved-screenshot-hashes.json). Original AG artifacts are unchanged. Canonical review/documents record outcomes and exact source ref, not a production merge. Prototype findings do not affect existing app data.
+
+**No fresh application Node/Electron/package/recovery run in this review.** No production source/tests/dependency/config/security/SQL/ADR change; previous 78/103 counts remain historical. No production V3 persistence/transaction/restart, screen-reader acceptance, large-graph benchmark or app:// / ASAR compatibility is claimed. Inspect the narrowed plan/VD1–VD5 before authorizing concrete schema/commands; no code/migration or external assignment begins from a positive design recommendation.
+
+
 ## V3 visual redirection — design/prototype verification, 2026-11-07
 
 **No production V3 feature or migration.** Preservation baseline 47f73c6 checkpoints tooling setup + paused drafts; codex/v3-paused-design-checkpoint retains it. Current design package/handoff: codex/v3-visual-workspace-handoff. [Study/run/screenshots](design/v3-visual-prototype/README.md), [concept critique](design/connected-workspace-design.md), [component/runtime inventory](design/v3-ui-component-inventory.md). Prior V2 results below remain historical and manual acceptance separate.

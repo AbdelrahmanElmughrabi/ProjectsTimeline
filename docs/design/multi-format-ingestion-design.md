@@ -1,6 +1,6 @@
 # Multi-format engineering ingestion — design boundary
 
-2026-11-07 · **Proposal only. No importer, schema, AI runtime or format initialization implemented.** [Experience/VD3](v3-product-experience-contract.md) · [adoption/merge policy](blueprint-adoption-merge-policy.md).
+2026-11-07 · **Consolidated proposal; no new importer, schema, AI runtime, MCP or format initialization.** [Experience/VD3](v3-product-experience-contract.md) · [review corrections](v3-consolidated-review.md) · [adoption/merge policy](blueprint-adoption-merge-policy.md).
 
 ## One capture boundary, format-specific meaning
 
@@ -45,3 +45,13 @@ Main owns native grants, containment, file/total/depth bounds, symlink/alias/enc
 Project queries return bounded typed projections and reference origin/review/source, not renderer-authoritative graph mutations. Presentation coordinates/collapse/viewport are independent from domain relationships and progress. Future layout work must respect current Electron CSP and bounded processing, cancellation/stale-result ownership; no unsafe-eval or network relaxation to adopt a library.
 
 Persistence remains additive and separately approved: immutable source/bindings/receipts + typed project definitions/revisions/relationships first; optional suggestions/review decisions/evidence are separate later schemas. Do not build all stores now. Keep release-owned rows/guards, migrations 001–003, actual history/checkpoints and existing typed IPC boundaries intact. Populated-v3 before/after equality, failed-transaction rollback, idempotent retries and packaged recovery are mandatory when a persistence slice is authorized.
+
+## Consolidated AG review refinements
+
+Current supported structured input is **PTB 0.2**, not v0.1/v0.2. The v0.1 planning package is preserved research, not an implemented adapter. Future source formats are not confidence/truth tiers: an explicit OpenSpec or Markdown reference stays an explicit native assertion; an app-generated AI relationship stays a suggestion until reviewed. Neither becomes actual verification merely by being structured or approved.
+
+Path distance also does not change authority. Two native explicit edge segments remain explicit, even when the second is two hops from the anchor. A derived shortcut/route is a separate presentation value with both constituent edge IDs/directions/source anchors. No derived dependency row is persisted from a navigation path.
+
+The first durable schema needs exact capture identity, existing narrative-inclusive semantic hash and audited choices. An additional structured graph digest is optional after versioned normalization rules are reviewed; equality must never authorize an overwrite or imply identical narrative meaning. Generated JSON/abbreviated fixture source must not be displayed as an exact captured section or given a fake document hash/span.
+
+Future ProjectsTimeline MCP should be a separately authorized transport for bounded typed context queries and explicit domain commands, with source provenance and revision checks. It must not expose generic filesystem/SQL/shell execution, the Electron bridge or model access automatically. No server, SDK/dependency or authorization scheme is built in V3 merely to keep this direction possible.

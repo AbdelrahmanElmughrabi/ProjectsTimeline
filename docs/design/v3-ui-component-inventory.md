@@ -1,6 +1,6 @@
 # V3 UI components and tooling inventory
 
-2026-11-07 · Inspected installed manifests, lock and configuration; isolated build/runtime checked. No new dependency installed or production component adopted in this phase. Preservation baseline: **47f73c6** (existing tooling setup + paused drafts).
+2026-11-07 · Installed availability retained; consolidated AG review at **92a7129**, against frozen app/design **63c18e9**. No dependency or production component changed. [Code/reuse findings](v3-consolidated-review.md) · [real capability matrix](v3-capability-audit.md). The original study results below are historical evidence, not verification of all AG behavior.
 
 ## Actual availability versus adoption
 
@@ -41,3 +41,19 @@ Existing setup evidence: [shadcn setup record](../shadcn-setup.md). Browser bina
 The isolated study bundles and runs React 19.3.1 + React Flow + ELK + Base UI dialogs + Tailwind under the application's **same strict CSP text** (no unsafe-eval, unsafe-inline, network or worker exceptions). Its viewer uses nodeIntegration=false, contextIsolation=true, sandbox=true, no preload/IPC/SQLite and blocks external requests/navigation. This proves only the exercised prototype path; actual app:// serving, ASAR and production layout volume need a later authorized integration test.
 
 Prototype build emits expected use-client directive warnings in a non-RSC Vite bundle and a ~2.08 MB single JavaScript chunk warning, largely including ELK. These were not hidden as a clean warning-free build. Bundle splitting/layout worker/performance review is required before shipping, not justification for changing production security now.
+
+## Production composition recommended after Concept C review
+
+| Responsibility | Reuse / implementation boundary | Essential check |
+| --- | --- | --- |
+| Workspace shell/controller | Existing App navigation, Panel/tokens and useProjectWorkspace acknowledged-write/read-retry pattern; purpose-specific new typed reads/commands only | Legacy Home/Resume/Workflows/Releases/drafts unchanged; no second durable React-state authority |
+| Pure map projection | Small typed function over canonical records/explicit edges, outside-lens predicate and bounded path projection | Native edges retain IDs/origin; route carries constituents; no hardcoded fixtures, graph-meaning inference or catch-all graph engine |
+| MapCanvas / nodes / controls | React Flow controlled changes, one control set, stable viewport and independent neighborhood anchor; ELK only for nontrivial connected layout | Real drag/keyboard movement, Fit versus Arrange, selection stability, layout cancellation/error fallback and measured long-label bounds |
+| Inspector / source | Shared typed record detail + existing validated source-selection concepts; current/historical/captured distinction | Exact source/null source/generated definition labelled distinctly; no fake hash/span; bounded related groups, readable narrow detail |
+| Outline/search/status | Native or selectively adopted Base UI/shadcn primitives | Selected-state/announcements, surviving focus on open/close, outside-filter recovery; no custom tree without complete keyboard behavior |
+| Adoption review/controller | Three presentation groups + main-owned reviewed transition deltas/receipt | Existing accepted/active/committed state read-only here; no implicit acknowledgement/removal/move; expected revisions and per-item placement |
+| Linked checkpoint | Existing journal selector/append semantics + optional intentional target/context hints | Browse selection does not redefine focus; exact text and missing-target fallback; restored target/view/lens/filter after restart |
+
+Do not copy AG's 2,253-line App or hand-maintained datasets into src. Its 1,811 CSS lines are largely formatting rather than evidence of 1,811 unnecessary rules; reuse established semantic tokens/native controls instead of a wholesale stylesheet migration. No arbitrary line-reduction target or new state-management framework is justified.
+
+The installed Base UI 1.9.0 Dialog.Popup uses **finalFocus**. AG's onCloseAutoFocus prop fails TypeScript (TS2322); its passing source-return case comes from the library default, not that callback. Only Dialog is actually exercised; Tabs/Select/Popover/Tooltip listed by AG are possible primitives, not verified adoption. Tailwind plugin/CSS and installed React Flow/ELK run in the isolated study; production app:// / ASAR / large layout still need real verification. Lucide is **1.70.0**, not the report's 1.16.0.

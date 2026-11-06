@@ -1,11 +1,13 @@
 # ProjectsTimeline — Product & Architecture Alignment
 
-2026-11-07 · **Current phase: V3 Visual Engineering Workspace redirection — design, assessment and isolated prototypes only.** No production V3 features, migrations, importers or dependencies are implemented here. Preservation checkpoint **47f73c6** includes the UI tooling setup and paused research; prior V2 implementation/history is retained.
+2026-11-07 · **Current phase: consolidated independent A/B/C design review — planning only.** Reviewed AG **92a7129** against handoff **63c18e9**; no merge, production V3 feature, migration, importer or dependency change. Refined Concept C is recommended, pending user approval. Existing V1/V2/schema/history and pre-existing screenshot edits are preserved.
 
 ## Review package
 
 | Requested deliverable | Evidence / canonical document |
 | --- | --- |
+| Consolidated decisions / independent code and design review | [A/B/C comparison, adopt/modify/reject and production reuse findings](design/v3-consolidated-review.md) |
+| UI-to-backend capability audit | [Real data, parser/IPC/persistence, simulation, validation and smallest steps](design/v3-capability-audit.md) |
 | Diagnosis and recommended product direction | [V3 experience contract](design/v3-product-experience-contract.md): actual V2/paused-V3 gaps and VD1–VD5 for approval |
 | Two distinct visual concepts and connected interaction system | [UX blueprint](design/connected-workspace-design.md): Component Atlas versus Focus Workbench, screens/states/semantics |
 | Interactive Vivarium prototype and actual wide/narrow screenshots | [Run/inspect instructions and images](design/v3-visual-prototype/README.md) |
@@ -14,7 +16,7 @@
 | Domain-to-view requirements and adoption policy | [PA-01–25 map](design/product-traceability.md), [adoption/merge](design/blueprint-adoption-merge-policy.md), [ownership/lifecycle](design/development-domain-contract.md) |
 | Revised scope/staged plan | [Dependency roadmap](design/product-implementation-roadmap.md), concrete next-slice/SQL gates |
 | Future UI and engineering possibilities | [Dedicated backlog](design/visual-engineering-backlog.md), purpose/value/prerequisites/horizon |
-| Independent external design collaboration | [Copy-ready Antigravity prompt](agent-handoffs/antigravity-v3-workspace-design.md); user manually delivers; no launch/live-channel assumption |
+| Independent external design collaboration | [Original Antigravity assignment/status](agent-handoffs/antigravity-v3-workspace-design.md); delivery received at 92a7129, no new assignment/production BEGIN |
 
 ## Grounded current state and reuse
 
@@ -22,7 +24,7 @@ V1 Home and V2 deterministic Preview are implemented. Existing shared contract/p
 
 Keep the validated main-owned PTB acquisition/parser/session, strict JSON/relationship validation, exact source, narrow typed IPC/Result/controller patterns, SQLite transactions/backups, release gates/history, Resume selector and graphite/violet tokens. Current projects do not yet persist product goals/permanent development graphs, source bindings/receipts or linked engineering checkpoints; no design DTO makes them implemented.
 
-The original reference guides hierarchy/coherence; neither it nor the paused board/card composition determines the new workspace. A **primary semantic map**, secondary date-free Development roadmap, actual History and one contextual inspector replace the raw-record-first experience. Resume is conditional on saved context, not a permanent empty rail. Source-defined structure is not a runtime dependency graph; plans/approvals/completion are not verification.
+The original reference guides hierarchy/coherence; neither it nor an existing prototype fixes the new composition. Recommend **refined C**: a spoke-free component/capability index and deliberate source-backed relationship neighborhoods, one inspector and readable compact alternative. Secondary Development/History and intentional linked context follow their actual data/command slices. Resume is conditional; map position/path distance/source assertion is not dependency, priority or verification.
 
 | Existing material | Disposition and reason |
 | --- | --- |
@@ -30,6 +32,7 @@ The original reference guides hierarchy/coherence; neither it nor the paused boa
 | Stable Home/actions/checkpoints/release/workflow architecture | Preserve and incrementally extend after approval, not a library-driven rewrite. |
 | Domain ownership/lifecycle, source/receipt/merge research and small/multi-scope fixtures | Reuse; foundational integrity outlives a layout. New work-state/blocker commands remain proposed, not silently approved. |
 | Paused stage-board-first prototype, repeated feature cards, inspector below long lists, empty Resume rail | Replace as the target composition; retain historical research at 47f73c6 and original HTML, which is superseded by the new study. |
+| AG Concept C at 92a7129 | Keep isolated research, improve its visual model; do not copy its replacement-set adoption, source fallbacks, layout/state/controller or fixtures wholesale. Existing explicit edges do not become inferred because they are two hops away. |
 | Existing release-owned stages/progress/confirmation | Preserve exclusively in delivery subsystem. Never rename/repurpose them as development scopes. |
 | Tailwind/shadcn/Base UI/React Flow/ELK setup | Verify/use where useful in isolation; no generated shadcn app components yet. Do not overwrite setup or broaden security to adopt libraries. |
 | Date Gantt, dependency editing, AI/Markdown/Obsidian/OpenSpec/Spec Kit adapters, learning/personalization | Record prerequisites, defer implementation. No synthetic engineering data or format initialization. |
@@ -46,4 +49,6 @@ No concrete SQL approved here. Before any numbered migration: same-project/typed
 
 Already approved foundations stay approved: deterministic PTB, independent project-owned development records/optional scopes, audited lifecycle, reviewed commitment/source separation, counts/Not assessed, no required AI, protected delivery history. New **VD1–VD5** concern the visual direction, map semantics/editing limit, multi-source authority, navigation/conditional recovery and staged delivery gate. Concrete schema/commands remain later approval boundaries.
 
-Codex owns canonical design/integration; Antigravity owns only isolated review/prototype/report paths. Two lighter read-only Codex reviewers informed the redirection. The external prompt is ready for manual delivery; no Antigravity launch or production implementation is implied. Inspect both rendered concepts, review limitations and involve Antigravity before selecting a production slice.
+Codex owns canonical design/integration; Antigravity's original reports/prototype remain on its isolated branch. All three reports were read directly; a redirected copy of its actual harness passes, and additional probes independently reproduce adoption/provenance/layout/focus gaps. Two lighter read-only Codex reviews supplement those checks. No new external assignment/automatic merge follows.
+
+Review the original VD1–VD5 meanings: refined visual direction; map geometry/path authority; supported input/source authority; navigation/intentional context; staged delivery. Recommend no standalone throwaway V3-M milestone, but split first durable knowledge formation, **immediate linked recovery**, unscoped adoption and later inline scope activation. SQL/DTO/revision/transaction review is separately required before coding. Extra graph digests, v0.1 support, generic format tiers, MCP and large all-tables schemas are not approved by AG's report or this consolidation.

@@ -1,6 +1,21 @@
 # ProjectsTimeline — Engineering checklist
 
-## Current phase — V3 Visual Engineering Workspace design, 2026-11-07
+## Current gate — consolidated Concept C review, 2026-11-07
+
+**Design/integration planning only.** Reviewed AG 92a7129 against 63c18e9; ancestry/27-path ownership verified, no merge or source/dependency/migration changes. [Independent findings](design/v3-consolidated-review.md) · [capability matrix](design/v3-capability-audit.md) · [updated slices](design/product-implementation-roadmap.md).
+
+| Item | State / evidence |
+| --- | --- |
+| Final visual direction | **Undecided (reviewed recommendation):** refined Concept C, source-backed neighborhoods, one inspector and readable narrow alternative; no prototype-code adoption. Original VD meanings preserved; user acceptance pending. |
+| Prototype/source/code review | **Verified within review scope:** all three AG reports read; exact source built and output-redirected harness passes. Targeted probes reproduce silent state removal/auto-ack, source fidelity gaps, selection refit/0px drag, BODY focus and null-placement notice. Supplementary source/hash claims corrected. |
+| Backend capability mapping | **Reviewed proposal:** actual 34-method bridge and schema v3 audited; main preview lacks cached authoritative Apply snapshot; development graph/adoption/scopes/linked context absent. No fake API or migration treated as implemented. |
+| Slice/schema gate | **Undecided:** smaller durable knowledge formation → immediate V5a linked context → selective unscoped work → optional scope activation. Concrete additive SQL/DTO/receipt/guard review before coding, 001–003 and release history protected. |
+| Existing work/history | **Preserved:** AG branch/report/prototype unchanged; nine pre-existing Codex screenshot edits hash-preserved/uncommitted; production code/tests/security/policies/ADRs untouched. App suite not rerun for this review. |
+
+Next: user reviews canonical VD1–VD5 and the proposed first scope. No production BEGIN, new AG assignment or dependency installation. Previous design/runtime evidence below remains historical, not new user acceptance.
+
+
+## Prior visual redirection checkpoint, 2026-11-07
 
 **Design assessment and isolated prototypes only.** Preservation baseline 47f73c6 contains the installed tooling and paused drafts. No production source/config/dependency/test/migration/ADR change in this phase. [Contract/VD1–VD5](design/v3-product-experience-contract.md), [study/screenshots](design/v3-visual-prototype/README.md), [inventory](design/v3-ui-component-inventory.md), [roadmap](design/product-implementation-roadmap.md), [Antigravity prompt](agent-handoffs/antigravity-v3-workspace-design.md).
 

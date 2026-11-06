@@ -86,3 +86,9 @@ PTB v0.2 gives typed relationships and authored inline-stage order. It has **no 
 | Calendar timeline | No bars/dates without actual authored scheduling | Specify date granularity/time zone, dependency on scope/action revisions, and unscheduled work display. No inferred duration from counts or stages. |
 
 Do not silently operationalize unknown v0.2 metadata, rewrite the existing parser, or require a richer PTB version for basic adoption. Any extension needs deterministic validation, version negotiation, cross-file identity tests and an explicit contract change before implementation.
+
+## Consolidated review clarifications
+
+AG 92a7129's state sets are simulations, not an approved transition implementation. Reviewed adoption is additive per-item deltas, with current accepted/active/committed state read-only and explicit corrective commands; clearing review checkboxes cannot erase commitment, deactivate a scope or revoke a revision. One effective-placement selector treats explicit null as intentional unscoped membership, not fallback to source placement.
+
+Linked checkpoints explicitly choose a target (chosen focus or project by default; Use selected record opt-in). Browsing alone never changes chosen focus or saved intent. Save does not itself commit/start work. Continue resolves saved target and validated view/lens/filter hints, preserving authored text/history on missing/stale targets. Concrete Start/focus/blocker policies still need their command-slice review; they are not prerequisites for first linked context recovery.

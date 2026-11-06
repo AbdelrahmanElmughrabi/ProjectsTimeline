@@ -13,6 +13,8 @@ node node_modules/electron/cli.js docs/design/v3-visual-prototype/preview.cjs
 
 The viewer opens a separate Electron window. Output/profile is under ignored artifacts/v3-visual-prototype, never the regular application profile. No preload/bridge/database is loaded. Close the window to exit. If your terminal explicitly defines ELECTRON_RUN_AS_NODE, remove that variable for this viewer invocation; the check script handles its own environment automatically.
 
+In Antigravity's nested worktree, use the root node_modules binaries by absolute path as shown in its handoff; no second install. Only the assigned owner should run capture/check unmodified because they overwrite the tracked fixture/screenshots. The read-only viewer does not.
+
 ## Five-minute walkthrough
 
 1. Open Vivarium. Overview introduces the seven actual capabilities and source goal; no checkpoint panel is shown initially.

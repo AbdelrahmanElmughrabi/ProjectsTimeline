@@ -11,6 +11,8 @@
 - Codex owns all canonical design docs, its prototype, this handoff, production src/main/preload/renderer/shared, tests/scripts/config/package/lockfiles/SQL/ADRs and Obsidian. No overlapping edits. Read them freely; do not modify them.
 - Commit only owned design/report artifacts on your branch, do not push/merge. Return exact commits/paths to the user. Codex reads committed refs after the user's notification; **no assumed live agent channel**, automatic merge or production BEGIN.
 
+The worktree has no private node_modules install. If needed, invoke the existing root binaries by absolute path while your working directory stays in the worktree: `node C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline/node_modules/vite/bin/vite.js build --config docs/design/v3-visual-prototype/vite.config.mjs`, then `node C:/Users/fireball/OneDrive/Desktop/ProjectsTimeline/node_modules/electron/cli.js docs/design/v3-visual-prototype/preview.cjs`. The nested checkout resolves installed modules through the repository ancestor. Build/view only writes ignored worktree artifacts. **Do not run Codex's capture/check scripts unmodified**: they overwrite its owned fixture/screenshots. Put your checks/screenshots/prototype changes in your assigned folder, or redirect outputs there explicitly. Do not install dependencies to make a review work.
+
 ## Mission and boundaries
 
 ProjectsTimeline turns engineering knowledge into a navigable visual software model, reusable development organization and useful resumption context. Approachable for vibe coders, technically meaningful for engineers. Releases remain protected delivery records, not the container for all development.

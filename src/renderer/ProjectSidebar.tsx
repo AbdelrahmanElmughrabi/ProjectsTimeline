@@ -4,12 +4,12 @@ import type { Project } from '../shared/contracts';
 export function ProjectSidebar({ projects, selectedId, view, loading, listError, navigationDisabled, retryDisabled, onViewChange, onSelect, onRetry, children }: {
   projects: Project[];
   selectedId: number | null;
-  view: 'project' | 'workflows';
+  view: 'home' | 'project' | 'workflows';
   loading: boolean;
   listError: string;
   navigationDisabled: boolean;
   retryDisabled: boolean;
-  onViewChange: (view: 'project' | 'workflows') => void;
+  onViewChange: (view: 'home' | 'project' | 'workflows') => void;
   onSelect: (projectId: number) => void;
   onRetry: () => void;
   children: ReactNode;
@@ -20,6 +20,7 @@ export function ProjectSidebar({ projects, selectedId, view, loading, listError,
       <div><strong className="brand-name">ProjectsTimeline</strong><span className="brand-caption">Development workspace</span></div>
     </div>
     <nav className="sidebar-views" aria-label="Workspace views">
+      <button type="button" className={`project-link${view === 'home' ? ' selected' : ''}`} aria-current={view === 'home' ? 'page' : undefined} onClick={() => onViewChange('home')} disabled={navigationDisabled}><span className="project-icon" aria-hidden="true" /><span className="project-label">Home</span></button>
       <button type="button" className={`project-link${view === 'workflows' ? ' selected' : ''}`} aria-current={view === 'workflows' ? 'page' : undefined} onClick={() => onViewChange('workflows')} disabled={navigationDisabled}><span className="project-icon" aria-hidden="true" /><span className="project-label">Workflows</span></button>
     </nav>
     <div className="sidebar-section">

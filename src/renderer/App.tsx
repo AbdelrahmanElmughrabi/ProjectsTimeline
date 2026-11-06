@@ -8,6 +8,7 @@ import { WorkspaceHeader } from './WorkspaceHeader';
 import { ReleaseWorkspace } from './ReleaseWorkspace';
 import { WorkflowLibrary } from './WorkflowLibrary';
 import { useWorkflowLibrary } from './useWorkflowLibrary';
+import { ProjectHome } from './ProjectHome';
 
 export default function App() {
   const workspace = useProjectWorkspace();
@@ -18,7 +19,7 @@ export default function App() {
   const [accomplished, setAccomplished] = useState('');
   const [nextSteps, setNextSteps] = useState('');
   const [selectedReleaseId, setSelectedReleaseId] = useState<number | null>(null);
-  const [view, setView] = useState<'project' | 'workflows'>('project');
+  const [view, setView] = useState<'home' | 'project' | 'workflows'>('home');
   const disabled = busy !== null || library.busy || stale;
 
   useEffect(() => {
@@ -27,7 +28,15 @@ export default function App() {
 
   async function createProject(event: FormEvent) {
     event.preventDefault();
-    if (await workspace.createProject(projectName)) setProjectName('');
+    if (await workspace.createProject(projectName)) {
+      setProjectName('');
+      if (view === 'home') void workspace.refreshHome();
+    }
+  }
+
+  async function openFromHome(projectId: number) {
+    setView('project');
+    if (await workspace.returnToProject(projectId)) document.getElementById('workspace-main')?.focus();
   }
 
   async function addAction(event: FormEvent) {
@@ -52,8 +61,8 @@ export default function App() {
         projects={projects} selectedId={selectedId} view={view} loading={loading} listError={listError}
         navigationDisabled={(busy !== null && busy !== 'open') || library.busy || loading}
         retryDisabled={loading || busy !== null || library.busy}
-        onViewChange={setView}
-        onSelect={(id) => { setView('project'); void workspace.openProject(id); }} onRetry={() => void workspace.retryLoading()}
+        onViewChange={(next) => { setView(next); if (next === 'home') void workspace.refreshHome(); }}
+        onSelect={(id) => { if (view === 'home') void openFromHome(id); else { setView('project'); void workspace.openProject(id); } }} onRetry={() => void workspace.retryLoading()}
       >
         <form className="create-form" onSubmit={createProject}>
           <label htmlFor="project-name">New project</label>
@@ -63,9 +72,14 @@ export default function App() {
       </ProjectSidebar>
 
       <main className="main-content" id="workspace-main" tabIndex={-1}>
-        {view === 'workflows' ? <WorkflowLibrary {...library} onRetry={() => void library.refresh()} /> : <>
+        {view === 'workflows' && <WorkflowLibrary {...library} onRetry={() => void library.refresh()} />}
+        {view !== 'workflows' && <>
         {notice && <div className={`notice ${notice.kind}`} role={notice.kind === 'success' ? 'status' : 'alert'}>{notice.text}</div>}
         {(stale || notice?.kind === 'warning' || (selectedId !== null && !detail && busy === null)) && <div className="refresh-state"><p>Displayed information may be out of date. Reload saved data before making more changes.</p><button className="button button-primary" disabled={busy !== null} onClick={() => void workspace.retryLoading()}>Retry loading</button></div>}
+        </>}
+        {view === 'home' && <ProjectHome projects={workspace.homeProjects} loading={workspace.homeLoading} error={workspace.homeError} stale={workspace.homeStale} disabled={disabled}
+          onOpen={id => void openFromHome(id)} onRefresh={() => void workspace.refreshHome()} onCreate={() => document.getElementById('project-name')?.focus()} />}
+        <div className="workspace-project" hidden={view !== 'project'}>
         {detail ? <>
           <WorkspaceHeader name={detail.project.name} />
           <div className="workspace-grid">
@@ -102,7 +116,7 @@ export default function App() {
           <div className="welcome-icon" aria-hidden="true">↗</div><p className="eyebrow">A little progress, every day</p><h1>{busy === 'open' ? 'Loading project…' : selectedId !== null ? 'Project could not be loaded' : listError ? 'Projects are unavailable' : projects.length ? 'Choose a project' : 'Start with a project'}</h1><p>{listError ? 'Retry loading your projects from the sidebar.' : 'Select a project from the sidebar, or create one to begin tracking actions and checkpoints.'}</p>
           {!loading && !listError && projects.length === 0 && <button className="button button-primary" onClick={() => document.getElementById('project-name')?.focus()}>Create your first project</button>}
         </section>}
-        </>}
+        </div>
       </main>
     </div>
   );

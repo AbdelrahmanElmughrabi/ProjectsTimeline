@@ -1,7 +1,7 @@
 import { DatabaseSync, backup } from 'node:sqlite';
 import { mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import type { ActionDefinitionInput, ActionDetails, ActionEvent, Checkpoint, DevelopmentAction, Project, ProjectDetail, ProjectRelease, ReleaseStage, ReleaseVerification, ReleaseWorkspace, WorkflowAction, WorkflowDetail, WorkflowStage, WorkflowTemplate } from '../../shared/contracts';
+import type { ActionDefinitionInput, ActionDetails, ActionEvent, Checkpoint, DevelopmentAction, HomeProjectSummary, Project, ProjectDetail, ProjectRelease, ReleaseStage, ReleaseVerification, ReleaseWorkspace, WorkflowAction, WorkflowDetail, WorkflowStage, WorkflowTemplate } from '../../shared/contracts';
 import { AppError, payload, positiveId, requiredText } from '../domain';
 import { selectResumeCheckpoint } from '../resume';
 import { calculateReleaseProgress } from '../progress';
@@ -87,6 +87,32 @@ export class WorkspaceStore {
 
   listProjects(): Project[] {
     return this.db.prepare(`SELECT ${projectColumns} FROM projects ORDER BY id DESC`).all() as unknown as Project[];
+  }
+
+  getHomeSummary(): HomeProjectSummary[] {
+    const rows = this.db.prepare(`WITH latest_checkpoint AS (
+      SELECT *, ROW_NUMBER() OVER (PARTITION BY project_id ORDER BY created_at DESC, id DESC) AS rank
+      FROM checkpoints
+    ), latest_activity AS (
+      SELECT *, ROW_NUMBER() OVER (PARTITION BY project_id ORDER BY created_at DESC, priority DESC, id DESC) AS rank
+      FROM (
+        SELECT project_id, id, 'checkpoint' AS source, 'Saved checkpoint' AS description, created_at, 1 AS priority FROM checkpoints
+        UNION ALL
+        SELECT project_id, id, 'action-event' AS source, description, created_at, 0 AS priority FROM action_events
+      )
+    ) SELECT p.id, p.name, p.created_at AS createdAt,
+      c.id AS checkpointId, c.accomplished, c.next_steps AS nextSteps, c.created_at AS checkpointAt,
+      a.id AS activityId, a.source, a.description, a.created_at AS activityAt
+      FROM projects p LEFT JOIN latest_checkpoint c ON c.project_id = p.id AND c.rank = 1
+      LEFT JOIN latest_activity a ON a.project_id = p.id AND a.rank = 1
+      ORDER BY a.created_at IS NULL, a.created_at DESC, p.created_at DESC, p.id DESC`).all();
+    return rows.map(row => ({
+      project: { id: row.id as number, name: row.name as string, createdAt: row.createdAt as string },
+      checkpoint: row.checkpointId === null ? null : { id: row.checkpointId as number, projectId: row.id as number,
+        accomplished: row.accomplished as string, nextSteps: row.nextSteps as string, createdAt: row.checkpointAt as string },
+      activity: row.activityId === null ? null : { id: row.activityId as number, source: row.source as 'checkpoint' | 'action-event',
+        description: row.description as string, createdAt: row.activityAt as string },
+    }));
   }
 
   createProject(input: unknown): Project {

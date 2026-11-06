@@ -4,6 +4,12 @@ export interface Project {
   createdAt: string;
 }
 
+export interface HomeProjectSummary {
+  project: Project;
+  checkpoint: Checkpoint | null;
+  activity: { id: number; source: 'checkpoint' | 'action-event'; description: string; createdAt: string } | null;
+}
+
 export interface DevelopmentAction {
   id: number;
   projectId: number;
@@ -122,6 +128,7 @@ export type Result<T> =
 
 export interface WorkspaceApi {
   listProjects(): Promise<Result<Project[]>>;
+  getHomeSummary(): Promise<Result<HomeProjectSummary[]>>;
   createProject(input: { name: string }): Promise<Result<Project>>;
   openProject(input: { projectId: number }): Promise<Result<ProjectDetail>>;
   addAction(input: { projectId: number; title: string }): Promise<Result<DevelopmentAction>>;

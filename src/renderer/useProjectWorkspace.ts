@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ActionDefinitionInput, Project, ProjectDetail, Result } from '../shared/contracts';
+import type { ActionDefinitionInput, HomeProjectSummary, Project, ProjectDetail, Result } from '../shared/contracts';
 
 type Operation = 'create' | 'open' | 'action' | 'complete' | 'checkpoint' | 'release' | 'refresh' | null;
 type Notice = { kind: 'success' | 'error' | 'warning'; text: string } | null;
@@ -19,10 +19,15 @@ export function useProjectWorkspace() {
   const [busy, setBusy] = useState<Operation>(null);
   const [notice, setNotice] = useState<Notice>(null);
   const [stale, setStale] = useState(false);
+  const [homeProjects, setHomeProjects] = useState<HomeProjectSummary[]>([]);
+  const [homeLoading, setHomeLoading] = useState(true);
+  const [homeError, setHomeError] = useState('');
+  const [homeStale, setHomeStale] = useState(true);
   const mounted = useRef(false);
   const selected = useRef<number | null>(null);
   const request = useRef(0);
   const listRequest = useRef(0);
+  const homeRequest = useRef(0);
   const listLoading = useRef(true);
   const operation = useRef<Operation>(null);
 
@@ -58,15 +63,38 @@ export function useProjectWorkspace() {
     }
   }, [api]);
 
+  const refreshHome = useCallback(async (): Promise<boolean> => {
+    const token = ++homeRequest.current;
+    setHomeLoading(true);
+    setHomeError('');
+    setHomeStale(true);
+    try {
+      const rows = unwrap(await api.getHomeSummary());
+      if (!mounted.current || token !== homeRequest.current) return false;
+      setHomeProjects(rows);
+      setHomeStale(false);
+      return true;
+    } catch (error) {
+      if (mounted.current && token === homeRequest.current) {
+        setHomeError(error instanceof Error ? error.message : 'Could not load Home.');
+      }
+      return false;
+    } finally {
+      if (mounted.current && token === homeRequest.current) setHomeLoading(false);
+    }
+  }, [api]);
+
   useEffect(() => {
     mounted.current = true;
     void loadProjects();
+    void refreshHome();
     return () => {
       mounted.current = false;
       request.current++;
       listRequest.current++;
+      homeRequest.current++;
     };
-  }, [loadProjects]);
+  }, [loadProjects, refreshHome]);
 
   async function readProject(projectId: number, token: number): Promise<boolean> {
     const snapshot = unwrap(await api.openProject({ projectId }));
@@ -76,20 +104,22 @@ export function useProjectWorkspace() {
     return true;
   }
 
-  async function openProject(projectId: number): Promise<void> {
+  async function openProject(projectId: number, keepSnapshot = false): Promise<boolean> {
     // A new selection may supersede an earlier read, but cannot interrupt a write/refresh.
-    if ((operation.current !== null && operation.current !== 'open') || listLoading.current) return;
+    if ((operation.current !== null && operation.current !== 'open') || listLoading.current) return false;
+    const preserve = keepSnapshot && selected.current === projectId && detail?.project.id === projectId;
     selected.current = projectId;
     setSelectedId(projectId);
     const token = ++request.current;
-    setDetail(null);
-    setStale(false);
+    if (!preserve) setDetail(null);
+    setStale(preserve);
     setNotice(null);
     setOperation('open');
     try {
-      await readProject(projectId, token);
+      return await readProject(projectId, token);
     } catch (error) {
       if (current(token, projectId)) setNotice({ kind: 'error', text: error instanceof Error ? error.message : 'Could not open project.' });
+      return false;
     } finally {
       if (current(token, projectId)) setOperation(null);
     }
@@ -107,6 +137,9 @@ export function useProjectWorkspace() {
     try {
       unwrap(await command());
       committed = true;
+      homeRequest.current++;
+      setHomeStale(true);
+      setHomeLoading(false);
       if (!current(token, projectId)) return true;
       setStale(projectId !== null);
       setNotice({ kind: 'success', text: 'Saved. Refreshing workspace…' });
@@ -150,7 +183,8 @@ export function useProjectWorkspace() {
 
   return {
     projects, detail, selectedId, loading, listError, busy, notice, stale,
-    openProject, retryLoading,
+    homeProjects, homeLoading, homeError, homeStale, refreshHome,
+    openProject, returnToProject: (projectId: number) => openProject(projectId, true), retryLoading,
     createProject: (name: string) => execute('create', () => api.createProject({ name }), 'Project created.'),
     addAction: (title: string) => execute('action', () => api.addAction({ projectId: selected.current!, title }), 'Action added.'),
     completeAction: (actionId: number) => execute('complete', () => api.completeAction({ projectId: selected.current!, actionId }), 'Action completed.'),

@@ -25,7 +25,7 @@ test('Electron flow persists across full restart and enforces renderer boundarie
   assert.equal(runtime.nodeIntegration, false);
   assert.deepEqual(await page.evaluate(() => [typeof window.require, typeof window.process]), ['undefined', 'undefined']);
   assert.deepEqual(await page.evaluate(() => Object.keys(window.workspace).sort()),
-    ['addAction', 'addReleaseStage', 'addWorkflowAction', 'addWorkflowStage', 'assignAction', 'completeAction', 'confirmRelease', 'createProject', 'createRelease', 'createWorkflowTemplate', 'duplicateWorkflowTemplate', 'getWorkflowLibrary', 'listProjects', 'openProject', 'recordReleaseVerification', 'removeWorkflowAction', 'removeWorkflowStage', 'reopenAction', 'reorderReleaseActions', 'reorderReleaseStages', 'reorderWorkflowActions', 'reorderWorkflowStages', 'saveCheckpoint', 'setActionExclusion', 'setStageExclusion', 'updateReleaseAction', 'updateReleaseStage', 'updateWorkflowAction', 'updateWorkflowStage', 'updateWorkflowTemplate']);
+    ['addAction', 'addReleaseStage', 'addWorkflowAction', 'addWorkflowStage', 'assignAction', 'completeAction', 'confirmRelease', 'createProject', 'createRelease', 'createWorkflowTemplate', 'duplicateWorkflowTemplate', 'getHomeSummary', 'getWorkflowLibrary', 'listProjects', 'openProject', 'recordReleaseVerification', 'removeWorkflowAction', 'removeWorkflowStage', 'reopenAction', 'reorderReleaseActions', 'reorderReleaseStages', 'reorderWorkflowActions', 'reorderWorkflowStages', 'saveCheckpoint', 'setActionExclusion', 'setStageExclusion', 'updateReleaseAction', 'updateReleaseStage', 'updateWorkflowAction', 'updateWorkflowStage', 'updateWorkflowTemplate']);
 
   await createProject(page, 'Project A');
   await createProject(page, 'Project B');

@@ -24,12 +24,16 @@ test('packaged executable uses bundled SQLite and recovers committed data withou
   application = undefined;
   application = await launchWorkspace(directory, executable);
   page = await application.firstWindow();
-  await openProject(page, 'Packaged recovery');
+  const homeCard = page.getByRole('region', { name: 'Home', exact: true }).getByRole('article', { name: 'Packaged recovery', exact: true });
+  await homeCard.getByText('Review the foundation', { exact: true }).waitFor();
+  const homeTime = await homeCard.locator('.home-meta time').getAttribute('dateTime');
+  await homeCard.getByRole('button', { name: 'Open project Packaged recovery', exact: true }).click();
   await page.getByText('Completed', { exact: true }).waitFor();
   const resume = page.getByRole('region', { name: 'Resume Development', exact: true });
   await resume.getByText('Packaged executable runs', { exact: true }).waitFor();
   await resume.getByText('Review the foundation', { exact: true }).waitFor();
   const savedTime = await resume.locator('time').getAttribute('dateTime');
+  assert.equal(homeTime, savedTime);
   assert.equal(await page.locator('.checkpoint-card time').getAttribute('dateTime'), savedTime);
   assert.equal(await page.locator('.action-row').count(), 1);
   assert.equal(await page.locator('.checkpoint-card').count(), 1);

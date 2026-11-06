@@ -8,6 +8,7 @@ import { trustedSender } from './security';
 export function registerWorkspaceIpc(window: BrowserWindow, store: WorkspaceStore): void {
   const operations = {
     listProjects: () => store.listProjects(),
+    getHomeSummary: () => store.getHomeSummary(),
     createProject: (input: unknown) => store.createProject(input),
     openProject: (input: unknown) => store.openProject(input),
     addAction: (input: unknown) => store.addAction(input),

@@ -1,0 +1,151 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { mkdirSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { temporaryDirectory } from '../helpers.mjs';
+import { launchWorkspace, createProject, saveCheckpoint } from '../electron-flow.mjs';
+
+test('Home opens real saved context, preserves drafts, stays responsive and recovers after restart', { timeout: 120000 }, async t => {
+  let application;
+  const directory = temporaryDirectory(t, () => application?.close());
+  application = await launchWorkspace(directory);
+  let page = await application.firstWindow();
+  let home = page.getByRole('region', { name: 'Home', exact: true });
+  await home.getByRole('heading', { name: 'Start with a project', exact: true }).waitFor();
+  await home.getByRole('button', { name: 'Create your first project', exact: true }).click();
+  assert.equal(await page.getByLabel('Project name', { exact: true }).evaluate(e => e === document.activeElement), true);
+  mkdirSync(resolve('artifacts'), { recursive: true });
+  await page.screenshot({ path: resolve('artifacts/home-empty.png'), fullPage: true });
+  await createProject(page, 'Continuity project');
+  await createProject(page, 'Empty workspace');
+  const longName = ('工程研究 — ' + 'RecognizableProject'.repeat(8)).slice(0, 120);
+  await createProject(page, longName);
+  await home.getByRole('article', { name: longName, exact: true }).waitFor();
+  let card = home.getByRole('article', { name: 'Continuity project', exact: true });
+  await card.getByText('No checkpoint or action events recorded.', { exact: true }).waitFor();
+  await card.getByRole('button', { name: 'Open project Continuity project', exact: true }).click();
+  const resume = page.getByRole('region', { name: 'Resume Development', exact: true });
+  await resume.getByText(/No checkpoint yet/).waitFor();
+  await page.getByLabel('Action title', { exact: true }).fill('Review the local save boundary');
+  await page.getByRole('button', { name: 'Add action', exact: true }).click();
+  await page.getByRole('button', { name: 'Complete Review the local save boundary', exact: true }).waitFor();
+  await saveCheckpoint(page, 'Reviewed persisted project context', 'Check one failed write before continuing');
+  const savedTime = await resume.locator('time').getAttribute('dateTime');
+  await page.getByLabel('Action title', { exact: true }).fill('Unsubmitted action draft');
+  await page.getByLabel('What I accomplished', { exact: true }).fill('Unsubmitted checkpoint draft');
+  await page.getByLabel('What to do next', { exact: true }).fill('Unsubmitted next step');
+  await page.getByLabel('New release name', { exact: true }).fill('Unsubmitted release draft');
+  const before = await page.evaluate(async () => {
+    const p = (await window.workspace.listProjects()).value.find(p => p.name === 'Continuity project');
+    return (await window.workspace.openProject({ projectId: p.id })).value;
+  });
+  await page.getByRole('button', { name: 'Home', exact: true }).click();
+  card = home.getByRole('article', { name: 'Continuity project', exact: true });
+  await card.getByText('Check one failed write before continuing', { exact: true }).waitFor();
+  assert.equal(await card.locator('.home-meta time').getAttribute('dateTime'), savedTime);
+  assert.equal(await home.getByRole('article', { name: 'Empty workspace', exact: true }).locator('time').count(), 1, 'Only actual creation time exists for the empty project');
+  assert.equal(await home.locator('progress').count(), 0);
+  for (const width of [800, 1160, 1440]) {
+    await application.evaluate(({ BrowserWindow }, w) => BrowserWindow.getAllWindows()[0].setSize(w, 900), width);
+    await page.evaluate(() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))));
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `Home overflows at ${width}`);
+    await page.screenshot({ path: resolve(`artifacts/home-${width}.png`), fullPage: true, animations: 'disabled' });
+  }
+  await page.getByRole('button', { name: 'Workflows', exact: true }).click();
+  await page.getByRole('heading', { name: 'Workflow library', exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Home', exact: true }).click();
+  const open = home.getByRole('button', { name: 'Open project Continuity project', exact: true });
+  await open.focus();
+  await page.keyboard.press('Enter');
+  await resume.getByText('Check one failed write before continuing', { exact: true }).waitFor();
+  await page.waitForFunction(() => document.getElementById('action-title')?.disabled === false);
+  assert.equal(await page.getByLabel('Action title', { exact: true }).inputValue(), 'Unsubmitted action draft');
+  assert.equal(await page.getByLabel('What I accomplished', { exact: true }).inputValue(), 'Unsubmitted checkpoint draft');
+  assert.equal(await page.getByLabel('What to do next', { exact: true }).inputValue(), 'Unsubmitted next step');
+  assert.equal(await page.getByLabel('New release name', { exact: true }).inputValue(), 'Unsubmitted release draft');
+  assert.equal(await page.getByRole('region', { name: 'Releases', exact: true }).count(), 1);
+  const after = await page.evaluate(async projectId => (await window.workspace.openProject({ projectId })).value, before.project.id);
+  assert.deepEqual(after, before, 'Home/Workflows navigation must not write fictional activity');
+  await application.close();
+  application = undefined;
+  application = await launchWorkspace(directory);
+  page = await application.firstWindow();
+  home = page.getByRole('region', { name: 'Home', exact: true });
+  card = home.getByRole('article', { name: 'Continuity project', exact: true });
+  await card.getByText('Check one failed write before continuing', { exact: true }).waitFor();
+  assert.equal(await card.locator('.home-meta time').getAttribute('dateTime'), savedTime);
+  await card.getByRole('button', { name: 'Open project Continuity project', exact: true }).click();
+  await page.getByRole('region', { name: 'Resume Development', exact: true }).getByText('Reviewed persisted project context', { exact: true }).waitFor();
+  assert.equal(await page.getByLabel('New release name', { exact: true }).inputValue(), '', 'Unsaved drafts are not persisted across process exit');
+});
+
+test('Home withholds failed summaries, retries only reads and ignores a response superseded by a committed project', { timeout: 90000 }, async t => {
+  let application;
+  application = await launchWorkspace(temporaryDirectory(t, () => application?.close()));
+  const page = await application.firstWindow();
+  await createProject(page, 'Existing Home project');
+  const home = page.getByRole('region', { name: 'Home', exact: true });
+  await home.getByRole('article', { name: 'Existing Home project', exact: true }).waitFor();
+  await application.evaluate(({ app }) => {
+    const load = process.getBuiltinModule('module').createRequire(app.getAppPath() + '/package.json');
+    const { WorkspaceStore } = load('./dist/main/data/database.js');
+    const original = WorkspaceStore.prototype.getHomeSummary;
+    let failures = 2;
+    WorkspaceStore.prototype.getHomeSummary = function () {
+      if (failures-- > 0) throw new Error('controlled Home read failure');
+      WorkspaceStore.prototype.getHomeSummary = original;
+      return original.call(this);
+    };
+  });
+  await page.getByRole('button', { name: 'Home', exact: true }).click();
+  await home.getByRole('alert').waitFor();
+  assert.equal(await home.getByRole('article').count(), 0);
+  await home.getByRole('button', { name: 'Refresh Home', exact: true }).click();
+  await home.getByRole('alert').waitFor();
+  assert.equal(await home.getByRole('article').count(), 0);
+  await home.getByRole('button', { name: 'Refresh Home', exact: true }).click();
+  await home.getByRole('article', { name: 'Existing Home project', exact: true }).waitFor();
+  await application.evaluate(({ app }) => {
+    const load = process.getBuiltinModule('module').createRequire(app.getAppPath() + '/package.json');
+    const { WorkspaceStore } = load('./dist/main/data/database.js');
+    const original = WorkspaceStore.prototype.getHomeSummary;
+    let signal;
+    globalThis.homeReadStarted = new Promise(resolve => { signal = resolve; });
+    WorkspaceStore.prototype.getHomeSummary = function () {
+      WorkspaceStore.prototype.getHomeSummary = original;
+      const oldSnapshot = original.call(this);
+      return new Promise(resolve => { globalThis.releaseHomeRead = () => resolve(oldSnapshot); signal(); });
+    };
+  });
+  await home.getByRole('button', { name: 'Refresh Home', exact: true }).click();
+  await application.evaluate(() => globalThis.homeReadStarted);
+  await createProject(page, 'Created during Home read');
+  await home.getByRole('article', { name: 'Created during Home read', exact: true }).waitFor();
+  await application.evaluate(() => globalThis.releaseHomeRead());
+  await page.waitForTimeout(100); // Give the explicitly released stale IPC response a render turn.
+  assert.equal(await home.getByRole('article').count(), 2);
+  const saved = await page.evaluate(async () => ({ projects: (await window.workspace.listProjects()).value, home: (await window.workspace.getHomeSummary()).value }));
+  assert.equal(saved.projects.length, 2);
+  assert.equal(saved.home.length, 2);
+  assert.equal(saved.home.every(row => row.checkpoint === null && row.activity === null), true);
+  await application.evaluate(({ app }) => {
+    const load = process.getBuiltinModule('module').createRequire(app.getAppPath() + '/package.json');
+    const { WorkspaceStore } = load('./dist/main/data/database.js');
+    const original = WorkspaceStore.prototype.openProject;
+    let signal;
+    globalThis.projectReadStarted = new Promise(resolve => { signal = resolve; });
+    WorkspaceStore.prototype.openProject = function (input) {
+      WorkspaceStore.prototype.openProject = original;
+      const snapshot = original.call(this, input);
+      return new Promise(resolve => { globalThis.releaseProjectRead = () => resolve(snapshot); signal(); });
+    };
+  });
+  await home.getByRole('button', { name: 'Open project Existing Home project', exact: true }).click();
+  await application.evaluate(() => globalThis.projectReadStarted);
+  await page.getByRole('button', { name: 'Open Created during Home read', exact: true }).click();
+  await page.getByRole('heading', { name: 'Created during Home read', exact: true }).waitFor();
+  await page.getByLabel('Action title', { exact: true }).focus();
+  await application.evaluate(() => globalThis.releaseProjectRead());
+  await page.waitForTimeout(100);
+  assert.equal(await page.getByLabel('Action title', { exact: true }).evaluate(e => e === document.activeElement), true, 'Superseded Home navigation must not steal focus from the current workspace');
+});

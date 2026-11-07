@@ -2,33 +2,38 @@
 
 2026-11-07 · **Approval draft, not an installed migration.** Proposed filename: `src/main/data/migrations/004_durable_knowledge.sql`. [Transaction/DTO/UI/acceptance proposal](v3a1a-implementation-proposal.md). Preserve migrations 001–003 and every existing row; no backfill, legacy classification, seed project or manufactured event.
 
-The following fenced SQL is the proposed complete migration body. It creates **13 STRICT tables**, 5 explicit indexes and 33 named triggers; the existing migration runner owns backup, the enclosing transaction, FK checking and `user_version = 4`. SQLite-generated unique indexes are additional to the explicit indexes. Exact source is a BLOB; literal arrays/source coordinates use validated JSON, not a generic entity payload.
+Revised after the final identity/extensibility review: **13 STRICT tables, 5 explicit indexes and 29 triggers**. No operational action rows/mapping, mutable workspace counter or current-definition pointer. A source binding is separate from project identity; native entity IDs belong to captured definitions. [Rationale and complete guard inventory](v3a1a-final-design-review.md).
+
+The following fenced SQL is the proposed complete migration body. The existing migration runner owns backup, the enclosing transaction, FK checking and `user_version = 4`. SQLite-generated unique indexes are additional to the explicit indexes. Exact source is a BLOB; literal arrays/source coordinates use validated JSON, not a generic entity payload. Only PTB v0.2 is accepted by the proposed main command; general metadata columns do not enable another adapter.
 
 ## DDL for approval
 
 ```sql
 -- Proposed contents of 004_durable_knowledge.sql. NOT an installed migration.
 -- The existing runner owns BEGIN/COMMIT, backup, foreign_key_check and user_version.
-CREATE TABLE knowledge_workspaces (
-  project_id INTEGER PRIMARY KEY REFERENCES projects(id),
-  source_namespace TEXT NOT NULL CHECK (source_namespace = 'ptb'),
-  external_project_id TEXT NOT NULL CHECK (length(external_project_id) BETWEEN 1 AND 128),
+CREATE TABLE knowledge_source_bindings (
+  id INTEGER PRIMARY KEY,
+  project_id INTEGER NOT NULL REFERENCES projects(id),
+  adapter_key TEXT NOT NULL CHECK (length(adapter_key) BETWEEN 1 AND 64 AND
+    adapter_key GLOB '[a-z]*' AND adapter_key NOT GLOB '*[^a-z0-9._-]*'),
+  native_root_key TEXT CHECK (native_root_key IS NULL OR length(native_root_key) BETWEEN 1 AND 2000),
   initial_import_id TEXT NOT NULL,
-  revision INTEGER NOT NULL DEFAULT 1 CHECK (revision >= 1),
-  UNIQUE (source_namespace, external_project_id),
-  FOREIGN KEY (initial_import_id, project_id)
-    REFERENCES knowledge_imports(id, project_id) DEFERRABLE INITIALLY DEFERRED
+  UNIQUE (adapter_key, native_root_key),
+  UNIQUE (id, project_id),
+  FOREIGN KEY (initial_import_id, id, project_id)
+    REFERENCES knowledge_imports(id, source_binding_id, project_id) DEFERRABLE INITIALLY DEFERRED
 ) STRICT;
 
 CREATE TABLE knowledge_imports (
   id TEXT PRIMARY KEY NOT NULL CHECK (length(id) = 36),
-  project_id INTEGER NOT NULL REFERENCES knowledge_workspaces(project_id),
+  project_id INTEGER NOT NULL REFERENCES projects(id),
+  source_binding_id INTEGER NOT NULL,
   snapshot_id TEXT NOT NULL,
-  parser_contract TEXT NOT NULL CHECK (parser_contract = 'v2-preview-1'),
-  format_version TEXT NOT NULL CHECK (format_version = '0.2'),
-  formation_policy TEXT NOT NULL CHECK (formation_policy = 'v3a1a-1'),
-  semantic_sha256 TEXT NOT NULL CHECK (
-    length(semantic_sha256) = 64 AND semantic_sha256 NOT GLOB '*[^0-9a-f]*'),
+  parser_contract TEXT NOT NULL CHECK (length(parser_contract) BETWEEN 1 AND 64),
+  format_version TEXT NOT NULL CHECK (length(format_version) BETWEEN 1 AND 64),
+  formation_policy TEXT NOT NULL CHECK (length(formation_policy) BETWEEN 1 AND 64),
+  semantic_sha256 TEXT CHECK (semantic_sha256 IS NULL OR (
+    length(semantic_sha256) = 64 AND semantic_sha256 NOT GLOB '*[^0-9a-f]*')),
   review_digest TEXT NOT NULL CHECK (
     length(review_digest) = 64 AND review_digest NOT GLOB '*[^0-9a-f]*'),
   chosen_project_name TEXT NOT NULL CHECK (length(trim(chosen_project_name)) BETWEEN 1 AND 120),
@@ -37,7 +42,9 @@ CREATE TABLE knowledge_imports (
   capture_validation TEXT NOT NULL CHECK (capture_validation IN ('valid', 'needs-review')),
   diagnostics_json TEXT NOT NULL CHECK (
     json_valid(diagnostics_json) AND json_type(diagnostics_json) = 'array'),
-  UNIQUE (id, project_id)
+  UNIQUE (id, project_id),
+  UNIQUE (id, source_binding_id, project_id),
+  FOREIGN KEY (source_binding_id, project_id) REFERENCES knowledge_source_bindings(id, project_id)
 ) STRICT;
 CREATE INDEX knowledge_imports_project ON knowledge_imports(project_id, applied_at, id);
 
@@ -62,20 +69,11 @@ CREATE TABLE knowledge_documents (
 
 CREATE TABLE knowledge_entities (
   id INTEGER PRIMARY KEY,
-  project_id INTEGER NOT NULL REFERENCES knowledge_workspaces(project_id),
-  external_id TEXT NOT NULL CHECK (length(external_id) BETWEEN 1 AND 128),
+  project_id INTEGER NOT NULL REFERENCES projects(id),
   kind TEXT NOT NULL CHECK (kind IN (
     'project', 'component', 'feature', 'requirement', 'scope', 'action', 'decision', 'check')),
-  current_revision INTEGER NOT NULL DEFAULT 1 CHECK (current_revision >= 1),
-  action_id INTEGER UNIQUE REFERENCES actions(id),
   created_at TEXT NOT NULL,
-  CHECK ((kind = 'action' AND action_id IS NOT NULL) OR
-         (kind <> 'action' AND action_id IS NULL)),
-  UNIQUE (project_id, external_id),
-  UNIQUE (id, project_id, kind),
-  FOREIGN KEY (id, current_revision, project_id, kind)
-    REFERENCES knowledge_definitions(entity_id, revision, project_id, kind)
-    DEFERRABLE INITIALLY DEFERRED
+  UNIQUE (id, project_id, kind)
 ) STRICT;
 CREATE UNIQUE INDEX knowledge_one_project_entity
   ON knowledge_entities(project_id) WHERE kind = 'project';
@@ -89,6 +87,7 @@ CREATE TABLE knowledge_definitions (
   title TEXT NOT NULL CHECK (length(trim(title)) BETWEEN 1 AND
     CASE kind WHEN 'project' THEN 120 WHEN 'action' THEN 300 ELSE 200 END),
   narrative_markdown TEXT NOT NULL,
+  source_native_id TEXT CHECK (source_native_id IS NULL OR length(source_native_id) BETWEEN 1 AND 2000),
   origin_import_id TEXT NOT NULL,
   origin_document_key TEXT NOT NULL,
   origin_occurrence_key TEXT NOT NULL,
@@ -102,6 +101,7 @@ CREATE TABLE knowledge_definitions (
   UNIQUE (entity_id, revision, project_id, kind),
   UNIQUE (origin_import_id, origin_occurrence_key, revision),
   UNIQUE (origin_import_id, presentation_order, revision),
+  UNIQUE (origin_import_id, source_native_id, revision),
   FOREIGN KEY (entity_id, project_id, kind) REFERENCES knowledge_entities(id, project_id, kind),
   FOREIGN KEY (origin_import_id, origin_document_key, project_id)
     REFERENCES knowledge_documents(import_id, document_key, project_id)
@@ -257,32 +257,12 @@ CREATE UNIQUE INDEX knowledge_single_parent_relation
 CREATE INDEX knowledge_relationships_target
   ON knowledge_relationships(project_id, to_entity_id, relation, from_entity_id);
 
-CREATE TRIGGER knowledge_project_identity BEFORE INSERT ON knowledge_entities
+CREATE TRIGGER knowledge_project_identity BEFORE INSERT ON knowledge_definitions
 WHEN NEW.kind = 'project' AND NOT EXISTS (
-  SELECT 1 FROM knowledge_workspaces WHERE project_id = NEW.project_id
-    AND external_project_id = NEW.external_id)
+  SELECT 1 FROM knowledge_imports i JOIN knowledge_source_bindings s ON s.id = i.source_binding_id
+  WHERE i.id = NEW.origin_import_id AND i.project_id = NEW.project_id
+    AND s.native_root_key IS NEW.source_native_id)
 BEGIN SELECT RAISE(ABORT, 'Knowledge project identity does not match binding'); END;
-
-CREATE TRIGGER knowledge_action_registration BEFORE INSERT ON knowledge_entities
-WHEN NEW.kind = 'action' AND NOT EXISTS (
-  SELECT 1 FROM actions a WHERE a.id = NEW.action_id AND a.project_id = NEW.project_id
-    AND a.completed_at IS NULL AND NOT EXISTS (
-      SELECT 1 FROM release_actions r WHERE r.action_id = a.id))
-BEGIN SELECT RAISE(ABORT, 'Knowledge action must be incomplete, project-owned and outside releases'); END;
-
-CREATE TRIGGER knowledge_action_no_completion BEFORE UPDATE OF completed_at ON actions
-WHEN NEW.completed_at IS NOT NULL AND EXISTS (
-  SELECT 1 FROM knowledge_entities WHERE action_id = OLD.id)
-BEGIN SELECT RAISE(ABORT, 'Knowledge proposal cannot be completed'); END;
-
-CREATE TRIGGER knowledge_action_owner_immutable BEFORE UPDATE OF id, project_id ON actions
-WHEN (NEW.id IS NOT OLD.id OR NEW.project_id IS NOT OLD.project_id) AND EXISTS (
-  SELECT 1 FROM knowledge_entities WHERE action_id = OLD.id)
-BEGIN SELECT RAISE(ABORT, 'Knowledge action identity is fixed'); END;
-
-CREATE TRIGGER knowledge_action_no_release BEFORE INSERT ON release_actions
-WHEN EXISTS (SELECT 1 FROM knowledge_entities WHERE action_id = NEW.action_id)
-BEGIN SELECT RAISE(ABORT, 'Knowledge action cannot join a release'); END;
 
 CREATE TRIGGER knowledge_inline_stage_only BEFORE INSERT ON knowledge_stage_definitions
 WHEN NOT EXISTS (
@@ -294,7 +274,8 @@ CREATE TRIGGER knowledge_action_stage_target BEFORE INSERT ON knowledge_action_d
 WHEN NEW.proposed_stage_key IS NOT NULL AND NOT EXISTS (
   SELECT 1 FROM knowledge_relationships l
   JOIN knowledge_entities e ON e.id = l.to_entity_id
-  JOIN knowledge_scope_plans s ON s.entity_id = e.id AND s.revision = e.current_revision
+  JOIN knowledge_scope_plans s ON s.entity_id = e.id AND s.revision = (
+    SELECT MAX(d.revision) FROM knowledge_definitions d WHERE d.entity_id = e.id)
   WHERE l.from_entity_id = NEW.entity_id AND l.from_revision = NEW.revision
     AND l.relation = 'concerns-scope' AND (
       s.workflow_mode = 'reference' OR
@@ -303,22 +284,13 @@ WHEN NEW.proposed_stage_key IS NOT NULL AND NOT EXISTS (
           AND d.scope_revision = s.revision AND d.stage_key = NEW.proposed_stage_key))))
 BEGIN SELECT RAISE(ABORT, 'Proposed stage does not match source scope plan'); END;
 
-CREATE TRIGGER knowledge_workspace_binding_immutable BEFORE UPDATE ON knowledge_workspaces
-WHEN NEW.project_id IS NOT OLD.project_id OR
-     NEW.source_namespace IS NOT OLD.source_namespace OR
-     NEW.external_project_id IS NOT OLD.external_project_id OR
-     NEW.initial_import_id IS NOT OLD.initial_import_id OR
-     (NEW.revision <> OLD.revision AND NEW.revision <> OLD.revision + 1)
-BEGIN SELECT RAISE(ABORT, 'Knowledge binding is fixed; revisions advance one at a time'); END;
-CREATE TRIGGER knowledge_workspace_no_delete BEFORE DELETE ON knowledge_workspaces
+CREATE TRIGGER knowledge_source_binding_immutable BEFORE UPDATE ON knowledge_source_bindings
+BEGIN SELECT RAISE(ABORT, 'Knowledge source binding is fixed'); END;
+CREATE TRIGGER knowledge_source_binding_no_delete BEFORE DELETE ON knowledge_source_bindings
 BEGIN SELECT RAISE(ABORT, 'Knowledge binding cannot be deleted'); END;
 
 CREATE TRIGGER knowledge_entity_identity_immutable BEFORE UPDATE ON knowledge_entities
-WHEN NEW.id IS NOT OLD.id OR NEW.project_id IS NOT OLD.project_id OR
-     NEW.external_id IS NOT OLD.external_id OR NEW.kind IS NOT OLD.kind OR
-     NEW.action_id IS NOT OLD.action_id OR NEW.created_at IS NOT OLD.created_at OR
-     (NEW.current_revision <> OLD.current_revision AND NEW.current_revision <> OLD.current_revision + 1)
-BEGIN SELECT RAISE(ABORT, 'Knowledge identity is fixed; revisions advance one at a time'); END;
+BEGIN SELECT RAISE(ABORT, 'Knowledge identity is fixed'); END;
 CREATE TRIGGER knowledge_entity_no_delete BEFORE DELETE ON knowledge_entities
 BEGIN SELECT RAISE(ABORT, 'Knowledge identity cannot be deleted'); END;
 
@@ -382,8 +354,9 @@ BEGIN SELECT RAISE(ABORT, 'Stored knowledge definition or source cannot be delet
 
 ## Main-owned invariants, deliberately not a SQL execution engine
 
-- Every applied project has exactly one project-kind entity matching the binding, all eight kinds have their required typed payload (components/features use the common definition), every current pointer resolves, and the graph has exactly the reviewed counts. An initial formation inserts revision 1 only. An empty inline workflow is invalid; its 1–50 ordered stages must match the captured plan. SQL validates owner/type/FKs and cardinalities; main validates completeness before commit.
-- Ordinary action title/details equal their initial knowledge definition; action ID owner is validated by the registration trigger, completion is null, release membership absent. **Apply creates every action row itself** in the new project transaction; renderer inputs never contain action IDs or an existing-project target. The registration trigger enforces owner/incomplete/not-release-bound, not a general historical “new” predicate. Existing mutators reject knowledge action IDs before touching title/details, completion, exclusion, assignment or audit. No API advances these proposal states in V3a1a. Future commitment/editing must explicitly revise these guards, rather than bypass them.
+- Every applied project has exactly one project-kind entity whose captured native root matches its source binding; all records have their required typed payload (components/features use the common definition), and the graph has exactly the reviewed counts. Formation inserts revision 1 only, with one complete definition per entity. No mutable current pointer or workspace counter. Current reads select the greatest committed definition revision (1 here); future revision commands must insert all payloads/links atomically and validate completeness/expected revision. An empty inline workflow is invalid; its 1–50 ordered stages must match the captured plan. SQL validates owner/type/FKs and cardinalities; main validates completeness before commit.
+- **Apply creates zero ordinary actions/details/release-membership rows.** Proposed action identity is its knowledge entity ID, with no operational `action_id` column or mapping. Existing legacy reads/mutators remain unchanged; they operate on ordinary action IDs and cannot mutate an imported definition. Numeric ID collisions are distinct namespaces, not mapping. V3a1b must separately approve/add commitment mapping, actual audit and development-versus-release guards on both membership insertion and update before work is materialized.
+- Source metadata is bounded storage, not a dynamic registry. Current main prepare/apply/read validates only `ptb` / `v2-preview-1` / `0.2` / `v3a1a-1`, chosen from the retained capture, not renderer input. PTB native root/entity IDs must be valid non-null IDs of at most 128 characters and its valid interpreted graph hash must be non-null. Generic nullable native IDs/semantic hash and scalar metadata do not add another format; they avoid forcing a future source-only document to invent authored IDs or a PTB semantic graph. Every document still has an exact byte hash. Native IDs are capture/source provenance, never project-wide canonical identity. Future attachment needs an explicit crosswalk migration; no fuzzy matching.
 - All IDs/keys satisfy existing parser vocabulary/prefix/length rules; names and normalized strings round-trip losslessly as UTF-8. Reject label NUL and escaped lone-surrogate storage loss before starting a write. SQL scalar limits back up existing parser validation; ordered literal array member types/counts/lengths and canonical JSON source-ref shapes are validated by main.
 - Valid source spans have the owning document key, correct ordered byte/UTF-16/code-point line-column coordinates, end-exclusive limits, real heading context and exact captured slices. BLOB re-encoding from Preview text must equal captured byte length and SHA-256 before storage (including BOM/CRLF). Document presentation order and occurrence order are unique within the applied capture; they never mean priority.
 - Main retains all source documents, unknown fields/narrative and diagnostics without treating malformed records as entities. Formation blocks unavailable/invalid source; no partial-invalid durable graph. Diagnostic references may legitimately be package-level/null. Reference workflow status is the captured resolver result, not an automatic live registry re-resolution.
@@ -394,9 +367,9 @@ BEGIN SELECT RAISE(ABORT, 'Stored knowledge definition or source cannot be delet
 
 ## Insert order, versioning and failure policy
 
-Inside the existing `BEGIN IMMEDIATE`: project → workspace binding → import/receipt → documents → ordinary actions/details → entity identities → common definitions → project/requirement/scope payloads and stages → typed relationships → action/decision/check payloads → invariant checks → one actual formation audit → COMMIT. The two explicitly deferred references allow binding/import and entity/current-definition insertion without placeholder records. The receipt is visible only with the committed graph.
+Inside the existing `BEGIN IMMEDIATE`: project → source binding → import/receipt → documents → entity identities → common definitions → project/requirement/scope payloads and stages → typed relationships → action/decision/check payloads → invariant checks → one actual formation audit → COMMIT. The one deferred reference links a binding to its own initial import/receipt; it needs no placeholder record. No ordinary action/details/membership is written. The receipt is visible only with the committed graph.
 
-**`knowledge_imports.id = operationId = importId`** is the unique durable receipt key, not a separate generated capture ID. Receipt lookup uses that primary key and the stored review digest before consulting transient sessions. Immutable receipt values store actual capture/apply times, parser/formation policy and review digest. Reconstruct the initial receipt from that import's revision-1 definitions/links, fixed project-kind identity, chosen project name and applied-at time (also the original project's created-at time). Do not use mutable current pointers/names or count later definition revisions. No separate job/status queue. Later reimport is not implemented; a repeated canonical binding opens the existing project and returns its stored initial receipt, including after restart. Changes to files or labels never silently rebind it. Source semantic hash is not an entity ID or duplicate-project permission.
+**`knowledge_imports.id = operationId = importId`** is the unique durable receipt key, not a separate generated capture ID. Receipt lookup uses that primary key and the stored review digest before consulting transient sessions. Immutable receipt values store actual capture/apply times, parser/formation policy and review digest. Reconstruct the initial receipt from that import's revision-1 definitions/links, fixed project-kind identity/source-binding ID, chosen project name and applied-at time (also the original project's created-at time). Do not use future edited names or count later definition revisions. No separate job/status queue. Later reimport is not implemented; a repeated native PTB source binding opens its existing project and returns the initial receipt, including after restart. Changes to files or labels never silently rebind it. Source semantic hash is not an entity ID or duplicate-project permission.
 
 Relationships identify the target entity, not its target definition revision. This slice creates revision 1 only and can recover its initial imported graph/source; it does **not** promise arbitrary historical graph snapshots after later local edits. Before editing/reimport, review target-version resolution, local-link provenance and historical graph queries. Evidence and development-to-release snapshots need separately pinned revisions and remain deferred.
 

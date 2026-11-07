@@ -1,6 +1,6 @@
 # ProjectsTimeline — Product & Architecture Alignment
 
-2026-11-07 · **Current phase: concrete V3a1a proposal — approval before implementation.** User approved refined Concept C with the consolidated corrections and V3a1a → V5a → V3a1b → V3b1. [Implementation/DTO/UX/acceptance proposal](design/v3a1a-implementation-proposal.md) and [exact additive schema](design/v3a1a-schema-proposal.md) are now for review. No production feature, migration, dependency or prototype merge. Existing V1/V2/schema/history and pre-existing screenshot edits are preserved.
+2026-11-07 · **Current phase: V3a1a final concerns review — approval before implementation.** Refined C/durable formation/real Map and first sequence approved. [Final action/source/guard recommendation](design/v3a1a-final-design-review.md), [revised implementation/DTO/UX/acceptance](design/v3a1a-implementation-proposal.md) and [exact additive schema](design/v3a1a-schema-proposal.md) await authorization. No production feature, migration, dependency or prototype merge. Existing V1/V2/schema/history and pre-existing screenshot edits are preserved.
 
 ## Review package
 

@@ -1,5 +1,18 @@
 # ProjectsTimeline — Engineering checklist
 
+## V3a1a final concerns gate, 2026-11-07
+
+[Final recommendation/inventory](design/v3a1a-final-design-review.md) · [revised contract](design/v3a1a-implementation-proposal.md) · [exact 004](design/v3a1a-schema-proposal.md). Overall direction approved; migration/production authorization still pending.
+
+| Item | Current state / evidence |
+| --- | --- |
+| Action identity | **Revised recommendation:** knowledge-only Proposed entity ID; ordinary row/mapping created in later explicit commitment. V5a targets entity identity, not a preallocated action ID. Legacy reads/mutators unchanged now; future mapped work needs development/release guards before adoption. |
+| Source identity | **Revised recommendation:** source-binding ID attaches to project; native IDs are capture provenance. No permanent one-source project constraint/PTB-only storage literal; main still strictly PTB-only. Crosswalk/adapter semantics deferred. |
+| Minimal schema | **Reviewed draft:** 13 necessary typed tables, 29 guards with complete inventory; remove duplicate action projection/four guards and unused workspace/current pointers. Revision-1 anchors retained for context/acceptance; future history/snapshot policies not claimed. |
+| Actual verification | **61 disposable checks pass** with SQL + actual unchanged legacy store, including release-membership UPDATE and ID collisions; all new trigger groups exercised. DTO and Node/main scratch compilation pass. App/package/migration-runner/real map acceptance not run. |
+| Preserved scope | **Approved visual requirements retained:** connected map/Overview, exact source, keyboard/readability/three widths, real new import and rebuilt packaged restart; legacy Resume/releases/workflows/security intact. No workflow execution/adoption/Obsidian/MCP. |
+| Next gate | **Pending:** authorize revised 004/implementation; baseline rerun then one complete V3a1a slice. Earlier draft results below are historical. |
+
 ## V3a1a concrete proposal gate, 2026-11-07
 
 User approved refined C/corrections and **V3a1a → V5a → V3a1b → V3b1**. [Implementation/DTO/map/test proposal](design/v3a1a-implementation-proposal.md), [exact 004 SQL draft](design/v3a1a-schema-proposal.md). No production implementation or migration yet.

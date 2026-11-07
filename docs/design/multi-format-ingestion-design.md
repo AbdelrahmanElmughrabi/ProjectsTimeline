@@ -2,6 +2,8 @@
 
 2026-11-07 · **Consolidated proposal; no new importer, schema, AI runtime, MCP or format initialization.** [Experience/VD3](v3-product-experience-contract.md) · [review corrections](v3-consolidated-review.md) · [adoption/merge policy](blueprint-adoption-merge-policy.md).
 
+The [final V3a1a source review](v3a1a-final-design-review.md) revises the proposed first schema: source bindings attach to permanent projects, source-native IDs are captured provenance, and metadata keys are bounded storage with a PTB-only main allowlist. No project-wide source limit, generic adapter registry or runtime adapter loading. Another adapter/update first needs a reviewed source/entity crosswalk and native assertion/source/version policy; nullable native IDs/hash avoid inventing PTB identifiers/semantic graphs for ordinary documents. This is an evolution path, not implemented compatibility.
+
 ## One capture boundary, format-specific meaning
 
 User-selected input → main-owned bounded capture → explicitly selected/versioned adapter → candidate definitions + native links + diagnostics/source anchors → reviewed typed development application → shared project queries → Overview / Map / Development / History. Optional AI produces a separate review queue, never a required parsing step or an authoritative graph.
@@ -33,7 +35,7 @@ The prototype has **source assertions only**, no suggestion or evidence records.
 ## Identity, source and updates
 
 - Internal project/entity IDs stay stable. Source bindings use `(adapter/format namespace, source project identity, native record identity)`; the same title/path across formats does not identify one entity.
-- PTB initially keeps its one canonical external project binding. Future documents/adapters may attach as additional source material without replacing that binding. Cross-format equivalence requires an explicit reviewed crosswalk; unrelated-source federation/automatic matching is deferred.
+- PTB initially has one native source binding attached to the formed project; that binding is not the project's identity or a database-wide one-source limit. Future reviewed attachment preserves the original binding/captures and uses an explicit source/entity crosswalk. Same-looking native IDs across sources are not equivalent automatically; federation/automatic matching remains deferred.
 - Unstructured files/sections have source-document/capture anchors, not invented permanent engineering IDs. Rename/heading changes require reviewed anchor remapping; a heading hash or line number is not a durable semantic key. Duplicate/broken/ambiguous references remain inspectable.
 - Retain immutable exact captured text/bytes identity, document hashes, adapter/version and exact spans/heading context. A live path alone cannot recover wording after edit/delete. Captured versus live source must be clear. Do not promise in-place source editing or filesystem watching in the first slice.
 - Apply the existing proposed B/L/I review: prior reviewed source baseline, local revision, incoming source. No silent overwrite/destructive omission/completion reset. New adapter candidates cannot change confirmed releases or operational state. Existing PTB packages remain reference-closed; do not introduce implicit database-only link resolution.

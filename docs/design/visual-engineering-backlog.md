@@ -10,6 +10,7 @@
 | Advanced diagram semantics | Add UML associations, inheritance, dependencies or impact lenses only when a supported source or explicit user assertion supplies the typed meaning and provenance. Review constraints, validation and display rules for each relation. Position and label proximity never imply semantics. |
 | Date-free Development and optional Gantt | Show authored stage order, real commitments and Unassigned work when the development policy is ready. Gate Gantt on explicit schedule dates or durations with granularity, time zone, revision and dependency rules. Keep unscheduled work visible. |
 | Focus mode and personalization | Explore a reversible canvas focus mode, local shortcuts, density, theme and optional saved layouts. Preserve selection, camera and a keyboard exit. Layout preferences are UI state and require separate review before persistence or native full-screen integration. |
+| Unified workspace and richer graph controls | Keep Overview, Sources, Engineering Map, Development and History in one project shell as their real capabilities ship. Releases stay separate and Resume appears for actual saved context. Review typed count filters, advanced edge routing and a Miro-like canvas focus mode separately from the stabilization. |
 
 ## Earlier design backlog
 

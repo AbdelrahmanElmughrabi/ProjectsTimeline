@@ -1,5 +1,12 @@
 # ProjectsTimeline — Engineering checklist
 
+## Post-V3a1a UX stabilization design, 2026-11-07
+
+- [x] Reviewed Antigravity's independent report and two visuals at `adad730`. Kept its artifacts on the assigned branch.
+- [x] Reproduced Fit, off-screen reveal, skipped neighborhood, focus and edge occlusion on the packaged baseline. Recorded the inspector scroll and wide FieldLedger claims separately.
+- [x] Reran 92 Node, 25 Electron, 5 packaged recovery and 4 knowledge journeys on the rebuilt executable. Added two disposable probes. [Evidence](verification.md).
+- [ ] Approve the [bounded renderer scope and visual acceptance criteria](design/post-v3a1a-ux-review.md#proposed-small-implementation-slice) before implementation. V5a and multi-source work retain separate gates.
+
 ## V3a1a production checkpoint, 2026-11-07
 
 **Implemented and automatically verified. User acceptance pending.** [ADR 0008](adr/0008-durable-knowledge-formation.md) · [Run results, screenshots and manual checklist](v3a1a-verification-report.md).

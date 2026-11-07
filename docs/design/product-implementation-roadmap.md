@@ -43,4 +43,4 @@ Formation validates and retains a main-owned snapshot and plan. Apply uses one t
 
 Next gate is user acceptance of V3a1a. V5a follows only after separate authorization for linked context.
 
-The [post-V3a1a UX stabilization review](post-v3a1a-ux-review.md) proposes a small renderer pass before V5a. The independent Antigravity assessment and user scope review are pending.
+The [consolidated post-V3a1a UX review](post-v3a1a-ux-review.md) incorporates Antigravity's assessment and independent packaged repros. The proposed renderer pass precedes V5a if approved. No new backend contract is required for stabilization.

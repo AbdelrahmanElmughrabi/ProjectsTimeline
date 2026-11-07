@@ -1,5 +1,7 @@
 # Antigravity handoff — V3a1a production UX review
 
+**Completed at `adad7302135f68bfd555f7153799536672fdac1f`.** Report and both visuals remain on the assigned branch. [Consolidated review](../design/post-v3a1a-ux-review.md). The assignment below is the original handoff.
+
 **BEGIN independent review and optional isolated mockups when the user delivers this prompt.** The user will return your report ref for consolidation. Review the shipped experience independently before reading any Codex findings.
 
 ## Frozen inputs and ownership

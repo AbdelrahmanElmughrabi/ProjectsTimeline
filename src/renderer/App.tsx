@@ -28,8 +28,12 @@ export default function App() {
   const [selectedReleaseId, setSelectedReleaseId] = useState<number | null>(null);
   const [view, setView] = useState<'home' | 'project' | 'workflows' | 'preview'>('home');
   const [knowledgeTools, setKnowledgeTools] = useState(false);
+  const [projectMenuOpen, setProjectMenuOpen] = useState(false);
+  const toolsOpener = useRef<HTMLElement | null>(null);
+  const menuButton = useRef<HTMLButtonElement>(null);
   const [formationBlocked, setFormationBlocked] = useState(false);
   const disabled = busy !== null || library.busy || stale || view === 'preview';
+  const inKnowledgeProject = view === 'project' && workspace.knowledge !== null;
 
   useEffect(() => {
     if (view === 'home' && previewHomeFocus.current) {
@@ -44,6 +48,7 @@ export default function App() {
     if (view === 'preview' && !await preview.cancel()) return;
     if (token !== previewNavigation.current) return;
     setView(next);
+    setProjectMenuOpen(false);
     if (next === 'home') void workspace.refreshHome();
   }
 
@@ -69,11 +74,12 @@ export default function App() {
 
   async function selectProject(id: number) {
     if (formationBlocked) return;
+    setProjectMenuOpen(false);
     setKnowledgeTools(false);
     const token = ++previewNavigation.current;
     if (view === 'preview' && !await preview.cancel()) return;
     if (token !== previewNavigation.current) return;
-    if (view === 'home' || view === 'preview') void openFromHome(id);
+    if (view === 'home' || view === 'preview' || (id === selectedId && workspace.knowledge)) void openFromHome(id);
     else { setView('project'); void workspace.openProject(id); }
   }
 
@@ -107,12 +113,41 @@ export default function App() {
     }
   }
 
+  function openKnowledgeTools(opener: HTMLElement, destination: 'tools' | 'journal' | 'resume') {
+    toolsOpener.current = opener;
+    setKnowledgeTools(true);
+    requestAnimationFrame(() => {
+      const id = destination === 'journal' ? 'checkpoint-heading' : destination === 'resume' ? 'resume-heading' : 'project-title';
+      const heading = document.getElementById(id);
+      if (heading) {
+        heading.tabIndex = -1;
+        heading.focus();
+      }
+    });
+  }
+
+  function closeKnowledgeTools() {
+    setKnowledgeTools(false);
+    requestAnimationFrame(() => {
+      const opener = toolsOpener.current;
+      (opener?.isConnected && opener.getClientRects().length ? opener : document.getElementById('workspace-main'))?.focus();
+    });
+  }
+
   const checkpoints = detail?.checkpoints ?? [];
   const backlogActions = detail?.actions.filter(action => action.releaseId === null) ?? [];
 
   return (
-    <div className="shell">
+    <div className={`shell${inKnowledgeProject ? ' knowledge-shell' : ''}${projectMenuOpen ? ' is-project-menu-open' : ''}`} onKeyDown={event => {
+      if (event.key === 'Escape' && projectMenuOpen && menuButton.current?.getClientRects().length && (event.target as HTMLElement).closest('#project-navigation, .compact-project-nav')) {
+        setProjectMenuOpen(false);
+        menuButton.current.focus();
+      }
+    }}>
       <a className="skip-link" href="#workspace-main" onClick={event => { event.preventDefault(); document.getElementById('workspace-main')?.focus(); }}>Skip to workspace</a>
+      {inKnowledgeProject && <div className="compact-project-nav">
+        <button ref={menuButton} className="button button-light" aria-controls="project-navigation" aria-expanded={projectMenuOpen} onClick={() => setProjectMenuOpen(!projectMenuOpen)}>Projects & navigation</button>
+      </div>}
       <ProjectSidebar
         projects={projects} selectedId={selectedId} view={view} loading={loading} listError={listError}
         navigationDisabled={formationBlocked || (busy !== null && busy !== 'open') || library.busy || loading || preview.state.phase === 'cancelling'}
@@ -145,12 +180,13 @@ export default function App() {
           onOpen={id => void openFromHome(id)} onRefresh={() => void workspace.refreshHome()} onCreate={() => document.getElementById('project-name')?.focus()} onPreview={() => void startPreview()} />}
         <div className="workspace-project" hidden={view !== 'project'}>
         {detail ? <>
-          {workspace.knowledge && <div hidden={knowledgeTools}><ProjectKnowledgeWorkspace key={`${workspace.knowledge.project.id}:${workspace.knowledge.receipt.importId}`} data={workspace.knowledge} onProjectTools={() => setKnowledgeTools(true)} /></div>}
-          {workspace.knowledge && knowledgeTools && <div className="knowledge-tools-note"><button className="button button-light" onClick={() => setKnowledgeTools(false)}>← Back to engineering map</button><p>Existing project tools · Journals are project-level and unlinked. Proposed knowledge actions are separate from this backlog.</p></div>}
+          {workspace.knowledge && <div hidden={knowledgeTools}><ProjectKnowledgeWorkspace key={`${workspace.knowledge.project.id}:${workspace.knowledge.receipt.importId}`} data={workspace.knowledge}
+            active={inKnowledgeProject && !knowledgeTools} hasResume={!!detail.resume && !stale} onProjectTools={openKnowledgeTools} /></div>}
+          {workspace.knowledge && knowledgeTools && <div className="knowledge-tools-note"><button className="button button-light" onClick={closeKnowledgeTools}>← Back to knowledge workspace</button><p>Project journal, actions and releases. Knowledge proposals remain separate from the backlog.</p></div>}
           <div hidden={workspace.knowledge !== null && !knowledgeTools}>
           <WorkspaceHeader name={detail.project.name} />
-          <div className="workspace-grid">
-            <ResumePanel resume={detail.resume} stale={stale} disabled={disabled} />
+          <div className={`workspace-grid${workspace.knowledge && !detail.resume ? ' without-resume' : ''}`}>
+            {(!workspace.knowledge || detail.resume) && <ResumePanel resume={detail.resume} stale={stale} disabled={disabled} />}
             <div className="workspace-body">
           <Panel className="action-panel" id="actions-heading" title="Actions" eyebrow="Project backlog" accessory={<span className="count-pill" aria-label={`Action count: ${backlogActions.length}`}>{backlogActions.length}</span>}>
             <form className="inline-form" onSubmit={addAction}>

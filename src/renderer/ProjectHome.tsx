@@ -13,8 +13,9 @@ export function ProjectHome({ projects, loading, error, stale, disabled, onOpen,
     </header>
     {loading ? <p className="empty-copy" role="status">Loading saved project context…</p> : error ? <div className="home-error" role="alert"><h2>Home could not be loaded</h2><p>{error}</p><p>Refresh Home to read saved data again.</p></div> : stale ? <p className="empty-copy" role="status">Refresh Home to read the latest saved project context.</p> : projects.length ? <>
       <p className="home-count">{projects.length} {projects.length === 1 ? 'project' : 'projects'} · Ordered by recorded activity</p>
-      <div className="home-projects">{projects.map(({ project, checkpoint, activity }) => <article className="home-card" key={project.id} aria-labelledby={`home-project-${project.id}`}>
+      <div className="home-projects">{projects.map(({ project, checkpoint, activity, knowledge }) => <article className="home-card" key={project.id} aria-labelledby={`home-project-${project.id}`}>
         <header className="home-card-heading"><span className="home-initial" aria-hidden="true">{Array.from(project.name.trim())[0]?.toLocaleUpperCase() ?? 'P'}</span><div><h2 id={`home-project-${project.id}`}>{project.name}</h2><p className="home-created">Created <time dateTime={project.createdAt}>{new Date(project.createdAt).toLocaleString()}</time></p></div></header>
+        {knowledge && <div className="home-knowledge"><p className="home-preview">{knowledge.goal}</p><p className="home-meta">Engineering knowledge · {knowledge.counts.component} components · {knowledge.counts.feature} features · {knowledge.counts.action} proposed actions · Not assessed</p></div>}
         <div className="home-checkpoint">{checkpoint ? <>
           <p className="home-meta">Latest checkpoint · <time dateTime={checkpoint.createdAt}>{new Date(checkpoint.createdAt).toLocaleString()}</time></p>
           <h3>Last accomplishment</h3><p className="home-preview">{checkpoint.accomplished}</p>

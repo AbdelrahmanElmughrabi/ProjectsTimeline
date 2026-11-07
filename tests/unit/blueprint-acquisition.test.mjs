@@ -103,7 +103,7 @@ test('session refresh is explicit, tokens expire, native chooser cancel preserve
   assert.deepEqual(await pending, { kind: 'cancelled' });
 });
 
-test('preview/select/refresh/cancel leave populated schema-v3 tables and engineering history unchanged', async t => {
+test('preview/select/refresh/cancel leave populated schema-v4 tables and engineering history unchanged', async t => {
   let db, store;
   const dir = temporaryDirectory(t, () => { db?.close(); store?.close(); }); const filename = join(dir, 'workspace.sqlite');
   store = await openStore(filename);
@@ -117,7 +117,7 @@ test('preview/select/refresh/cancel leave populated schema-v3 tables and enginee
   const result = await service.choose(); await service.refresh({ sessionId: result.snapshot.sessionId }); service.cancel();
   assert.deepEqual(dump(), before);
   assert.deepEqual(db.prepare('PRAGMA user_version').get(), version);
-  assert.equal(version.user_version, 3);
+  assert.equal(version.user_version, 4);
   assert.equal(store.openProject({ projectId: p.id }).resume.nextSteps, 'Resume later');
 });
 

@@ -1,4 +1,5 @@
 import type { BlueprintPreviewApi } from './blueprint-preview';
+import type { KnowledgeApi, KnowledgeCounts } from './knowledge';
 
 export interface Project {
   id: number;
@@ -10,6 +11,7 @@ export interface HomeProjectSummary {
   project: Project;
   checkpoint: Checkpoint | null;
   activity: { id: number; source: 'checkpoint' | 'action-event'; description: string; createdAt: string } | null;
+  knowledge?: { rootEntityId: number; goal: string; counts: KnowledgeCounts } | null;
 }
 
 export interface DevelopmentAction {
@@ -128,7 +130,7 @@ export type Result<T> =
   | { ok: true; value: T }
   | { ok: false; error: { code: ErrorCode; message: string } };
 
-export interface WorkspaceApi extends BlueprintPreviewApi {
+export interface WorkspaceApi extends BlueprintPreviewApi, KnowledgeApi {
   listProjects(): Promise<Result<Project[]>>;
   getHomeSummary(): Promise<Result<HomeProjectSummary[]>>;
   createProject(input: { name: string }): Promise<Result<Project>>;

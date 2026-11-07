@@ -1,0 +1,2 @@
+# Source-fidelity fixture: keep the user-provided PTB bytes unchanged on checkout.
+tests/fixtures/vivarium/*.md -text

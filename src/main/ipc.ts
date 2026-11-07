@@ -13,6 +13,11 @@ export function registerWorkspaceIpc(window: BrowserWindow, store: WorkspaceStor
   }, () => store.getWorkflowLibrary().flatMap(({ template }) => template.builtInKey ? [{ key: template.builtInKey, version: template.version }] : []));
   window.once('closed', () => preview.cancel());
   const operations = {
+    prepareKnowledgeFormation: (input: unknown) => preview.prepareKnowledgeFormation(input, store),
+    applyKnowledgeFormation: (input: unknown) => preview.applyKnowledgeFormation(input, store),
+    openKnowledgeWorkspace: (input: unknown) => store.openKnowledgeWorkspace(input),
+    getKnowledgeRecord: (input: unknown) => store.getKnowledgeRecord(input),
+    getKnowledgeSource: (input: unknown) => store.getKnowledgeSource(input),
     chooseBlueprintPreview: (input: unknown) => preview.choose(input),
     refreshBlueprintPreview: (input: unknown) => preview.refresh(input),
     cancelBlueprintPreview: (input: unknown) => preview.cancel(input),

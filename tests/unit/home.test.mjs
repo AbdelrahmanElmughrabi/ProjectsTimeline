@@ -68,7 +68,7 @@ test('Home is read-only, avoids complete workspace loading and recovers exact su
     assert.equal(summary[0].project.id, project.id);
     assert.deepEqual(store.getHomeSummary(), summary);
     assert.equal(snapshot(), before);
-    assert.equal(raw.prepare('PRAGMA user_version').get().user_version, 3);
+    assert.equal(raw.prepare('PRAGMA user_version').get().user_version, 4);
   } finally { raw.close(); }
   store.close();
   store = await openStore(filename);

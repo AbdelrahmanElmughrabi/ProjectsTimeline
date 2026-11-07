@@ -59,7 +59,7 @@ test('packaged v2 upgrade preserves legacy memory and independently edited workf
   assert.equal(saved.frozen.release.sourceTemplateName, 'Packaged reusable');
   assert.equal(saved.frozen.release.sourceTemplateVersion, 2);
   assert.equal(saved.library.find(item => item.template.name === 'Improved master').template.version, 4);
-  assert.equal(readdirSync(join(directory, 'data')).filter(file => file.includes('.before-v3.') && file.endsWith('.bak')).length, 1);
+  assert.equal(readdirSync(join(directory, 'data')).filter(file => file.includes('.before-v4.') && file.endsWith('.bak')).length, 1);
   await application.close();
   application = await launchWorkspace(directory, executable);
   page = await application.firstWindow();
@@ -69,6 +69,6 @@ test('packaged v2 upgrade preserves legacy memory and independently edited workf
   assert.deepEqual(recovered.library, saved.library);
   await page.getByRole('region', { name: 'Resume Development', exact: true }).getByText('Continue with reusable workflow copies', { exact: true }).waitFor();
   const raw = new DatabaseSync(filename);
-  try { assert.equal(raw.prepare('PRAGMA user_version').get().user_version, 3); assert.deepEqual(raw.prepare('PRAGMA foreign_key_check').all(), []); }
+  try { assert.equal(raw.prepare('PRAGMA user_version').get().user_version, 4); assert.deepEqual(raw.prepare('PRAGMA foreign_key_check').all(), []); }
   finally { raw.close(); }
 });

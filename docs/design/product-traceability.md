@@ -1,8 +1,10 @@
 # Product requirements → screens → domain → persistence → acceptance
 
-2026-11-07 · **Domain-to-view map; consolidated review, no production V3.** V1 implements Home continuity; V2 implements deterministic read-only preview. PA-06 onward remain future development behavior unless explicitly noted. Refined C is recommended, pending user approval. [Full interaction/capability audit](v3-capability-audit.md) · [A/B/C review](v3-consolidated-review.md) · [experience](v3-product-experience-contract.md) · [roadmap](product-implementation-roadmap.md).
+2026-11-07 · **Domain-to-view map; refined C/first sequence approved, no production V3.** V1 implements Home continuity; V2 implements deterministic read-only preview. PA-06 onward remain future behavior unless explicitly noted. [Concrete V3a1a operations, component boundaries and acceptance](v3a1a-implementation-proposal.md) / [004 draft](v3a1a-schema-proposal.md) await approval. [Full capability audit](v3-capability-audit.md) · [A/B/C review](v3-consolidated-review.md) · [experience](v3-product-experience-contract.md) · [roadmap](product-implementation-roadmap.md).
 
 Command names and persistence groups are candidate contracts; none exist merely because listed here. All mutations use named main-side validation, same-project ownership, revision checks and atomic history. No generic SQL/filesystem channel.
+
+**V3a1a concrete subset for approval:** PA-02–05 retain current capture/inspection, PA-06 adds `prepareKnowledgeFormation`/`applyKnowledgeFormation` with all definitions unaccepted, PA-08 saves revision-1 structure, PA-13 adds the connected Map, PA-15 preserves Proposed/Planned versus truth, PA-16 adds binding/repeat-open protection, and PA-17/18 preserve release/security/regressions. Reads are `openKnowledgeWorkspace`, `getKnowledgeRecord`, `getKnowledgeSource`; exact schema/acceptance are in the linked proposal. PA-07/09/10/11 operational transitions, PA-14 linked context, definition edits and the full Development/History surfaces are not implemented by this first slice. The broader rows below remain the whole-product direction.
 
 | ID / requirement | Screen or interaction | Candidate read/command and domain rule | Persisted authority | Acceptance evidence required |
 | --- | --- | --- | --- | --- |

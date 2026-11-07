@@ -1,5 +1,20 @@
 # ProjectsTimeline — Engineering checklist
 
+## V3a1a concrete proposal gate, 2026-11-07
+
+User approved refined C/corrections and **V3a1a → V5a → V3a1b → V3b1**. [Implementation/DTO/map/test proposal](design/v3a1a-implementation-proposal.md), [exact 004 SQL draft](design/v3a1a-schema-proposal.md). No production implementation or migration yet.
+
+| Item | State / evidence |
+| --- | --- |
+| Visual/delivery direction | **Approved:** refined C as inspiration, not prototype reuse; first persistent slice has actual component/feature edges, expandable requirements and exact stored source. |
+| Concrete persistence/transactions | **Proposed:** 13 typed additive tables, immutable capture/receipt, stable entities/revisions/links; main-owned all-proposal formation, new-project-only, receipt-first retries. Preserve 001–003/all legacy data. |
+| Compatibility/security | **Designed:** five named additions to current 34-method bridge, legacy proposal/release guards, no renderer graph/path authority, unchanged CSP/app:///sender boundaries. No new dependency or operational scope/evidence tables. |
+| Specification checks | **Verified only as a draft:** 23 in-memory SQL smoke checks; extracted DTO block compiles against current shared types. Two lighter read-only reviews; identified receipt, PTB, revision/trigger/order and UI focus gaps corrected. |
+| Production acceptance | **Not run / not implemented:** existing baseline rerun, migration/failure/retry APIs, real connected UI, source/keyboard/three-width and rebuilt packaged restart tests are implementation gates, not claimed results. |
+| History/manual gate | **Pending:** concrete proposal/schema approval before 004/production code; ADR 0008 after approval. V5a remains next, separately authorized. Earlier manual acceptance gates remain open. |
+
+Previous review/verification entries below are historical; they do not override this newly approved direction or mark the proposed slice implemented.
+
 ## Current gate — consolidated Concept C review, 2026-11-07
 
 **Design/integration planning only.** Reviewed AG 92a7129 against 63c18e9; ancestry/27-path ownership verified, no merge or source/dependency/migration changes. [Independent findings](design/v3-consolidated-review.md) · [capability matrix](design/v3-capability-audit.md) · [updated slices](design/product-implementation-roadmap.md).

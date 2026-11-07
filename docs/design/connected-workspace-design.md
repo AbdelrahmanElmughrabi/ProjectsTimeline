@@ -1,6 +1,6 @@
 # Connected Workspace UX Blueprint — visual engineering redirection
 
-2026-11-07 · **Consolidated design proposal after AG 92a7129; no production changes.** Supersedes the paused stage-board composition preserved at 47f73c6. [A/B/C review](v3-consolidated-review.md) · [capability audit](v3-capability-audit.md) · [Contract/VD1–VD5](v3-product-experience-contract.md) · [run the study](v3-visual-prototype/README.md) · [component inventory](v3-ui-component-inventory.md) · [mapping](product-traceability.md).
+2026-11-07 · **Refined C/corrections and first delivery sequence approved; no production changes.** [Concrete V3a1a slice](v3a1a-implementation-proposal.md) is summary/review → durable Overview/Map/inspector/exact source, not all four future purposes at once. Schema/commands await approval. Supersedes the paused stage-board composition preserved at 47f73c6. [A/B/C review](v3-consolidated-review.md) · [capability audit](v3-capability-audit.md) · [Contract/VD1–VD5](v3-product-experience-contract.md) · [run the study](v3-visual-prototype/README.md) · [component inventory](v3-ui-component-inventory.md) · [mapping](product-traceability.md).
 
 ## One workspace, four purposes
 

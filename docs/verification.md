@@ -1,5 +1,20 @@
 # ProjectsTimeline — Verification record
 
+## V3a1a concrete proposal — specification checks only, 2026-11-07
+
+User approved refined Concept C/corrections and V3a1a → V5a → V3a1b → V3b1. [Concrete proposal](design/v3a1a-implementation-proposal.md) / [exact proposed 004 DDL](design/v3a1a-schema-proposal.md) now await approval. No migration file, production module, dependency or prototype merge. Baseline inspected at **9171004238ea10a216c169ff1b5da002d771c731**; schema remains v3.
+
+| Actual check | Outcome / limits |
+| --- | --- |
+| Repository/code review | Read migration runner/001–003, store queries/mutators, preview types/session/acquisition/parser, App/controllers, shared API, build/security/test boundaries. Actual gaps: main retained grant but not snapshot; no proposal guard or durable source graph. Proposed additive changes target those gaps. No application data opened/changed. |
+| Lighter domain/UX review | Two read-only reviewers examined exact proposal/DDL. Corrected operation/import receipt-key ambiguity, old PTB “before apply” wording, historical target-version claim, action-registration “new” claim, insertion order, renderer save/retry/focus and unlinked legacy-journal distinction. No implementation agent or Antigravity BEGIN. |
+| Disposable SQLite design check | `node artifacts/v3a1a-proposal-checks/schema-check.mjs`: **23/23 smoke checks pass**, exit 0. SQL extracted from Markdown into `:memory:` after unchanged 001–003. Creates 13 tables / 5 explicit indexes / 33 triggers; sampled legacy rows unchanged; deferred FK cycle commits; BOM/CRLF/astral source bytes retain hash; 7 injected insertion phases fully roll back; owner/kind/identity/immutability/completion/release/stage guards reject; appended revision retains source anchor; missing current definition prevents commit. Log: `artifacts/v3a1a-proposal-checks/schema-check.log`. This is a disposable schema design check, not implemented formation/migration/store/IPC verification. |
+| Proposed DTO syntax/types | Extracted fenced type contract with imports from actual shared contracts; installed TypeScript `--ignoreConfig --noEmit --strict --skipLibCheck --target es2023 --module preserve --moduleResolution bundler` passes, exit 0. Does not implement or test five commands. |
+| Preservation/docs | `git diff --check` passes (only Git's existing LF/CRLF notices). All **192 local links in 11 changed Markdown files resolve**, 9 pre-existing screenshot SHA-256 values match, still exactly 3 migration files. AG worktree is clean at 92a7129; source/package/config/tests/old ADRs/migrations unchanged. |
+| Full application verification | **Not rerun in this proposal-only phase.** Previous 103 V2 checks remain historical. Before approved implementation, rerun Node/Electron/build baseline; after changes run all rebuilt-package recovery/security/UI tests, exact-source/retry/migration tests and 800/1160/1540 screenshots. No V3a1a application, packaged, performance or manual acceptance claim. |
+
+Next: approve the four consequential choices in the proposal before writing 004/production code. New ADR 0008 follows that approval. Future editing/reimport must finalize historical target-revision/local-link provenance; evidence/snapshot schema and later slices remain gated.
+
 ## Consolidated Antigravity C review — actual design-only checks, 2026-11-07
 
 Input: AG **92a712908223756d984abf675bc542dad65f77eb**, frozen base **63c18e90f6a3ff26cc724c3a6fe2c8d65ee66aca**. All 27 changed paths match assigned reports/prototype/screenshots; clean AG worktree, no cherry-pick/merge. Nine existing root Codex screenshot modifications were present before review and are hash-preserved. [Detailed findings](design/v3-consolidated-review.md), [real capability matrix](design/v3-capability-audit.md).

@@ -2,6 +2,8 @@
 
 2026-11-07 · **Core behavioral design approved with counts-first refinement; not SQL or implemented development commands.** V1/V2 are implemented; redirected V3 remains design-only. Independent project records/scopes, one current scope/action, explicit lifecycle and audited moves remain approved. Work-state/blocker refinements below remain proposals for their command slice; visual decisions VD1–VD5 do not silently approve those transitions or a schema. [PTB](ptb-v0.2-contract.md) · [UX](connected-workspace-design.md) · [experience](v3-product-experience-contract.md) · [adoption/merge](blueprint-adoption-merge-policy.md).
 
+Concrete first gate: [V3a1a proposal](v3a1a-implementation-proposal.md) and [additive 004 SQL draft](v3a1a-schema-proposal.md). Refined C and V3a1a → V5a → V3a1b → V3b1 are approved. Formation persists all definitions/source as Draft/Proposed/Planned; ordinary action IDs allocated now are guarded from legacy work/release commands. No operational scope or commitment transition is included. Concrete schema/DTO approval remains pending.
+
 ## Ownership and boundaries
 
 | Record | Ownership / invariants |

@@ -1,11 +1,12 @@
 # ProjectsTimeline — Product & Architecture Alignment
 
-2026-11-07 · **Current phase: consolidated independent A/B/C design review — planning only.** Reviewed AG **92a7129** against handoff **63c18e9**; no merge, production V3 feature, migration, importer or dependency change. Refined Concept C is recommended, pending user approval. Existing V1/V2/schema/history and pre-existing screenshot edits are preserved.
+2026-11-07 · **Current phase: concrete V3a1a proposal — approval before implementation.** User approved refined Concept C with the consolidated corrections and V3a1a → V5a → V3a1b → V3b1. [Implementation/DTO/UX/acceptance proposal](design/v3a1a-implementation-proposal.md) and [exact additive schema](design/v3a1a-schema-proposal.md) are now for review. No production feature, migration, dependency or prototype merge. Existing V1/V2/schema/history and pre-existing screenshot edits are preserved.
 
 ## Review package
 
 | Requested deliverable | Evidence / canonical document |
 | --- | --- |
+| Concrete next implementation gate | [V3a1a complete slice / five named operations / map / tests](design/v3a1a-implementation-proposal.md), [004 proposed SQL and guards](design/v3a1a-schema-proposal.md); not installed or approved yet |
 | Consolidated decisions / independent code and design review | [A/B/C comparison, adopt/modify/reject and production reuse findings](design/v3-consolidated-review.md) |
 | UI-to-backend capability audit | [Real data, parser/IPC/persistence, simulation, validation and smallest steps](design/v3-capability-audit.md) |
 | Diagnosis and recommended product direction | [V3 experience contract](design/v3-product-experience-contract.md): actual V2/paused-V3 gaps and VD1–VD5 for approval |
@@ -51,4 +52,4 @@ Already approved foundations stay approved: deterministic PTB, independent proje
 
 Codex owns canonical design/integration; Antigravity's original reports/prototype remain on its isolated branch. All three reports were read directly; a redirected copy of its actual harness passes, and additional probes independently reproduce adoption/provenance/layout/focus gaps. Two lighter read-only Codex reviews supplement those checks. No new external assignment/automatic merge follows.
 
-Review the original VD1–VD5 meanings: refined visual direction; map geometry/path authority; supported input/source authority; navigation/intentional context; staged delivery. Recommend no standalone throwaway V3-M milestone, but split first durable knowledge formation, **immediate linked recovery**, unscoped adoption and later inline scope activation. SQL/DTO/revision/transaction review is separately required before coding. Extra graph digests, v0.1 support, generic format tiers, MCP and large all-tables schemas are not approved by AG's report or this consolidation.
+The user approved refined C with the review corrections and the smaller delivery sequence: durable knowledge formation, **immediate linked recovery**, unscoped adoption, then optional inline scope activation. The concrete V3a1a SQL/DTO/revision/transaction proposal now requires approval before coding. Extra graph digests, v0.1 support, generic format tiers, MCP and later operational/evidence/snapshot schemas remain outside this slice. AG's prototype remains research.

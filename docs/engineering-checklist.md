@@ -1,11 +1,18 @@
 # ProjectsTimeline — Engineering checklist
 
+## V3a1a UX stabilization implementation, 2026-11-07
+
+- [x] Measured Fit, readable zoom, targeted reveal, and separate drag, pan and Arrange behavior.
+- [x] Directed edge captions, focus and inspector scroll, multi-step Back, compact navigation, Captured sources and Journal with conditional Resume.
+- [x] Checked original source and graph equality, release progress and history, responsive rendering, and rebuilt Windows package recovery. [Verification](v3a1a-stabilization-verification.md).
+- [ ] Manual acceptance of the stabilization. Revisit the next milestone only after user review.
+
 ## Post-V3a1a UX stabilization design, 2026-11-07
 
 - [x] Reviewed Antigravity's independent report and two visuals at `adad730`. Kept its artifacts on the assigned branch.
 - [x] Reproduced Fit, off-screen reveal, skipped neighborhood, focus and edge occlusion on the packaged baseline. Recorded the inspector scroll and wide FieldLedger claims separately.
 - [x] Reran 92 Node, 25 Electron, 5 packaged recovery and 4 knowledge journeys on the rebuilt executable. Added two disposable probes. [Evidence](verification.md).
-- [ ] Approve the [bounded renderer scope and visual acceptance criteria](design/post-v3a1a-ux-review.md#proposed-small-implementation-slice) before implementation. V5a and multi-source work retain separate gates.
+- [x] Approved the [bounded renderer scope and visual acceptance criteria](design/post-v3a1a-ux-review.md#proposed-small-implementation-slice) at `f417ef5`. V5a and multi-source work retain separate gates.
 
 ## V3a1a production checkpoint, 2026-11-07
 

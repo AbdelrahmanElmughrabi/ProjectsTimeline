@@ -1,6 +1,6 @@
 # Post-V3a1a UX stabilization and project flow
 
-2026-11-07 · **Consolidated design review. Renderer stabilization awaits approval.** Shipped evidence base `51f623473cce82ada96066b6503555ab8b11e861`, implementation `e4eadb9`. Antigravity reviewed that base independently at `adad7302135f68bfd555f7153799536672fdac1f` on `antigravity/v3a1a-ux-review`. [Shipped verification and screenshots](../v3a1a-verification-report.md).
+2026-11-07 · **Approved design at `f417ef5`.** This document records baseline defects and the accepted scope. [Stabilization verification and manual acceptance](../v3a1a-stabilization-verification.md). Shipped evidence base `51f623473cce82ada96066b6503555ab8b11e861`, implementation `e4eadb9`. Antigravity reviewed that base independently at `adad7302135f68bfd555f7153799536672fdac1f` on `antigravity/v3a1a-ux-review`. [Original shipped verification and screenshots](../v3a1a-verification-report.md).
 
 ## Prioritized graph and navigation findings
 
@@ -82,4 +82,4 @@ Reviewed the committed report and both PNGs at `adad730`. The commit adds only i
 
 The prior probe and this review use isolated fixture profiles and the existing Windows executable path. The chooser return is stubbed to a real fixture copy. The new two-case probe records actual geometry, target endpoints, focus, scroll and graph equality under `artifacts/v3a1a-ux-consolidation/`. The baseline suite results are recorded in the [verification record](../verification.md). The acceptance criteria above apply to a later implementation. Native-picker usability, screen-reader behavior and large-graph visual performance remain open.
 
-Separate follow-up work is recorded in the [visual engineering backlog](visual-engineering-backlog.md). Stabilization requires approval. V5a, multi-source attachment and schema changes remain separate milestones.
+Separate follow-up work is recorded in the [visual engineering backlog](visual-engineering-backlog.md). [Manual stabilization acceptance](../v3a1a-stabilization-verification.md#manual-acceptance) is the current gate. V5a, multi-source attachment and schema changes remain separate milestones.

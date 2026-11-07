@@ -41,6 +41,6 @@ Formation validates and retains a main-owned snapshot and plan. Apply uses one t
 - Run Node/Electron/build and relevant rebuilt package/recovery after actual implementation. Verify app:// and ASAR with installed React Flow/ELK/Base UI under current CSP before shipping; do not relax policy to fit a library. Prototype isolated success is not that result.
 - User reviews one complete slice before expansion. Update engineering/verification/roadmap/short Obsidian checkpoint; new ADRs follow accepted consequential decisions, never rewrite old ADRs to retroactively approve proposals.
 
-Next gate is user acceptance of V3a1a. V5a follows only after separate authorization for linked context.
+The renderer-only pass from the [consolidated post-V3a1a UX review](post-v3a1a-ux-review.md) is implemented. [Packaged verification and manual acceptance](../v3a1a-stabilization-verification.md).
 
-The [consolidated post-V3a1a UX review](post-v3a1a-ux-review.md) incorporates Antigravity's assessment and independent packaged repros. The proposed renderer pass precedes V5a if approved. No new backend contract is required for stabilization.
+Next gate is manual acceptance. After review, the user will choose between linked continuity and broader project workspace or source-management design. Each next slice requires separate authorization.

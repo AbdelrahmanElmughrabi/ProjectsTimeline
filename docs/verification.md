@@ -1,10 +1,14 @@
 # ProjectsTimeline — Verification record
 
+## V3a1a UX stabilization, 2026-11-07
+
+Renderer and focused tests at `e0d16fe`, based on approved `f417ef5`. **92/92 Node, 28/28 Electron, 5/5 rebuilt-package recovery and 7/7 packaged knowledge journeys**. Zero skips. Rebuilt and inspected the packaged Windows app at 800, 1160 and 1540 px. The graph, exact source and existing release commitments and progress were verified across camera and geometry changes. [Test evidence, screenshots, limits and manual acceptance](v3a1a-stabilization-verification.md).
+
 ## Post-V3a1a UX review, 2026-11-07
 
 Antigravity's report and both design visuals at `adad7302135f68bfd555f7153799536672fdac1f` were reviewed independently against the unchanged V3a1a code. The earlier disposable probe exercised pan, zoom, focus, project navigation and exact source. The new Vivarium/FieldLedger probe passed **2/2 diagnostic cases** on the rebuilt app at 800, 1160 and 1540 px. It reproduced off-screen expansion and related-record reveal, skipped Back history, label occlusion and 0/15 fully visible cards after Fit with the 1160 px inspector open. It verified that the graph and receipt stayed equal throughout the Vivarium repro. In the tested transition the inspector scrolled to the top at all three widths. [Repro details and future acceptance criteria](design/post-v3a1a-ux-review.md).
 
-Fresh unchanged baseline passed **92/92 Node**, **25/25 Electron**, Windows build/Forge packaging, **5/5 packaged recovery** and **4/4 existing knowledge journeys on the rebuilt executable**, all with zero skips. The build reported the existing large chunk and module-directive warnings. Logs, probes and screenshots are under `artifacts/v3a1a-ux-consolidation/`. These runs establish the baseline and reproduce issues for review. Stabilization implementation and its post-fix acceptance remain pending.
+Fresh unchanged baseline passed **92/92 Node**, **25/25 Electron**, Windows build/Forge packaging, **5/5 packaged recovery** and **4/4 existing knowledge journeys on the rebuilt executable**, all with zero skips. The build reported the existing large chunk and module-directive warnings. Logs, probes and screenshots are under `artifacts/v3a1a-ux-consolidation/`. These runs established the baseline before stabilization.
 
 ## V3a1a production verification, 2026-11-07
 

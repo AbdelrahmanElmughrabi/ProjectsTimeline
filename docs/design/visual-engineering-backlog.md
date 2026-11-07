@@ -1,6 +1,6 @@
 # Visual engineering and workflow design backlog
 
-2026-11-07 · **Recorded possibilities for separate review.** The [post-V3a1a stabilization scope](post-v3a1a-ux-review.md) covers the existing app's interaction defects. This backlog tracks follow-up capabilities.
+2026-11-07 · **Recorded possibilities for separate review.** The [post-V3a1a renderer stabilization](../v3a1a-stabilization-verification.md) is implemented and awaits manual acceptance. This backlog tracks follow-up capabilities.
 
 ## Follow-up after the stabilization review
 

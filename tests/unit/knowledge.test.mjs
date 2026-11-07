@@ -99,8 +99,12 @@ test('review is cached and read-only; apply replays its receipt after the previe
   const beforeApply = new DatabaseSync(filename);
   const legacyEventCount = count(beforeApply, 'action_events');
   beforeApply.close();
+  const competingSession = sessionFor(source);
+  const competingSnapshot = (await competingSession.choose()).snapshot;
+  const competingPlan = await competingSession.prepareKnowledgeFormation({ sessionId: competingSnapshot.sessionId, snapshotId: competingSnapshot.snapshotId, name: 'Competing formation' }, store);
   const applied = session.applyKnowledgeFormation({ operationId: prepared.operationId, reviewDigest: prepared.reviewDigest }, store);
   assert.equal(applied.replayed, false);
+  assert.throws(() => competingSession.applyKnowledgeFormation({ operationId: competingPlan.operationId, reviewDigest: competingPlan.reviewDigest }, store), /already bound/);
   assert.equal(applied.receipt.rootEntityId, legacyAction.id);
   assert.equal(applied.receipt.counts.action, 4);
   assert.equal(applied.receipt.relationshipCount, 29);
@@ -294,22 +298,27 @@ test('formation write failure rolls back project, import, graph and event, then 
   const prepared = await session.prepareKnowledgeFormation({ sessionId: snapshot.sessionId, snapshotId: snapshot.snapshotId, name: 'Atomic retry' }, store);
   const raw = new DatabaseSync(filename);
   try {
-    raw.exec("CREATE TRIGGER reject_formation_link BEFORE INSERT ON knowledge_relationships BEGIN SELECT RAISE(ABORT, 'controlled formation failure'); END");
-    assert.throws(() => session.applyKnowledgeFormation({ operationId: prepared.operationId, reviewDigest: prepared.reviewDigest }, store), /controlled formation failure/);
-    assert.equal(count(raw, 'projects'), 0);
-    assert.equal(count(raw, 'knowledge_source_bindings'), 0);
-    assert.equal(count(raw, 'knowledge_imports'), 0);
-    assert.equal(count(raw, 'knowledge_entities'), 0);
-    assert.equal(count(raw, 'knowledge_documents'), 0);
-    assert.equal(count(raw, 'action_events'), 0);
-    raw.exec('DROP TRIGGER reject_formation_link');
-    raw.exec("CREATE TRIGGER reject_formation_event BEFORE INSERT ON action_events WHEN NEW.description = 'Created knowledge project from reviewed blueprint' BEGIN SELECT RAISE(ABORT, 'controlled audit failure'); END");
-    assert.throws(() => session.applyKnowledgeFormation({ operationId: prepared.operationId, reviewDigest: prepared.reviewDigest }, store), /controlled audit failure/);
-    assert.equal(count(raw, 'projects'), 0);
-    assert.equal(count(raw, 'knowledge_imports'), 0);
-    assert.equal(count(raw, 'knowledge_entities'), 0);
-    assert.equal(count(raw, 'action_events'), 0);
-    raw.exec('DROP TRIGGER reject_formation_event');
+    const phases = ['projects', 'knowledge_source_bindings', 'knowledge_imports', 'knowledge_documents', 'knowledge_entities',
+      'knowledge_definitions', 'knowledge_relationships', 'knowledge_action_details', 'action_events'];
+    const tables = raw.prepare("SELECT name FROM sqlite_schema WHERE type='table' AND name LIKE 'knowledge_%'").all().map(row => row.name);
+    const assertEmpty = () => {
+      for (const table of ['projects', 'actions', 'action_details', 'release_actions', 'action_events', ...tables]) {
+        assert.equal(count(raw, table), 0, `${table} rolled back`);
+      }
+    };
+    const apply = () => session.applyKnowledgeFormation({ operationId: prepared.operationId, reviewDigest: prepared.reviewDigest }, store);
+    for (const table of phases) {
+      raw.exec(`CREATE TRIGGER reject_formation BEFORE INSERT ON ${table} BEGIN SELECT RAISE(ABORT, 'controlled formation failure'); END`);
+      assert.throws(apply, /controlled formation failure/, table);
+      assertEmpty();
+      raw.exec('DROP TRIGGER reject_formation');
+    }
+    raw.exec(`CREATE TRIGGER reject_formation_commit AFTER INSERT ON action_events BEGIN
+      INSERT INTO knowledge_source_bindings(project_id, adapter_key, initial_import_id) VALUES (NEW.project_id, 'ptb', 'missing');
+    END`);
+    assert.throws(apply, /FOREIGN KEY constraint failed/);
+    assertEmpty();
+    raw.exec('DROP TRIGGER reject_formation_commit');
   } finally { raw.close(); }
   assert.equal(session.applyKnowledgeFormation({ operationId: prepared.operationId, reviewDigest: prepared.reviewDigest }, store).replayed, false);
   assert.equal(store.listProjects().length, 1);

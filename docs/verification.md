@@ -1,5 +1,9 @@
 # ProjectsTimeline — Verification record
 
+## V3a1a production verification, 2026-11-07
+
+Source `e4eadb96d3cbf7fa437260d8ea30bbcc95137e33`. **92/92 Node, 25/25 Electron, 5/5 packaged recovery and 4/4 repeated knowledge journeys on the rebuilt Windows executable.** Zero skips in these runs. Both TypeScript targets, Vite build and Forge packaging passed. The [V3a1a verification report](v3a1a-verification-report.md) records the actual fixture, migration, failure/retry, security and viewport evidence, reruns and manual acceptance checklist. Earlier design gates below are historical.
+
 ## V3a1a final concerns — revised design evidence, 2026-11-07
 
 Production remains paused. Overall visual/product direction is approved, **004/implementation are not**. [Final comparison/inventory](design/v3a1a-final-design-review.md), [revised contract](design/v3a1a-implementation-proposal.md), [exact SQL](design/v3a1a-schema-proposal.md). Prior 28bac82 recommendation/23-check result below stays historical; current recommendation supersedes its immediate ordinary-action rows.

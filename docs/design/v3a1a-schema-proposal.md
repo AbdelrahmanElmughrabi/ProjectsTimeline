@@ -1,6 +1,6 @@
 # V3a1a — proposed exact additive schema
 
-2026-11-07 · **Approval draft, not an installed migration.** Proposed filename: `src/main/data/migrations/004_durable_knowledge.sql`. [Transaction/DTO/UI/acceptance proposal](v3a1a-implementation-proposal.md). Preserve migrations 001–003 and every existing row; no backfill, legacy classification, seed project or manufactured event.
+2026-11-07 · **Approved at 1b3be92 and implemented.** The installed [migration 004](../../src/main/data/migrations/004_durable_knowledge.sql) matches the SQL body below. Migrations 001–003 and their legacy rows are preserved. [Production verification](../v3a1a-verification-report.md).
 
 Revised after the final identity/extensibility review: **13 STRICT tables, 5 explicit indexes and 29 triggers**. No operational action rows/mapping, mutable workspace counter or current-definition pointer. A source binding is separate from project identity; native entity IDs belong to captured definitions. [Rationale and complete guard inventory](v3a1a-final-design-review.md).
 

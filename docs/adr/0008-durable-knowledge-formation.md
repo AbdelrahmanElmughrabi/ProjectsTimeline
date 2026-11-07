@@ -1,0 +1,13 @@
+# ADR 0008 — Durable knowledge formation from reviewed PTB
+
+2026-11-07 · **Accepted and implemented. User acceptance pending.** Design approved at `1b3be9255f8f344fbd8897389b732462212e7004`. Production checkpoint `e4eadb96d3cbf7fa437260d8ea30bbcc95137e33`. [Design review](../design/v3a1a-final-design-review.md) · [Verification and acceptance](../v3a1a-verification-report.md).
+
+Formation preserves engineering knowledge in a project independently of its operational work or delivery records. Migration 004 adds 13 typed tables, 5 explicit indexes and 29 triggers. The existing runner handles backup, atomic upgrade and foreign-key checks. Formation creates a project, stable entity IDs at revision 1, an independent source binding, immutable captures with exact UTF-8 bytes and source anchors, native directed relationships and one actual formation event.
+
+Main revalidates its captured snapshot and binds the reviewed project name, exact capture and fixed effects to a digest and operation ID. Apply validates that plan and commits the graph and receipt in one immediate SQLite transaction. An identical receipt replay succeeds after the preview session expires. The profile-level unique PTB root binding prevents duplicate formation even if two plans are prepared before either applies. A later capture of that root offers **Open existing project** and reports whether the document set differs.
+
+Requirements and scope plans remain Draft, actions and decisions Proposed, and checks Not run. Proposed action IDs belong to the knowledge namespace. Operational IDs are allocated only by existing operational flows and future explicit commitment will require a separately approved mapping. Formation writes zero ordinary actions, release memberships, verification results or completion events.
+
+The typed bridge adds five named operations under the existing trusted IPC and renderer policy. Source reads resolve stored anchors by project and verify stored bytes. The Map uses the installed React Flow and ELK to explore a bounded projection of native relationships. Its directory exposes all definitions and drag geometry lives in the UI session. A native modal presents inert stored source and restores focus after closing. Existing project journals are accessible through Project tools.
+
+The runtime supports PTB v0.2. Source bindings can identify future adapters independently of project and entity identity. Each later adapter needs a reviewed authority, native-ID and crosswalk policy. Editing, attachment or reimport, linked checkpoints, proposal commitment and scope activation remain separately gated.

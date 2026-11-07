@@ -1,5 +1,15 @@
 # ProjectsTimeline — Engineering checklist
 
+## V3a1a production checkpoint, 2026-11-07
+
+**Implemented and automatically verified. User acceptance pending.** [ADR 0008](adr/0008-durable-knowledge-formation.md) · [Run results, screenshots and manual checklist](v3a1a-verification-report.md).
+
+- [x] Reviewed capture creates a project and persists typed proposals, exact source, authored links and one real event in a single transaction.
+- [x] Migration 004 matches the approved SQL body. Populated legacy data, backup, rollback and packaged recovery verified.
+- [x] Receipt replay, competing plans, interrupted writes and failed read recovery exercised. Proposed and operational IDs remain independent.
+- [x] Actual packaged Overview, Map, inspector and exact-source journey at 800, 1160 and 1540 window widths. Drag, viewport stability, keyboard navigation and focus return exercised.
+- [ ] User acceptance of native picker, map readability and complete Vivarium restart journey. V5a requires a separate authorization.
+
 ## V3a1a final concerns gate, 2026-11-07
 
 [Final recommendation/inventory](design/v3a1a-final-design-review.md) · [revised contract](design/v3a1a-implementation-proposal.md) · [exact 004](design/v3a1a-schema-proposal.md). Overall direction approved; migration/production authorization still pending.

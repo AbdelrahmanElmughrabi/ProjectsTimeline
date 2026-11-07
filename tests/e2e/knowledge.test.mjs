@@ -42,10 +42,20 @@ test('actual Vivarium forms a persistent connected map with working drag, stable
   const external = []; page.on('request', req => { if (/^https?:/.test(req.url())) external.push(req.url()); });
   await resize(application, 1540, 1000);
   await page.getByRole('heading', { name: 'Start with a project' }).waitFor();
+  await application.evaluate(({ dialog }, entry) => { dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [entry] }); }, file);
+  const preview = await page.evaluate(() => window.workspace.chooseBlueprintPreview());
+  assert.ok(preview.ok && preview.value.kind === 'snapshot');
+  const captured = preview.value.snapshot;
   await choose(application, page, file); await form(page);
   const result = await page.evaluate(async () => { const p=(await window.workspace.listProjects()).value[0]; return { graph: await window.workspace.openKnowledgeWorkspace({projectId:p.id}), old: await window.workspace.openProject({projectId:p.id}) }; });
   assert.equal(result.graph.ok, true); const graph=result.graph.value;
   assert.equal(graph.nodes.length,47); assert.equal(graph.links.length,86);
+  const definitions = new Map(graph.nodes.map(node => [node.entityId, node.origin.occurrenceKey]));
+  assert.deepEqual(graph.nodes.map(node => [node.origin.occurrenceKey, node.externalId, node.kind, node.title, node.presentationOrder]),
+    captured.records.map(({ key, record, order }) => [key, record.id, record.kind, record.title, order]));
+  const edgeKey = (from, relation, to) => JSON.stringify([from, relation, to]);
+  assert.deepEqual(graph.links.map(link => edgeKey(definitions.get(link.fromEntityId), link.relation, definitions.get(link.toEntityId))).sort(),
+    captured.relationships.map(link => edgeKey(link.fromKey, link.relation, link.targetKeys[0])).sort());
   assert.equal(result.old.value.actions.length,0); assert.equal(result.old.value.releases.length,0);
   assert.equal(result.old.value.actionEvents.length,1);
   await page.waitForFunction(()=>document.querySelectorAll('.react-flow__node').length===14&&document.querySelectorAll('.react-flow__edge').length===7);

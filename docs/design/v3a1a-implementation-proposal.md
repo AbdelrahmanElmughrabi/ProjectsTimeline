@@ -1,6 +1,6 @@
 # V3a1a — Durable Knowledge Formation: implementation proposal
 
-2026-11-07 · **For approval. No production code or migration written.** Refined Concept C and the sequence **V3a1a → V5a → V3a1b → V3b1 are approved**. This document proposes the concrete first slice, not authorization for the later slices. Antigravity 92a7129 remains research, not a merge source.
+2026-11-07 · **Accepted design at 1b3be92.** The design below records the pre-implementation baseline and requirements. For the implemented behavior, verification and remaining review, see [ADR 0008](../adr/0008-durable-knowledge-formation.md) and the [production report](../v3a1a-verification-report.md).
 
 [Final identity/source/guard review](v3a1a-final-design-review.md) · [exact revised schema](v3a1a-schema-proposal.md) · [approved domain direction](development-domain-contract.md) · [source/adoption policy](blueprint-adoption-merge-policy.md) · [review corrections](v3-consolidated-review.md) · [roadmap](product-implementation-roadmap.md).
 

@@ -1,12 +1,12 @@
 # ProjectsTimeline — Product & Architecture Alignment
 
-2026-11-07 · **Current phase: V3a1a final concerns review — approval before implementation.** Refined C/durable formation/real Map and first sequence approved. [Final action/source/guard recommendation](design/v3a1a-final-design-review.md), [revised implementation/DTO/UX/acceptance](design/v3a1a-implementation-proposal.md) and [exact additive schema](design/v3a1a-schema-proposal.md) await authorization. No production feature, migration, dependency or prototype merge. Existing V1/V2/schema/history and pre-existing screenshot edits are preserved.
+2026-11-07 · **Current phase: V3a1a implemented and automatically verified. User acceptance pending.** Reviewed PTB capture now forms a durable knowledge project with Overview, interactive Map and exact stored source. The [verification report](v3a1a-verification-report.md) and [ADR 0008](adr/0008-durable-knowledge-formation.md) supersede the pre-implementation status in the design records.
 
 ## Review package
 
 | Requested deliverable | Evidence / canonical document |
 | --- | --- |
-| Concrete next implementation gate | [V3a1a complete slice / five named operations / map / tests](design/v3a1a-implementation-proposal.md), [004 proposed SQL and guards](design/v3a1a-schema-proposal.md); not installed or approved yet |
+| V3a1a implementation and acceptance | [Five named operations and map design](design/v3a1a-implementation-proposal.md), [approved 004 SQL and guards](design/v3a1a-schema-proposal.md), [packaged evidence](v3a1a-verification-report.md) |
 | Consolidated decisions / independent code and design review | [A/B/C comparison, adopt/modify/reject and production reuse findings](design/v3-consolidated-review.md) |
 | UI-to-backend capability audit | [Real data, parser/IPC/persistence, simulation, validation and smallest steps](design/v3-capability-audit.md) |
 | Diagnosis and recommended product direction | [V3 experience contract](design/v3-product-experience-contract.md): actual V2/paused-V3 gaps and VD1–VD5 for approval |
@@ -21,9 +21,9 @@
 
 ## Grounded current state and reuse
 
-V1 Home and V2 deterministic Preview are implemented. Existing shared contract/preload/main/store/security, renderer Home/Resume/ReleaseWorkspace/WorkflowLibrary/Preview, schemas 001–003, tests/ADRs and source fixture contracts were inspected. Last V2 full verification: 78 Node + 21 Electron/UI + 4 packaged = 103 passes, separate manual acceptance. Fresh design-phase execution is recorded in verification.md, not substituted for a full V3 runtime claim.
+V1 Home, V2 deterministic Preview and V3a1a formation are implemented. Migration 004 is additive. Existing Home, Resume, releases, workflows and the renderer security policy remain in place. The latest execution covered the full Node, Electron and rebuilt packaged recovery suites. [Verification record](verification.md).
 
-Keep the validated main-owned PTB acquisition/parser/session, strict JSON/relationship validation, exact source, narrow typed IPC/Result/controller patterns, SQLite transactions/backups, release gates/history, Resume selector and graphite/violet tokens. Current projects do not yet persist product goals/permanent development graphs, source bindings/receipts or linked engineering checkpoints; no design DTO makes them implemented.
+V3a1a reuses main-owned PTB acquisition and validation, narrow typed IPC, SQLite transactions and existing UI tokens. Formed projects persist goals, engineering definitions, links, bindings, exact captures and receipts. Linked engineering checkpoints are the next independent design gate.
 
 The original reference guides hierarchy/coherence; neither it nor an existing prototype fixes the new composition. Recommend **refined C**: a spoke-free component/capability index and deliberate source-backed relationship neighborhoods, one inspector and readable compact alternative. Secondary Development/History and intentional linked context follow their actual data/command slices. Resume is conditional; map position/path distance/source assertion is not dependency, priority or verification.
 

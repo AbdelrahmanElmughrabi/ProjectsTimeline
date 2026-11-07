@@ -1,5 +1,9 @@
 # ProjectsTimeline — Verification record
 
+## Post-V3a1a UX review, 2026-11-07
+
+One disposable probe and **4/4** existing knowledge journeys ran against the shipped Windows executable, with zero skips. The probe reproduced Fit clipping, label/card intersection and navigation focus loss. It also verified resolved SVG markers, working pan/zoom and preservation of viewport when switching between Map and Overview. See the [design review and evidence](design/post-v3a1a-ux-review.md) for widths, reproduction and limits. Independent Antigravity feedback is pending.
+
 ## V3a1a production verification, 2026-11-07
 
 Source `e4eadb96d3cbf7fa437260d8ea30bbcc95137e33`. **92/92 Node, 25/25 Electron, 5/5 packaged recovery and 4/4 repeated knowledge journeys on the rebuilt Windows executable.** Zero skips in these runs. Both TypeScript targets, Vite build and Forge packaging passed. The [V3a1a verification report](v3a1a-verification-report.md) records the actual fixture, migration, failure/retry, security and viewport evidence, reruns and manual acceptance checklist. Earlier design gates below are historical.

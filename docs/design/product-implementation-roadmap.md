@@ -42,3 +42,5 @@ Formation validates and retains a main-owned snapshot and plan. Apply uses one t
 - User reviews one complete slice before expansion. Update engineering/verification/roadmap/short Obsidian checkpoint; new ADRs follow accepted consequential decisions, never rewrite old ADRs to retroactively approve proposals.
 
 Next gate is user acceptance of V3a1a. V5a follows only after separate authorization for linked context.
+
+The [post-V3a1a UX stabilization review](post-v3a1a-ux-review.md) proposes a small renderer pass before V5a. The independent Antigravity assessment and user scope review are pending.

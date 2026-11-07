@@ -1,6 +1,17 @@
 # Visual engineering and workflow design backlog
 
-2026-11-07 · **Recorded possibilities, not implementation authorization.** Current phase is isolated concepts/prototypes. [VD1–VD5](v3-product-experience-contract.md) and concrete slice/schema approval precede production work.
+2026-11-07 · **Recorded possibilities for separate review.** The [post-V3a1a stabilization scope](post-v3a1a-ux-review.md) covers the existing app's interaction defects. This backlog tracks follow-up capabilities.
+
+## Follow-up after the stabilization review
+
+| Capability | Prerequisites and boundary |
+| --- | --- |
+| Multiple sources per project | Separate native grants and adapter contracts. Bindings and immutable captures per source. Approve crosswalk, reviewed overlap/conflict handling, revision semantics and transactional receipts before attachment or updates. [Proposed flow](post-v3a1a-ux-review.md#future-add-source-and-overlap-review). |
+| Advanced diagram semantics | Add UML associations, inheritance, dependencies or impact lenses only when a supported source or explicit user assertion supplies the typed meaning and provenance. Review constraints, validation and display rules for each relation. Position and label proximity never imply semantics. |
+| Date-free Development and optional Gantt | Show authored stage order, real commitments and Unassigned work when the development policy is ready. Gate Gantt on explicit schedule dates or durations with granularity, time zone, revision and dependency rules. Keep unscheduled work visible. |
+| Focus mode and personalization | Explore a reversible canvas focus mode, local shortcuts, density, theme and optional saved layouts. Preserve selection, camera and a keyboard exit. Layout preferences are UI state and require separate review before persistence or native full-screen integration. |
+
+## Earlier design backlog
 
 | Item / horizon | Purpose and user value | Prerequisites / limits |
 | --- | --- | --- |

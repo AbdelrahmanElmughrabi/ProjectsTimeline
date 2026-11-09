@@ -5,7 +5,9 @@
 - [x] Measured Fit, readable zoom, targeted reveal, and separate drag, pan and Arrange behavior.
 - [x] Directed edge captions, focus and inspector scroll, multi-step Back, compact navigation, Captured sources and Journal with conditional Resume.
 - [x] Checked original source and graph equality, release progress and history, responsive rendering, and rebuilt Windows package recovery. [Verification](v3a1a-stabilization-verification.md).
-- [ ] Manual acceptance of the stabilization. Revisit the next milestone only after user review.
+- [x] Owner accepted stabilization on 2026-11-09. [Manual feedback](v3a1a-stabilization-verification.md#manual-acceptance).
+- [ ] Check the real native picker and screen-reader behavior. Track dense-map and workspace polish in the [visual backlog](design/visual-engineering-backlog.md).
+- [ ] Review and approve the [V5a issue draft](design/v5a-issue-draft.md) and its design before migration 005 or implementation.
 
 ## Post-V3a1a UX stabilization design, 2026-11-07
 
@@ -16,13 +18,13 @@
 
 ## V3a1a production checkpoint, 2026-11-07
 
-**Implemented and automatically verified. User acceptance pending.** [ADR 0008](adr/0008-durable-knowledge-formation.md) · [Run results, screenshots and manual checklist](v3a1a-verification-report.md).
+**Implemented and automatically verified.** [ADR 0008](adr/0008-durable-knowledge-formation.md) · [Run results, screenshots and manual journey](v3a1a-verification-report.md).
 
 - [x] Reviewed capture creates a project and persists typed proposals, exact source, authored links and one real event in a single transaction.
 - [x] Migration 004 matches the approved SQL body. Populated legacy data, backup, rollback and packaged recovery verified.
 - [x] Receipt replay, competing plans, interrupted writes and failed read recovery exercised. Proposed and operational IDs remain independent.
 - [x] Actual packaged Overview, Map, inspector and exact-source journey at 800, 1160 and 1540 window widths. Drag, viewport stability, keyboard navigation and focus return exercised.
-- [ ] User acceptance of native picker, map readability and complete Vivarium restart journey. V5a requires a separate authorization.
+- [ ] Record a separate owner-run full Vivarium restart journey if performed. Packaged automation already covers recovery.
 
 ## V3a1a final concerns gate, 2026-11-07
 

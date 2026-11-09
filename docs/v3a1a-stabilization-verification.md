@@ -1,6 +1,6 @@
 # V3a1a UX stabilization verification
 
-2026-11-07 · **Implemented and automatically verified. Manual acceptance pending.** Approved design `f417ef5`. Implementation and focused tests `e0d16fe134cc1fc7b7edd5a522382860a7da3caf`. The prior V3a1a evidence and Antigravity's isolated review remain available. [Approved scope](design/post-v3a1a-ux-review.md) · [Original V3a1a verification](v3a1a-verification-report.md).
+2026-11-09 · **UX stabilization accepted by the product owner.** Approved design `f417ef5`. Implementation and focused tests `e0d16fe134cc1fc7b7edd5a522382860a7da3caf`. The prior V3a1a evidence and Antigravity's isolated review remain available. [Approved scope](design/post-v3a1a-ux-review.md) · [Original V3a1a verification](v3a1a-verification-report.md).
 
 ## Delivered
 
@@ -34,6 +34,8 @@ Zero skips in final runs. The first full Electron run caught a same-project rese
 
 ## Manual acceptance
 
+The owner accepted the stabilization and reported substantially better graph navigation, zoom, Arrange and responsiveness. Relationship exploration was useful, the appearance was approaching the intended standard, and captured-source navigation worked. Dense relationships still get tangled. The journey below remains available for targeted follow-up.
+
 Use the rebuilt executable and a separate profile. Select a copy of the [Vivarium fixture](../tests/fixtures/vivarium/project.md) with the native picker.
 
 ```powershell
@@ -49,4 +51,8 @@ $ptReviewProfile = Join-Path $env:LOCALAPPDATA 'ProjectsTimeline-Stabilization-A
 
 Fit trades card text size for coverage in dense views. The reset, outline and focused neighborhoods provide readable alternatives. The canvas projects up to 40 cards and 80 relationships. Full labels are shown in the focused caption and inspector. Path segments can still pass behind intermediate cards, and advanced routing is separate work. Geometry and up to 20 Back frames live in the session. At that limit the oldest intermediate neighborhood rolls off while the atlas remains reachable.
 
-The test harness supplies native picker results. Native picker usability, assistive-technology behavior and performance beyond the tested larger fixture remain open. The product gate is manual acceptance, followed by a separate decision on linked continuity versus workspace and source management.
+- [ ] Check the native picker with real owner-selected paths. The harness supplies chooser results.
+- [ ] Check screen-reader reading order, edge captions, dialog focus and return on the owner's setup.
+- [ ] Review dense relationships, scaling and performance beyond the tested larger fixture. Focus Canvas, an optional diagram window and live Markdown navigation are separate proposals. [Follow-up backlog](design/visual-engineering-backlog.md).
+
+The recorded acceptance covers the stabilization feedback. A separate owner-run end-to-end Vivarium restart result has not been recorded. [V5a design](design/v5a-linked-development-continuity.md) awaits implementation approval.

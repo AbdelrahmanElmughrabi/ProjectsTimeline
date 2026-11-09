@@ -1,6 +1,6 @@
 # V3a1a — Production verification and acceptance
 
-2026-11-07 · **Implemented and automatically verified. User acceptance pending.** Production commit `e4eadb96d3cbf7fa437260d8ea30bbcc95137e33`, based on the approved design `1b3be9255f8f344fbd8897389b732462212e7004`. [ADR 0008](adr/0008-durable-knowledge-formation.md).
+2026-11-07 · **Production formation evidence.** Production commit `e4eadb96d3cbf7fa437260d8ea30bbcc95137e33`, based on the approved design `1b3be9255f8f344fbd8897389b732462212e7004`. The owner accepted the subsequent UX stabilization on 2026-11-09. [ADR 0008](adr/0008-durable-knowledge-formation.md) · [Stabilization acceptance and open checks](v3a1a-stabilization-verification.md#manual-acceptance).
 
 ## What shipped
 
@@ -51,4 +51,4 @@ Zero skips in final runs. The Electron suite had one earlier intermittent failur
 
 Map geometry resets on restart. The interactive projection limits the canvas to 40 nodes and 80 links, while the outline can find every definition. Narrow canvases preserve a readable zoom floor and may require panning. Formation supports a new project per native PTB root in the profile and opens its existing project on repeat capture. Reimport updates and attachment await their own design gates.
 
-Automation supplies the chosen path to the native dialog. Manual acceptance covers that dialog, map density at your display scaling and assistive technology behavior. Full-scale graph performance and a comprehensive screen-reader audit remain unmeasured. V5a starts only after acceptance and separate authorization.
+Automation supplies the chosen path to the native dialog. Native-picker usability, assistive technology behavior, graph density at owner display scaling and a separate owner-run Vivarium restart result remain open. Full-scale graph performance remains unmeasured. V5a implementation requires separate authorization.

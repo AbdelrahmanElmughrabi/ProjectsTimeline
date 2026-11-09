@@ -1,6 +1,6 @@
 # Visual engineering and workflow design backlog
 
-2026-11-07 · **Recorded possibilities for separate review.** The [post-V3a1a renderer stabilization](../v3a1a-stabilization-verification.md) is implemented and awaits manual acceptance. This backlog tracks follow-up capabilities.
+2026-11-09 · **Possibilities for separate review.** The owner accepted the [V3a1a renderer stabilization](../v3a1a-stabilization-verification.md#manual-acceptance). Native-picker and screen-reader checks remain open.
 
 ## Follow-up after the stabilization review
 
@@ -9,8 +9,11 @@
 | Multiple sources per project | Separate native grants and adapter contracts. Bindings and immutable captures per source. Approve crosswalk, reviewed overlap/conflict handling, revision semantics and transactional receipts before attachment or updates. [Proposed flow](post-v3a1a-ux-review.md#future-add-source-and-overlap-review). |
 | Advanced diagram semantics | Add UML associations, inheritance, dependencies or impact lenses only when a supported source or explicit user assertion supplies the typed meaning and provenance. Review constraints, validation and display rules for each relation. Position and label proximity never imply semantics. |
 | Date-free Development and optional Gantt | Show authored stage order, real commitments and Unassigned work when the development policy is ready. Gate Gantt on explicit schedule dates or durations with granularity, time zone, revision and dependency rules. Keep unscheduled work visible. |
-| Focus mode and personalization | Explore a reversible canvas focus mode, local shortcuts, density, theme and optional saved layouts. Preserve selection, camera and a keyboard exit. Layout preferences are UI state and require separate review before persistence or native full-screen integration. |
-| Unified workspace and richer graph controls | Keep Overview, Sources, Engineering Map, Development and History in one project shell as their real capabilities ship. Releases stay separate and Resume appears for actual saved context. Review typed count filters, advanced edge routing and a Miro-like canvas focus mode separately from the stabilization. |
+| Full-screen Focus Canvas | Explore an in-workspace focus mode first. Preserve camera, selection, positions, Back and a keyboard exit. A separate diagram window is optional and needs its own state ownership, synchronization and trusted Electron-window review. |
+| Dense relationships and graph controls | Explore clearer edge routing, legible labels, typed filters, useful lenses and shortcuts with high-degree fixtures. Presentation changes preserve authored relationships. |
+| Open original Markdown | Keep immutable captured source authoritative for existing assertions. Explore a deliberate open-in-editor action with path validation, access boundaries and clear handling of moved, missing or changed files. |
+| Contextual actions after exploration | V5a proposes recording a linked checkpoint from the inspector. Later actions such as adopting proposed work or recording evidence need their own approved operations and explicit confirmations. |
+| Unified project workspace | Put Overview, Sources, Engineering Map, Development and History in one project shell as their capabilities ship. Releases stay separate. Resume appears for actual saved context. |
 
 ## Earlier design backlog
 

@@ -1,0 +1,596 @@
+/* Namespaced Blueprint Preview V2 styles — all rules scoped under .blueprint-preview */
+
+.blueprint-preview {
+  --preview-font-mono: 'Cascadia Code', Consolas, 'Segoe UI Mono', ui-monospace, monospace;
+  min-width: 0;
+  width: 100%;
+  display: grid;
+  gap: var(--space-5);
+}
+
+.blueprint-preview *,
+.blueprint-preview *::before,
+.blueprint-preview *::after {
+  box-sizing: border-box;
+}
+
+.blueprint-preview .bp-header {
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.blueprint-preview .bp-header-copy {
+  min-width: 0;
+  flex: 1 1 320px;
+}
+
+.blueprint-preview .bp-header-copy h1 {
+  margin: 0;
+  font-size: var(--font-title);
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  font-weight: var(--weight-strong);
+  overflow-wrap: anywhere;
+}
+
+.blueprint-preview .bp-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.blueprint-preview .bp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: var(--surface-input);
+  color: var(--text-secondary);
+  font-size: var(--font-meta);
+  font-weight: var(--weight-medium);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.blueprint-preview .bp-badge.bp-badge-accent {
+  border-color: var(--border-accent);
+  background: var(--surface-selected);
+  color: var(--accent);
+}
+
+.blueprint-preview .bp-badge.bp-badge-valid {
+  border-color: var(--border-success);
+  color: var(--status-success);
+}
+
+.blueprint-preview .bp-badge.bp-badge-review,
+.blueprint-preview .bp-badge.bp-badge-warning,
+.blueprint-preview .bp-badge.bp-badge-resolution {
+  border-color: var(--border-warning);
+  color: var(--status-warning);
+}
+
+.blueprint-preview .bp-badge.bp-badge-invalid,
+.blueprint-preview .bp-badge.bp-badge-error {
+  border-color: var(--border-error);
+  color: var(--status-error);
+}
+
+.blueprint-preview .bp-banner {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-panel);
+  background: var(--surface-panel);
+}
+
+.blueprint-preview .bp-banner-warning {
+  border-color: var(--border-warning);
+  color: var(--status-warning);
+}
+
+.blueprint-preview .bp-banner-error {
+  border-color: var(--border-error);
+  color: var(--status-error);
+}
+
+.blueprint-preview .bp-banner-info {
+  border-color: var(--border-accent);
+}
+
+.blueprint-preview .bp-banner-body {
+  min-width: 0;
+  flex: 1 1 280px;
+}
+
+.blueprint-preview .bp-banner-body h2 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--font-body-large);
+  font-weight: var(--weight-strong);
+  color: inherit;
+}
+
+.blueprint-preview .bp-banner-body p {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--font-body);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.blueprint-preview .bp-banner-body p + p {
+  margin-top: var(--space-1);
+  color: var(--text-secondary);
+  font-size: var(--font-meta);
+}
+
+.blueprint-preview .bp-summary-strip {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-panel);
+  background: var(--surface-selected);
+}
+
+.blueprint-preview .bp-summary-cell {
+  min-width: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.blueprint-preview .bp-summary-label {
+  color: var(--text-secondary);
+  font-size: var(--font-meta);
+}
+
+.blueprint-preview .bp-summary-value {
+  color: var(--text-primary);
+  font-weight: var(--weight-strong);
+  font-size: var(--font-body);
+  overflow-wrap: anywhere;
+}
+
+.blueprint-preview .bp-mono {
+  font-family: var(--preview-font-mono);
+  font-size: var(--font-meta);
+  overflow-wrap: anywhere;
+}
+
+/* Main two-column workspace at wider viewports; single stacked flow below 1060px */
+.blueprint-preview .bp-workspace {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  align-items: start;
+  gap: var(--space-5);
+}
+
+.blueprint-preview .bp-column {
+  min-width: 0;
+  display: grid;
+  gap: var(--space-4);
+}
+
+.blueprint-preview .bp-panel-subnote {
+  margin: calc(-1 * var(--space-2)) 0 var(--space-3);
+  color: var(--text-secondary);
+  font-size: var(--font-meta);
+  line-height: 1.5;
+}
+
+/* Document list & headings */
+.blueprint-preview .bp-doc-list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.blueprint-preview .bp-doc-item {
+  min-width: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--surface-input);
+  padding: var(--space-3);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.blueprint-preview .bp-doc-item.bp-selected {
+  border-color: var(--border-accent);
+  background: var(--surface-selected);
+}
+
+.blueprint-preview .bp-doc-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.blueprint-preview .bp-doc-button:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--border-control);
+}
+
+.blueprint-preview .bp-doc-path {
+  min-width: 0;
+  font-family: var(--preview-font-mono);
+  font-size: var(--font-label);
+  font-weight: var(--weight-strong);
+  overflow-wrap: anywhere;
+}
+
+.blueprint-preview .bp-doc-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+  font-size: var(--font-meta);
+  padding: 0 var(--space-2);
+}
+
+.blueprint-preview .bp-doc-headings-disclosure {
+  margin-top: var(--space-1);
+  padding: 0 var(--space-2);
+}
+
+.blueprint-preview .bp-doc-headings-disclosure > summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: var(--font-meta);
+  user-select: none;
+}
+
+.blueprint-preview .bp-heading-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: var(--space-1) 0 0;
+  padding: 0 var(--space-2);
+  list-style: none;
+}
+
+.blueprint-preview .bp-chip-button {
+  min-height: 28px;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--surface-panel);
+  color: var(--text-secondary);
+  font-size: var(--font-meta);
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.blueprint-preview .bp-chip-button:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.blueprint-preview .bp-chip-button.bp-selected {
+  border-color: var(--accent);
+  background: var(--surface-selected);
+  color: var(--on-selection);
+}
+
+/* Outline sections & record rows */
+.blueprint-preview .bp-outline-groups {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.blueprint-preview .bp-outline-section {
+  min-width: 0;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-3);
+}
+
+.blueprint-preview .bp-outline-section:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.blueprint-preview .bp-outline-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+}
+
+.blueprint-preview .bp-outline-heading h3 {
+  margin: 0;
+  font-size: var(--font-body-large);
+  font-weight: var(--weight-strong);
+}
+
+.blueprint-preview .bp-record-list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.blueprint-preview .bp-record-item {
+  min-width: 0;
+}
+
+.blueprint-preview .bp-record-button {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--control-height);
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--surface-input);
+  color: var(--text-primary);
+  text-align: left;
+  transition: border-color var(--feedback-duration) ease, background-color var(--feedback-duration) ease;
+}
+
+.blueprint-preview .bp-record-button:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--surface-hover);
+}
+
+.blueprint-preview .bp-record-button.bp-selected {
+  border-color: var(--accent);
+  background: var(--surface-selected);
+  color: var(--on-selection);
+}
+
+.blueprint-preview .bp-record-top {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.blueprint-preview .bp-record-title {
+  min-width: 0;
+  font-weight: var(--weight-strong);
+  font-size: var(--font-body);
+  overflow-wrap: anywhere;
+}
+
+.blueprint-preview .bp-record-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.blueprint-preview .bp-record-sub {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+  font-size: var(--font-meta);
+  overflow-wrap: anywhere;
+}
+
+.blueprint-preview .bp-scope-stages {
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-left: 2px solid var(--border-accent);
+  background: var(--surface-app);
+  border-radius: 0 var(--radius-control) var(--radius-control) 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.blueprint-preview .bp-stage-pill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Inspector & Source detail */
+.blueprint-preview .bp-inspector-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.blueprint-preview .bp-dl {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-4);
+}
+
+.blueprint-preview .bp-dl-row {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(110px, 0.35fr) minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: baseline;
+}
+
+.blueprint-preview .bp-dl dt {
+  color: var(--text-secondary);
+  font-size: var(--font-meta);
+  font-weight: var(--weight-medium);
+}
+
+.blueprint-preview .bp-dl dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--font-body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.blueprint-preview .bp-subsection {
+  min-width: 0;
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.blueprint-preview .bp-subsection h3 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-label);
+  color: var(--text-secondary);
+  font-weight: var(--weight-strong);
+}
+
+.blueprint-preview .bp-Plain-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.blueprint-preview .bp-Plain-list li {
+  overflow-wrap: anywhere;
+}
+
+.blueprint-preview .bp-narrative-box,
+.blueprint-preview .bp-source-box {
+  min-width: 0;
+  max-height: 440px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--surface-input);
+  color: var(--text-primary);
+  font-family: var(--preview-font-mono);
+  font-size: var(--font-meta);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.blueprint-preview .bp-source-highlight {
+  background: var(--surface-selected);
+  color: var(--on-selection);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  padding: 0 1px;
+}
+
+/* Diagnostics list */
+.blueprint-preview .bp-diag-list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.blueprint-preview .bp-diag-card {
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--surface-input);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.blueprint-preview .bp-diag-card.bp-diag-error {
+  border-left: 3px solid var(--status-error);
+}
+
+.blueprint-preview .bp-diag-card.bp-diag-resolution {
+  border-left: 3px solid var(--status-warning);
+}
+
+.blueprint-preview .bp-diag-card.bp-diag-warning {
+  border-left: 3px solid var(--border-warning);
+}
+
+.blueprint-preview .bp-diag-card.bp-selected {
+  border-color: var(--accent);
+  background: var(--surface-selected);
+}
+
+.blueprint-preview .bp-diag-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.blueprint-preview .bp-diag-message {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--font-body);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.blueprint-preview .bp-diag-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* Responsive layout for 800px / compact viewports */
+@media (max-width: 1060px) {
+  .blueprint-preview .bp-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 680px) {
+  .blueprint-preview .bp-dl-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+  }
+}

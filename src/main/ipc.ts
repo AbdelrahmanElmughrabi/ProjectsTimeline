@@ -1,12 +1,26 @@
-import { ipcMain, type BrowserWindow } from 'electron';
+import { dialog, ipcMain, type BrowserWindow } from 'electron';
 import type { WorkspaceApi } from '../shared/contracts';
 import { AppError, operationResult } from './domain';
 import type { WorkspaceStore } from './data/database';
 import { trustedSender } from './security';
+import { BlueprintPreviewSession } from './blueprint/session';
 
 // Review: every channel checks the originating window and its top-level document before touching storage.
 export function registerWorkspaceIpc(window: BrowserWindow, store: WorkspaceStore): void {
+  const preview = new BlueprintPreviewSession(async () => {
+    const choice = await dialog.showOpenDialog(window, { title: 'Preview a ProjectsTimeline blueprint', filters: [{ name: 'Markdown blueprint', extensions: ['md'] }], properties: ['openFile', 'dontAddToRecent'] });
+    return choice.canceled ? null : choice.filePaths[0] ?? null;
+  }, () => store.getWorkflowLibrary().flatMap(({ template }) => template.builtInKey ? [{ key: template.builtInKey, version: template.version }] : []));
+  window.once('closed', () => preview.cancel());
   const operations = {
+    prepareKnowledgeFormation: (input: unknown) => preview.prepareKnowledgeFormation(input, store),
+    applyKnowledgeFormation: (input: unknown) => preview.applyKnowledgeFormation(input, store),
+    openKnowledgeWorkspace: (input: unknown) => store.openKnowledgeWorkspace(input),
+    getKnowledgeRecord: (input: unknown) => store.getKnowledgeRecord(input),
+    getKnowledgeSource: (input: unknown) => store.getKnowledgeSource(input),
+    chooseBlueprintPreview: (input: unknown) => preview.choose(input),
+    refreshBlueprintPreview: (input: unknown) => preview.refresh(input),
+    cancelBlueprintPreview: (input: unknown) => preview.cancel(input),
     listProjects: () => store.listProjects(),
     getHomeSummary: () => store.getHomeSummary(),
     createProject: (input: unknown) => store.createProject(input),
@@ -40,7 +54,7 @@ export function registerWorkspaceIpc(window: BrowserWindow, store: WorkspaceStor
     saveCheckpoint: (input: unknown) => store.saveCheckpoint(input),
   } satisfies Record<keyof WorkspaceApi, (input: unknown) => unknown>;
   for (const [name, operation] of Object.entries(operations)) {
-    ipcMain.handle(`workspace:${name}`, (event, input: unknown) => operationResult(() => {
+    ipcMain.handle(`workspace:${name}`, (event, input: unknown) => operationResult<unknown>(() => {
       const frame = event.senderFrame;
       if (!trustedSender(event.sender.id, frame, window.webContents.id, window.webContents.mainFrame, frame?.url ?? '')) {
         throw new AppError('FORBIDDEN', 'This window cannot access the workspace.');

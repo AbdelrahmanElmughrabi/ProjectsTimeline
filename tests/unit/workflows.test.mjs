@@ -88,7 +88,7 @@ test('migration seeds the built-in once; restart preserves it and duplicate gets
   assert.deepEqual(afterRestart.find((item) => item.template.id === builtin.template.id), builtin);
   assert.deepEqual(afterRestart.find((item) => item.template.id === committed.id), copy);
   const db = new DatabaseSync(filename);
-  try { assert.equal(db.prepare('PRAGMA user_version').get().user_version, 3); }
+  try { assert.equal(db.prepare('PRAGMA user_version').get().user_version, 4); }
   finally { db.close(); }
 });
 
@@ -435,7 +435,7 @@ test('committing and moving title-only backlog actions appends their current sta
   assert.deepEqual(order, [a.id, b.id]);
 });
 
-test('v2 confirmed release migrates with history intact, nullable legacy details and a consistent v3 backup', async (t) => {
+test('v2 confirmed release migrates with history intact, nullable legacy details and a consistent v4 backup', async (t) => {
   let store;
   const directory = temporaryDirectory(t, () => store?.close());
   const filename = join(directory, 'populated-v2.sqlite');
@@ -488,7 +488,7 @@ test('v2 confirmed release migrates with history intact, nullable legacy details
   assert.deepEqual(project.actionEvents.map(({ id, description, createdAt }) => ({ id, description, createdAt })), [{ id: 101, description: 'Legacy historical event', createdAt: '2026-02-04T05:06:08.000Z' }]);
   const current = new DatabaseSync(filename);
   try {
-    assert.equal(current.prepare('PRAGMA user_version').get().user_version, 3);
+    assert.equal(current.prepare('PRAGMA user_version').get().user_version, 4);
     assert.equal(current.prepare('PRAGMA foreign_key_check').all().length, 0);
     for (const [table, { key, rows }] of Object.entries(sourceSnapshot)) {
       const columns = Object.keys(rows[0]);
@@ -496,7 +496,7 @@ test('v2 confirmed release migrates with history intact, nullable legacy details
     }
     assert.equal(current.prepare('SELECT source_template_id FROM releases WHERE id = 51').get().source_template_id, null);
   } finally { current.close(); }
-  const backups = readdirSync(directory).filter((file) => file.includes('.before-v3.') && file.endsWith('.bak'));
+  const backups = readdirSync(directory).filter((file) => file.includes('.before-v4.') && file.endsWith('.bak'));
   assert.equal(backups.length, 1);
   const backup = new DatabaseSync(join(directory, backups[0]));
   try {

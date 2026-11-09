@@ -4,7 +4,7 @@ import type { Project } from '../shared/contracts';
 export function ProjectSidebar({ projects, selectedId, view, loading, listError, navigationDisabled, retryDisabled, onViewChange, onSelect, onRetry, children }: {
   projects: Project[];
   selectedId: number | null;
-  view: 'home' | 'project' | 'workflows';
+  view: 'home' | 'project' | 'workflows' | 'preview';
   loading: boolean;
   listError: string;
   navigationDisabled: boolean;
@@ -14,7 +14,7 @@ export function ProjectSidebar({ projects, selectedId, view, loading, listError,
   onRetry: () => void;
   children: ReactNode;
 }) {
-  return <aside className="sidebar" aria-label="Project navigation">
+  return <aside id="project-navigation" className="sidebar" aria-label="Project navigation">
     <div className="brand">
       <span className="brand-mark" aria-hidden="true">P</span>
       <div><strong className="brand-name">ProjectsTimeline</strong><span className="brand-caption">Development workspace</span></div>

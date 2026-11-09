@@ -1,0 +1,5774 @@
+{
+  "description": "Real Vivarium PTB definitions. Operational state is simulated separately.",
+  "semanticSha256": "b0fbefb814c3ad7825531d1b16451deb555e88b9021f989a4202dd6f5fc134b8",
+  "documents": [
+    {
+      "id": "d0",
+      "relativePath": "project.md",
+      "order": 0,
+      "status": "captured",
+      "text": "# Vivarium 3D Pet Generator — Engineering Blueprint (Single File)\n\nThis document is a complete PTB v0.2 blueprint for **Step 1: the generation core** of a\ndeterministic, procedural 3D pet creature engine. It is intended to be parsed by ProjectsTimeline\nwithout AI assistance: every structured record is a top-level `ptb` JSON fence followed by plain\nMarkdown narrative.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"project\",\"id\":\"proj.vivarium-3d-pet-generator\",\"title\":\"Vivarium 3D Pet Generator\",\"goal\":\"Generate a deterministic, visually varied 3D pet from a compact DNA seed: parametric anatomy and procedural coat patterns, viewable, tweakable, and reproducible in the browser, with a shareable DNA code and portrait snapshot architected so 3D model export can be added later.\"}\n```\n\n## Project purpose\n\nVivarium is the first milestone of a larger pet-collection game. This step solves one concrete\nproblem: turn a compact, serializable **DNA** value into a unique, reproducible 3D pet whose\nanatomy and coat are both procedurally generated. Everything else (breeding, rarity, economy,\nactivities) is deliberately deferred so this milestone can be built, verified, and understood on\nits own.\n\nThe intended users are (a) the solo developer, who needs a stable, well-typed foundation to grow\nlater, and (b) an eventual player, who will design pets in the browser and share them as a DNA\ncode. There is no backend in this step; the app is local-first and runs from a static host.\n\n## Components\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"component\",\"id\":\"cmp.dna\",\"title\":\"DNA schema and codec\",\"project\":\"proj.vivarium-3d-pet-generator\"}\n```\n\nOwns the `PetDNA` type, per-field defaults, clamp/sanitize bounds, and the compact string codec\nthat maps a DNA value to a shareable code and back. This is the single source of truth for what a\npet *is*.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"component\",\"id\":\"cmp.state\",\"title\":\"DNA store and change notification\",\"project\":\"proj.vivarium-3d-pet-generator\"}\n```\n\nHolds the current DNA and exposes `updateDNA(patch)` plus a subscriber list. The UI and renderer\ncommunicate only through this store, which is what keeps them decoupled.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"component\",\"id\":\"cmp.anatomy\",\"title\":\"Procedural anatomy generation\",\"project\":\"proj.vivarium-3d-pet-generator\"}\n```\n\nTurns anatomy parameters into a manifold `BufferGeometry`. The pipeline is designed to be\nrig-compatible from the start even though Step 1 is static, so locomotion can be added without a\nrewrite.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"component\",\"id\":\"cmp.anatomy.body\",\"title\":\"Body silhouette and proportions\",\"project\":\"proj.vivarium-3d-pet-generator\",\"parent\":\"cmp.anatomy\"}\n```\n\nNested under anatomy. Responsible for the body silhouette, chubbiness, and overall proportions that\nmake different DNA values produce visibly different creatures.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"component\",\"id\":\"cmp.coat\",\"title\":\"Coat shading and materials\",\"project\":\"proj.vivarium-3d-pet-generator\"}\n```\n\nOwns the `ShaderMaterial` that shades the pet surface: root-to-tip gradient, lighting, and tone\nmapping. It consumes pattern parameters but delegates pattern *shape* to the nested pattern\ncomponent.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"component\",\"id\":\"cmp.coat.pattern\",\"title\":\"Procedural coat patterns\",\"project\":\"proj.vivarium-3d-pet-generator\",\"parent\":\"cmp.coat\"}\n```\n\nNested under coat. Produces the procedural pattern families (solid, spotted, brindled) in GLSL,\nseeded deterministically from the DNA.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"component\",\"id\":\"cmp.render\",\"title\":\"Renderer, scene, and camera\",\"project\":\"proj.vivarium-3d-pet-generator\"}\n```\n\nWraps the Three.js renderer, scene, perspective camera, orbit controls, and the render loop. It has\nno knowledge of the DOM beyond its own canvas.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"component\",\"id\":\"cmp.ui\",\"title\":\"Parameter control panel\",\"project\":\"proj.vivarium-3d-pet-generator\"}\n```\n\nBuilds the DOM control panel (sliders, color pickers, randomize). It emits `updateDNA` patches and\nnever touches Three.js objects directly.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"component\",\"id\":\"cmp.export\",\"title\":\"DNA code and portrait export\",\"project\":\"proj.vivarium-3d-pet-generator\"}\n```\n\nProduces the shareable DNA code and a PNG portrait snapshot behind a common export interface, so a\nGLB target can be added later without changing anatomy or coat code.\n\n## Features\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"feature\",\"id\":\"feat.dna-schema\",\"title\":\"Pet DNA schema\",\"project\":\"proj.vivarium-3d-pet-generator\",\"component\":\"cmp.dna\"}\n```\n\nDefines every field that makes a pet: anatomy parameters, coat colors, and pattern parameters. The\nschema is the contract between the UI, the store, and the generator.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"feature\",\"id\":\"feat.deterministic-seed\",\"title\":\"Deterministic seeded generation\",\"project\":\"proj.vivarium-3d-pet-generator\",\"component\":\"cmp.dna\"}\n```\n\nGuarantees the same DNA always produces the same pet. All procedural variation is routed through a\nseeded PRNG derived from the DNA string, never `Math.random`.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"feature\",\"id\":\"feat.procedural-anatomy\",\"title\":\"Procedural anatomy\",\"project\":\"proj.vivarium-3d-pet-generator\",\"component\":\"cmp.anatomy\"}\n```\n\nBuilds the pet mesh from anatomy parameters so different DNA values produce visibly distinct\nsilhouettes, proportions, ears, and tails.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"feature\",\"id\":\"feat.coat-patterns\",\"title\":\"Procedural coat patterns\",\"project\":\"proj.vivarium-3d-pet-generator\",\"component\":\"cmp.coat\"}\n```\n\nRenders a root-to-tip gradient plus procedural pattern families (solid, spotted, brindled) driven by\nDNA and seeded noise in-shader.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"feature\",\"id\":\"feat.param-ui\",\"title\":\"Parameter control UI\",\"project\":\"proj.vivarium-3d-pet-generator\",\"component\":\"cmp.ui\"}\n```\n\nProvides sliders, color pickers, and a randomize action over the DNA. The UI is fully decoupled from\nthe renderer.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"feature\",\"id\":\"feat.local-persistence\",\"title\":\"Local persistence\",\"project\":\"proj.vivarium-3d-pet-generator\",\"component\":\"cmp.state\"}\n```\n\nSaves the current DNA to localStorage and restores it on reload, with validation and a safe fallback\nto defaults.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"feature\",\"id\":\"feat.dna-export\",\"title\":\"DNA code and portrait export\",\"project\":\"proj.vivarium-3d-pet-generator\",\"component\":\"cmp.export\"}\n```\n\nProduces a copyable DNA code and a PNG portrait snapshot, behind an interface that will later accept\na GLB target.\n\n## Requirements\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"requirement\",\"id\":\"req.dna-completeness\",\"title\":\"DNA captures every visual parameter\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.dna-schema\"],\"type\":\"functional\",\"acceptance\":[\"Every visual parameter exposed in the UI is present in the DNA schema\",\"The DNA schema defines explicit defaults for every field\",\"Out-of-range values are clamped to documented bounds\"]}\n```\n\nThe DNA must be the complete description of a pet. If a slider or color picker exists, the value it\ncontrols must exist in the schema; otherwise a pet cannot be reproduced from its code.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"requirement\",\"id\":\"req.deterministic-reproducibility\",\"title\":\"Identical DNA yields an identical pet\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.deterministic-seed\",\"feat.dna-schema\",\"feat.procedural-anatomy\",\"feat.coat-patterns\"],\"type\":\"functional\",\"acceptance\":[\"Generating twice from the same DNA string produces geometrically identical meshes\",\"The rendered snapshot for a given DNA string is pixel-identical across reloads\",\"No Math.random or wall-clock time influences the generated pet geometry\"]}\n```\n\nThis is a cross-cutting requirement: determinism spans the schema, the seeded RNG, anatomy, and coat\npatterns. It is the property that makes a DNA code meaningful as a shareable identity.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"requirement\",\"id\":\"req.anatomy-variety\",\"title\":\"Anatomy parameters produce visible variety\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.procedural-anatomy\"],\"type\":\"functional\",\"acceptance\":[\"Moving proportion parameters across their range produces visibly distinct silhouettes\",\"Multiple distinct body archetypes are reachable from DNA values\",\"Every parameter change updates the mesh without a full page reload\"]}\n```\n\nVariety is the point of the generator. A parameter that does not visibly change the creature is a\ndesign failure.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"requirement\",\"id\":\"req.pattern-rendering\",\"title\":\"Coat patterns render correctly\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.coat-patterns\"],\"type\":\"functional\",\"acceptance\":[\"Each supported pattern family renders with a correct root-to-tip gradient\",\"Pattern parameters (colors, scale, density) visibly affect the coat\",\"Changing pattern family swaps the generated pattern deterministically\"]}\n```\n\nCoat patterns are a core part of the visual identity, so their correctness is a functional\nrequirement, not merely a polish item.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"requirement\",\"id\":\"req.serialize-roundtrip\",\"title\":\"DNA code round-trips losslessly\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.dna-schema\",\"feat.dna-export\"],\"type\":\"functional\",\"acceptance\":[\"A DNA code deserializes to the exact original parameter values\",\"serialize(deserialize(code)) yields the same code\",\"The codec rejects malformed or unknown codes without throwing\"]}\n```\n\nThe DNA code is the only external representation of a pet, so it must round-trip without loss.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"requirement\",\"id\":\"req.realtime-performance\",\"title\":\"Sustained real-time performance\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.param-ui\",\"feat.procedural-anatomy\",\"feat.coat-patterns\"],\"type\":\"quality\",\"acceptance\":[\"The app sustains 60 FPS at 2x DPR on a mid-tier GPU\",\"Parameter changes and regeneration complete within one frame budget\",\"The render loop performs no per-frame heap allocations\"]}\n```\n\nInteractive regeneration must not visibly hitch; the loop is written to avoid per-frame allocations.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"requirement\",\"id\":\"req.visual-consistency\",\"title\":\"Seam-free, smooth visuals\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.coat-patterns\"],\"type\":\"quality\",\"acceptance\":[\"Patterns show no visible UV seams or banding\",\"Gradients and pattern density are smooth across the surface\",\"Colors render in linear space with consistent tone mapping\"]}\n```\n\nProcedural patterns are prone to seams and banding; this requirement makes smoothness explicit.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"requirement\",\"id\":\"req.local-first\",\"title\":\"Local-first, offline-capable\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.local-persistence\",\"feat.dna-export\"],\"type\":\"constraint\",\"acceptance\":[\"The app runs from a static host with no backend requests\",\"All state is stored in localStorage\",\"No network access is required for generation, saving, or export\"]}\n```\n\nStep 1 is single-player and offline by design; a future economy layer must not require retrofitting\nthe core.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"requirement\",\"id\":\"req.clean-room\",\"title\":\"Original, clean-room implementation\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.procedural-anatomy\",\"feat.coat-patterns\",\"feat.dna-schema\"],\"type\":\"constraint\",\"acceptance\":[\"All source is original and not copied from the reference project\",\"Shader and geometry code is authored from the specification, not pasted\",\"No third-party runtime assets or code are bundled\"]}\n```\n\nThe project is inspired by, but implemented independently from, an existing fur demo. Techniques are\nfair game; specific code is not.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"requirement\",\"id\":\"req.export-extensibility\",\"title\":\"Export surface is extensible\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.dna-export\"],\"type\":\"constraint\",\"acceptance\":[\"The export module exposes a stable interface for adding new export targets\",\"Adding a GLB exporter does not require changes to anatomy or coat code\",\"The DNA code and PNG snapshot are produced through the same export interface\"]}\n```\n\nGLB model export is deferred but must be additive, so the export surface is designed as an interface\nfrom day one.\n\n## Development scope\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"scope\",\"id\":\"scope.step1-generation-core\",\"title\":\"Step 1 - Generation Core\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.dna-schema\",\"feat.deterministic-seed\",\"feat.procedural-anatomy\",\"feat.coat-patterns\",\"feat.param-ui\",\"feat.local-persistence\",\"feat.dna-export\"],\"workflow\":{\"stages\":[{\"key\":\"design\",\"title\":\"Design\"},{\"key\":\"foundation\",\"title\":\"Foundation\"},{\"key\":\"implementation\",\"title\":\"Implementation\"},{\"key\":\"verification\",\"title\":\"Verification\"}]}}\n```\n\nA single development scope with four ordered stages. Design fixes the schema and interfaces;\nFoundation delivers the DNA, store, and seeded RNG; Implementation delivers anatomy, coat, UI,\nexport, and persistence; Verification confirms determinism, round-trip, and performance.\n\n## Actions\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"action\",\"id\":\"act.define-dna-schema\",\"title\":\"Define the PetDNA schema and codec\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.dna-schema\"],\"requirements\":[\"req.dna-completeness\",\"req.serialize-roundtrip\"],\"scope\":\"scope.step1-generation-core\",\"stage\":\"design\",\"action_type\":\"implementation\",\"instructions\":\"Define the PetDNA TypeScript type, per-field defaults, clamp/sanitize bounds, and the compact string codec. Document the field list and ranges in dna.ts.\",\"definition_of_done\":\"dna.ts compiles under strict TypeScript; every field has a default, clamp bounds, and a stable position in the serialized code; round-trip unit tests are specified.\"}\n```\n\nDesign-stage implementation that fixes the contract everything else builds on.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"action\",\"id\":\"act.implement-seeded-rng\",\"title\":\"Implement the deterministic seeded PRNG\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.deterministic-seed\"],\"requirements\":[\"req.deterministic-reproducibility\"],\"scope\":\"scope.step1-generation-core\",\"stage\":\"foundation\",\"action_type\":\"implementation\",\"instructions\":\"Implement a deterministic hash-based PRNG whose state derives solely from the DNA string. Route all procedural variation (anatomy jitter, pattern noise) through it.\",\"definition_of_done\":\"The PRNG produces identical sequences for identical seeds; a fixture of 1,000 seeds reproduces exactly; no Math.random is used in geometry or pattern generation.\"}\n```\n\nFoundation-stage work that makes reproducibility possible.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"action\",\"id\":\"act.implement-dna-store\",\"title\":\"Implement the DNA store and subscriptions\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.dna-schema\"],\"requirements\":[\"req.dna-completeness\"],\"scope\":\"scope.step1-generation-core\",\"stage\":\"foundation\",\"action_type\":\"implementation\",\"instructions\":\"Implement the mutable DNA store with updateDNA(patch) and a subscriber list. The renderer and UI must communicate only through this store.\",\"definition_of_done\":\"updateDNA notifies subscribers synchronously; the UI holds no direct reference to Three.js objects; the store holds no DOM references.\"}\n```\n\nThis store is the decoupling seam between UI and renderer.\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"action\",\"id\":\"act.build-anatomy\",\"title\":\"Build the procedural anatomy generator\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.procedural-anatomy\"],\"requirements\":[\"req.anatomy-variety\",\"req.clean-room\"],\"scope\":\"scope.step1-generation-core\",\"stage\":\"implementation\",\"action_type\":\"implementation\",\"instructions\":\"Implement buildGeometry(dna) producing a rig-compatible BufferGeometry from anatomy parameters (body, proportions, ears, tail, face). Keep the vertex layout skinned-mesh-ready.\",\"definition_of_done\":\"Changing anatomy parameters regenerates a visibly distinct, manifold mesh; the geometry uses a bone-influence-ready vertex layout from the start.\"}\n```\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"action\",\"id\":\"act.build-coat-shaders\",\"title\":\"Build the procedural coat shaders\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.coat-patterns\"],\"requirements\":[\"req.pattern-rendering\",\"req.visual-consistency\",\"req.clean-room\"],\"scope\":\"scope.step1-generation-core\",\"stage\":\"implementation\",\"action_type\":\"implementation\",\"instructions\":\"Implement the coat ShaderMaterial: root-to-tip gradient plus procedural pattern families (solid, spotted, brindled) driven by DNA and seeded noise. Author GLSL from scratch.\",\"definition_of_done\":\"Each pattern family renders with no seams; color and density parameters visibly change the coat; shaders are original.\"}\n```\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"action\",\"id\":\"act.build-ui\",\"title\":\"Build the parameter control UI\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.param-ui\"],\"requirements\":[\"req.realtime-performance\"],\"scope\":\"scope.step1-generation-core\",\"stage\":\"implementation\",\"action_type\":\"implementation\",\"instructions\":\"Build the DOM control panel: sliders, color pickers, a randomize button, and orbit camera wiring. The UI emits updateDNA patches only.\",\"definition_of_done\":\"Every DNA field is editable; randomize produces a valid in-range DNA; the UI never mutates renderer objects directly.\"}\n```\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"action\",\"id\":\"act.build-export\",\"title\":\"Build the DNA code and PNG export\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.dna-export\"],\"requirements\":[\"req.serialize-roundtrip\",\"req.export-extensibility\",\"req.local-first\"],\"scope\":\"scope.step1-generation-core\",\"stage\":\"implementation\",\"action_type\":\"implementation\",\"instructions\":\"Implement the export module behind a common interface: emit the DNA code (copyable string) and a PNG portrait snapshot from the current camera. Structure it so a GLB target is additive.\",\"definition_of_done\":\"Copying the DNA code and reproducing it yields the identical pet; PNG export captures the framed pet; the interface accepts an additional target without touching anatomy or coat code.\"}\n```\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"action\",\"id\":\"act.build-persistence\",\"title\":\"Build local persistence\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.local-persistence\"],\"requirements\":[\"req.local-first\"],\"scope\":\"scope.step1-generation-core\",\"stage\":\"implementation\",\"action_type\":\"implementation\",\"instructions\":\"Persist the current DNA to localStorage on change and restore it on load, validating against the schema with a safe fallback to defaults.\",\"definition_of_done\":\"Reloading restores the last pet exactly; corrupt or missing storage falls back to defaults without error.\"}\n```\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"action\",\"id\":\"act.verify-determinism\",\"title\":\"Verify deterministic reproducibility\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.deterministic-seed\"],\"requirements\":[\"req.deterministic-reproducibility\"],\"scope\":\"scope.step1-generation-core\",\"stage\":\"verification\",\"action_type\":\"verification\",\"instructions\":\"Run the automated determinism checks: generate the same DNA twice and diff geometry hashes and PNG snapshots across reloads.\",\"definition_of_done\":\"All determinism checks pass; a written summary records the hash comparison method and results.\"}\n```\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"action\",\"id\":\"act.document-dna-format\",\"title\":\"Document the DNA codec format\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.dna-schema\",\"feat.dna-export\"],\"requirements\":[\"req.serialize-roundtrip\"],\"action_type\":\"documentation\",\"instructions\":\"Write a short human-readable spec of the DNA codec (field order, ranges, encoding) so a pet can be re-derived from a code by other tools or engines without reading the TypeScript.\",\"definition_of_done\":\"A Markdown spec exists beside dna.ts; a reader can reconstruct the field list and ranges from it alone.\"}\n```\n\nThis action is deliberately unscoped: it is lightweight documentation work that does not belong to a\ndevelopment stage.\n\n## Decisions\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"decision\",\"id\":\"dec.stack-choice\",\"title\":\"Use TypeScript, Three.js (WebGL2), Vite, and vanilla DOM\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.dna-schema\",\"feat.param-ui\"],\"requirements\":[\"req.local-first\"],\"rationale\":\"TypeScript gives the DNA schema a compile-time contract; Three.js on WebGL2 runs anywhere with no install and is sufficient for stylized fur; Vite provides a zero-friction dev loop; vanilla DOM keeps the UI dependency-free. No backend keeps Step 1 local-first.\",\"alternatives\":[\"Raw WebGL2 (too much boilerplate for camera and orbit)\",\"Babylon.js (heavier; its abstractions get in the way of custom shaders)\",\"WebGPU (deferred; adds friction without benefit at this stage)\",\"React or Svelte UI (unnecessary state complexity for sliders and pickers)\"]}\n```\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"decision\",\"id\":\"dec.seeded-rng\",\"title\":\"Deterministic seeded PRNG instead of Math.random\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.deterministic-seed\"],\"requirements\":[\"req.deterministic-reproducibility\"],\"rationale\":\"A deterministic hash-based PRNG seeded from the DNA guarantees reproducibility and makes rarity and provenance auditable later. Math.random would break identical regeneration and shareable codes.\",\"alternatives\":[\"Math.random (non-deterministic, breaks reproducibility)\",\"A noise npm package (adds a dependency for something trivial to author)\"]}\n```\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"decision\",\"id\":\"dec.rig-compatible-geometry\",\"title\":\"Build geometry rig-compatible from day one\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.procedural-anatomy\"],\"requirements\":[\"req.anatomy-variety\",\"req.clean-room\"],\"rationale\":\"The pet must eventually walk and jump (Step 2), so the vertex layout and bone-influence structure are designed now even though Step 1 is static. This avoids a full geometry rebuild later.\",\"alternatives\":[\"Static one-off sculpt (fast now, requires a full rebuild for animation)\"]}\n```\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"decision\",\"id\":\"dec.export-interface\",\"title\":\"DNA code and PNG now, GLB additive later\",\"project\":\"proj.vivarium-3d-pet-generator\",\"features\":[\"feat.dna-export\"],\"requirements\":[\"req.export-extensibility\"],\"rationale\":\"Shipping DNA code and PNG snapshot behind a common export interface satisfies the immediate share-and-reproduce need while making GLB model export an additive target rather than a rearchitecture.\",\"alternatives\":[\"Build GLB export now (more work before the core is proven)\",\"No export (blocks sharing and reproducibility)\"]}\n```\n\n## Planned checks\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"check\",\"id\":\"check.determinism\",\"title\":\"Deterministic reproducibility check\",\"project\":\"proj.vivarium-3d-pet-generator\",\"requirements\":[\"req.deterministic-reproducibility\"],\"method\":\"automated\",\"expected\":[\"Two generations from the same DNA string produce identical geometry hashes\",\"PNG snapshots are pixel-identical across reloads\"],\"instructions\":\"Script generates each DNA twice and compares vertex buffers and rendered framebuffers.\"}\n```\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"check\",\"id\":\"check.dna-roundtrip\",\"title\":\"DNA code round-trip check\",\"project\":\"proj.vivarium-3d-pet-generator\",\"requirements\":[\"req.serialize-roundtrip\"],\"method\":\"automated\",\"expected\":[\"serialize(deserialize(code)) equals code for a fixture of codes\",\"Malformed codes are rejected without throwing\"],\"instructions\":\"Unit tests iterate a fixture set of DNA codes.\"}\n```\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"check\",\"id\":\"check.anatomy-variety\",\"title\":\"Anatomy variety check\",\"project\":\"proj.vivarium-3d-pet-generator\",\"requirements\":[\"req.anatomy-variety\"],\"method\":\"manual\",\"expected\":[\"Sweeping each proportion slider produces clearly different silhouettes\",\"No parameter leaves the mesh visually unchanged across its range\"],\"instructions\":\"A human sweeps sliders and confirms visible change for each parameter.\"}\n```\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"check\",\"id\":\"check.performance\",\"title\":\"Real-time performance check\",\"project\":\"proj.vivarium-3d-pet-generator\",\"requirements\":[\"req.realtime-performance\"],\"method\":\"automated\",\"expected\":[\"60 FPS sustained at 2x DPR on a mid-tier GPU\",\"Frame times remain within budget during regeneration\"],\"instructions\":\"Instrument the loop with a frame-time histogram and run on a reference device.\"}\n```\n\n```ptb\n{\"ptb\":\"0.2\",\"kind\":\"check\",\"id\":\"check.pattern-seams\",\"title\":\"Coat pattern seam check\",\"project\":\"proj.vivarium-3d-pet-generator\",\"requirements\":[\"req.visual-consistency\"],\"method\":\"manual\",\"expected\":[\"No UV seams or banding across any pattern family\",\"Gradients are smooth under orbit\"],\"instructions\":\"A human orbits the pet and inspects each pattern family for seams and banding.\"}\n```\n",
+      "byteLength": 24844,
+      "sha256": "6235b124054a95a03f4a21e3e8e1a2b4f0c7d7bb7cd6f6dcfde2229d7abda7ba",
+      "headings": [
+        {
+          "depth": 1,
+          "text": "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "source": {
+            "documentId": "d0",
+            "span": {
+              "start": {
+                "byteOffset": 0,
+                "utf16Offset": 0,
+                "line": 1,
+                "column": 1
+              },
+              "end": {
+                "byteOffset": 67,
+                "utf16Offset": 65,
+                "line": 1,
+                "column": 66
+              }
+            },
+            "headingPath": []
+          }
+        },
+        {
+          "depth": 2,
+          "text": "Project purpose",
+          "source": {
+            "documentId": "d0",
+            "span": {
+              "start": {
+                "byteOffset": 775,
+                "utf16Offset": 773,
+                "line": 12,
+                "column": 1
+              },
+              "end": {
+                "byteOffset": 793,
+                "utf16Offset": 791,
+                "line": 12,
+                "column": 19
+              }
+            },
+            "headingPath": [
+              "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)"
+            ]
+          }
+        },
+        {
+          "depth": 2,
+          "text": "Components",
+          "source": {
+            "documentId": "d0",
+            "span": {
+              "start": {
+                "byteOffset": 1469,
+                "utf16Offset": 1467,
+                "line": 24,
+                "column": 1
+              },
+              "end": {
+                "byteOffset": 1482,
+                "utf16Offset": 1480,
+                "line": 24,
+                "column": 14
+              }
+            },
+            "headingPath": [
+              "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+              "Project purpose"
+            ]
+          }
+        },
+        {
+          "depth": 2,
+          "text": "Features",
+          "source": {
+            "documentId": "d0",
+            "span": {
+              "start": {
+                "byteOffset": 4355,
+                "utf16Offset": 4353,
+                "line": 92,
+                "column": 1
+              },
+              "end": {
+                "byteOffset": 4366,
+                "utf16Offset": 4364,
+                "line": 92,
+                "column": 12
+              }
+            },
+            "headingPath": [
+              "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+              "Components"
+            ]
+          }
+        },
+        {
+          "depth": 2,
+          "text": "Requirements",
+          "source": {
+            "documentId": "d0",
+            "span": {
+              "start": {
+                "byteOffset": 6496,
+                "utf16Offset": 6494,
+                "line": 143,
+                "column": 1
+              },
+              "end": {
+                "byteOffset": 6511,
+                "utf16Offset": 6509,
+                "line": 143,
+                "column": 16
+              }
+            },
+            "headingPath": [
+              "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+              "Features"
+            ]
+          }
+        },
+        {
+          "depth": 2,
+          "text": "Development scope",
+          "source": {
+            "documentId": "d0",
+            "span": {
+              "start": {
+                "byteOffset": 12279,
+                "utf16Offset": 12277,
+                "line": 212,
+                "column": 1
+              },
+              "end": {
+                "byteOffset": 12299,
+                "utf16Offset": 12297,
+                "line": 212,
+                "column": 21
+              }
+            },
+            "headingPath": [
+              "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+              "Requirements"
+            ]
+          }
+        },
+        {
+          "depth": 2,
+          "text": "Actions",
+          "source": {
+            "documentId": "d0",
+            "span": {
+              "start": {
+                "byteOffset": 13092,
+                "utf16Offset": 13090,
+                "line": 222,
+                "column": 1
+              },
+              "end": {
+                "byteOffset": 13102,
+                "utf16Offset": 13100,
+                "line": 222,
+                "column": 11
+              }
+            },
+            "headingPath": [
+              "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+              "Development scope"
+            ]
+          }
+        },
+        {
+          "depth": 2,
+          "text": "Decisions",
+          "source": {
+            "documentId": "d0",
+            "span": {
+              "start": {
+                "byteOffset": 20086,
+                "utf16Offset": 20084,
+                "line": 273,
+                "column": 1
+              },
+              "end": {
+                "byteOffset": 20098,
+                "utf16Offset": 20096,
+                "line": 273,
+                "column": 13
+              }
+            },
+            "headingPath": [
+              "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+              "Actions"
+            ]
+          }
+        },
+        {
+          "depth": 2,
+          "text": "Planned checks",
+          "source": {
+            "documentId": "d0",
+            "span": {
+              "start": {
+                "byteOffset": 22684,
+                "utf16Offset": 22682,
+                "line": 291,
+                "column": 1
+              },
+              "end": {
+                "byteOffset": 22701,
+                "utf16Offset": 22699,
+                "line": 291,
+                "column": 18
+              }
+            },
+            "headingPath": [
+              "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+              "Decisions"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "records": [
+    {
+      "ptb": "0.2",
+      "id": "proj.vivarium-3d-pet-generator",
+      "title": "Vivarium 3D Pet Generator",
+      "kind": "project",
+      "goal": "Generate a deterministic, visually varied 3D pet from a compact DNA seed: parametric anatomy and procedural coat patterns, viewable, tweakable, and reproducible in the browser, with a shareable DNA code and portrait snapshot architected so 3D model export can be added later.",
+      "documents": [],
+      "capabilities": [],
+      "occurrenceKey": "d0:b0",
+      "narrative": "\n\n## Project purpose\n\nVivarium is the first milestone of a larger pet-collection game. This step solves one concrete\nproblem: turn a compact, serializable **DNA** value into a unique, reproducible 3D pet whose\nanatomy and coat are both procedurally generated. Everything else (breeding, rarity, economy,\nactivities) is deliberately deferred so this milestone can be built, verified, and understood on\nits own.\n\nThe intended users are (a) the solo developer, who needs a stable, well-typed foundation to grow\nlater, and (b) an eventual player, who will design pets in the browser and share them as a DNA\ncode. There is no backend in this step; the app is local-first and runs from a static host.\n\n## Components\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 373,
+            "utf16Offset": 371,
+            "line": 8,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 773,
+            "utf16Offset": 771,
+            "line": 10,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 773,
+            "utf16Offset": 771,
+            "line": 10,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 1484,
+            "utf16Offset": 1482,
+            "line": 26,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "cmp.dna",
+      "title": "DNA schema and codec",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "component",
+      "parent": null,
+      "occurrenceKey": "d0:b1",
+      "narrative": "\n\nOwns the `PetDNA` type, per-field defaults, clamp/sanitize bounds, and the compact string codec\nthat maps a DNA value to a shareable code and back. This is the single source of truth for what a\npet *is*.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 1484,
+            "utf16Offset": 1482,
+            "line": 26,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 1616,
+            "utf16Offset": 1614,
+            "line": 28,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 1616,
+            "utf16Offset": 1614,
+            "line": 28,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 1823,
+            "utf16Offset": 1821,
+            "line": 34,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "cmp.state",
+      "title": "DNA store and change notification",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "component",
+      "parent": null,
+      "occurrenceKey": "d0:b2",
+      "narrative": "\n\nHolds the current DNA and exposes `updateDNA(patch)` plus a subscriber list. The UI and renderer\ncommunicate only through this store, which is what keeps them decoupled.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 1823,
+            "utf16Offset": 1821,
+            "line": 34,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 1970,
+            "utf16Offset": 1968,
+            "line": 36,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 1970,
+            "utf16Offset": 1968,
+            "line": 36,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 2143,
+            "utf16Offset": 2141,
+            "line": 41,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "cmp.anatomy",
+      "title": "Procedural anatomy generation",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "component",
+      "parent": null,
+      "occurrenceKey": "d0:b3",
+      "narrative": "\n\nTurns anatomy parameters into a manifold `BufferGeometry`. The pipeline is designed to be\nrig-compatible from the start even though Step 1 is static, so locomotion can be added without a\nrewrite.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 2143,
+            "utf16Offset": 2141,
+            "line": 41,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 2288,
+            "utf16Offset": 2286,
+            "line": 43,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 2288,
+            "utf16Offset": 2286,
+            "line": 43,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 2487,
+            "utf16Offset": 2485,
+            "line": 49,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "cmp.anatomy.body",
+      "title": "Body silhouette and proportions",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "component",
+      "parent": "cmp.anatomy",
+      "occurrenceKey": "d0:b4",
+      "narrative": "\n\nNested under anatomy. Responsible for the body silhouette, chubbiness, and overall proportions that\nmake different DNA values produce visibly different creatures.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 2487,
+            "utf16Offset": 2485,
+            "line": 49,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 2662,
+            "utf16Offset": 2660,
+            "line": 51,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 2662,
+            "utf16Offset": 2660,
+            "line": 51,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 2828,
+            "utf16Offset": 2826,
+            "line": 56,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "cmp.coat",
+      "title": "Coat shading and materials",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "component",
+      "parent": null,
+      "occurrenceKey": "d0:b5",
+      "narrative": "\n\nOwns the `ShaderMaterial` that shades the pet surface: root-to-tip gradient, lighting, and tone\nmapping. It consumes pattern parameters but delegates pattern *shape* to the nested pattern\ncomponent.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 2828,
+            "utf16Offset": 2826,
+            "line": 56,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 2967,
+            "utf16Offset": 2965,
+            "line": 58,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 2967,
+            "utf16Offset": 2965,
+            "line": 58,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 3169,
+            "utf16Offset": 3167,
+            "line": 64,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "cmp.coat.pattern",
+      "title": "Procedural coat patterns",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "component",
+      "parent": "cmp.coat",
+      "occurrenceKey": "d0:b6",
+      "narrative": "\n\nNested under coat. Produces the procedural pattern families (solid, spotted, brindled) in GLSL,\nseeded deterministically from the DNA.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 3169,
+            "utf16Offset": 3167,
+            "line": 64,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 3334,
+            "utf16Offset": 3332,
+            "line": 66,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 3334,
+            "utf16Offset": 3332,
+            "line": 66,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 3472,
+            "utf16Offset": 3470,
+            "line": 71,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "cmp.render",
+      "title": "Renderer, scene, and camera",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "component",
+      "parent": null,
+      "occurrenceKey": "d0:b7",
+      "narrative": "\n\nWraps the Three.js renderer, scene, perspective camera, orbit controls, and the render loop. It has\nno knowledge of the DOM beyond its own canvas.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 3472,
+            "utf16Offset": 3470,
+            "line": 71,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 3614,
+            "utf16Offset": 3612,
+            "line": 73,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 3614,
+            "utf16Offset": 3612,
+            "line": 73,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 3764,
+            "utf16Offset": 3762,
+            "line": 78,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "cmp.ui",
+      "title": "Parameter control panel",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "component",
+      "parent": null,
+      "occurrenceKey": "d0:b8",
+      "narrative": "\n\nBuilds the DOM control panel (sliders, color pickers, randomize). It emits `updateDNA` patches and\nnever touches Three.js objects directly.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 3764,
+            "utf16Offset": 3762,
+            "line": 78,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 3898,
+            "utf16Offset": 3896,
+            "line": 80,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 3898,
+            "utf16Offset": 3896,
+            "line": 80,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 4041,
+            "utf16Offset": 4039,
+            "line": 85,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "cmp.export",
+      "title": "DNA code and portrait export",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "component",
+      "parent": null,
+      "occurrenceKey": "d0:b9",
+      "narrative": "\n\nProduces the shareable DNA code and a PNG portrait snapshot behind a common export interface, so a\nGLB target can be added later without changing anatomy or coat code.\n\n## Features\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 4041,
+            "utf16Offset": 4039,
+            "line": 85,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 4184,
+            "utf16Offset": 4182,
+            "line": 87,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 4184,
+            "utf16Offset": 4182,
+            "line": 87,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 4368,
+            "utf16Offset": 4366,
+            "line": 94,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "feat.dna-schema",
+      "title": "Pet DNA schema",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "feature",
+      "component": "cmp.dna",
+      "occurrenceKey": "d0:b10",
+      "narrative": "\n\nDefines every field that makes a pet: anatomy parameters, coat colors, and pattern parameters. The\nschema is the contract between the UI, the store, and the generator.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 4368,
+            "utf16Offset": 4366,
+            "line": 94,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 4522,
+            "utf16Offset": 4520,
+            "line": 96,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 4522,
+            "utf16Offset": 4520,
+            "line": 96,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 4693,
+            "utf16Offset": 4691,
+            "line": 101,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "feat.deterministic-seed",
+      "title": "Deterministic seeded generation",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "feature",
+      "component": "cmp.dna",
+      "occurrenceKey": "d0:b11",
+      "narrative": "\n\nGuarantees the same DNA always produces the same pet. All procedural variation is routed through a\nseeded PRNG derived from the DNA string, never `Math.random`.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 4693,
+            "utf16Offset": 4691,
+            "line": 101,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 4872,
+            "utf16Offset": 4870,
+            "line": 103,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 4872,
+            "utf16Offset": 4870,
+            "line": 103,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 5036,
+            "utf16Offset": 5034,
+            "line": 108,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "feat.procedural-anatomy",
+      "title": "Procedural anatomy",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "feature",
+      "component": "cmp.anatomy",
+      "occurrenceKey": "d0:b12",
+      "narrative": "\n\nBuilds the pet mesh from anatomy parameters so different DNA values produce visibly distinct\nsilhouettes, proportions, ears, and tails.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 5036,
+            "utf16Offset": 5034,
+            "line": 108,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 5206,
+            "utf16Offset": 5204,
+            "line": 110,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 5206,
+            "utf16Offset": 5204,
+            "line": 110,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 5345,
+            "utf16Offset": 5343,
+            "line": 115,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "feat.coat-patterns",
+      "title": "Procedural coat patterns",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "feature",
+      "component": "cmp.coat",
+      "occurrenceKey": "d0:b13",
+      "narrative": "\n\nRenders a root-to-tip gradient plus procedural pattern families (solid, spotted, brindled) driven by\nDNA and seeded noise in-shader.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 5345,
+            "utf16Offset": 5343,
+            "line": 115,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 5513,
+            "utf16Offset": 5511,
+            "line": 117,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 5513,
+            "utf16Offset": 5511,
+            "line": 117,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 5649,
+            "utf16Offset": 5647,
+            "line": 122,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "feat.param-ui",
+      "title": "Parameter control UI",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "feature",
+      "component": "cmp.ui",
+      "occurrenceKey": "d0:b14",
+      "narrative": "\n\nProvides sliders, color pickers, and a randomize action over the DNA. The UI is fully decoupled from\nthe renderer.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 5649,
+            "utf16Offset": 5647,
+            "line": 122,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 5806,
+            "utf16Offset": 5804,
+            "line": 124,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 5806,
+            "utf16Offset": 5804,
+            "line": 124,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 5924,
+            "utf16Offset": 5922,
+            "line": 129,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "feat.local-persistence",
+      "title": "Local persistence",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "feature",
+      "component": "cmp.state",
+      "occurrenceKey": "d0:b15",
+      "narrative": "\n\nSaves the current DNA to localStorage and restores it on reload, with validation and a safe fallback\nto defaults.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 5924,
+            "utf16Offset": 5922,
+            "line": 129,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 6090,
+            "utf16Offset": 6088,
+            "line": 131,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 6090,
+            "utf16Offset": 6088,
+            "line": 131,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 6207,
+            "utf16Offset": 6205,
+            "line": 136,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "feat.dna-export",
+      "title": "DNA code and portrait export",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "feature",
+      "component": "cmp.export",
+      "occurrenceKey": "d0:b16",
+      "narrative": "\n\nProduces a copyable DNA code and a PNG portrait snapshot, behind an interface that will later accept\na GLB target.\n\n## Requirements\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 6207,
+            "utf16Offset": 6205,
+            "line": 136,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 6378,
+            "utf16Offset": 6376,
+            "line": 138,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 6378,
+            "utf16Offset": 6376,
+            "line": 138,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 6513,
+            "utf16Offset": 6511,
+            "line": 145,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "req.dna-completeness",
+      "title": "DNA captures every visual parameter",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "requirement",
+      "features": [
+        "feat.dna-schema"
+      ],
+      "type": "functional",
+      "acceptance": [
+        "Every visual parameter exposed in the UI is present in the DNA schema",
+        "The DNA schema defines explicit defaults for every field",
+        "Out-of-range values are clamped to documented bounds"
+      ],
+      "occurrenceKey": "d0:b17",
+      "narrative": "\n\nThe DNA must be the complete description of a pet. If a slider or color picker exists, the value it\ncontrols must exist in the schema; otherwise a pet cannot be reproduced from its code.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 6513,
+            "utf16Offset": 6511,
+            "line": 145,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 6927,
+            "utf16Offset": 6925,
+            "line": 147,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 6927,
+            "utf16Offset": 6925,
+            "line": 147,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 7117,
+            "utf16Offset": 7115,
+            "line": 152,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "req.deterministic-reproducibility",
+      "title": "Identical DNA yields an identical pet",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "requirement",
+      "features": [
+        "feat.deterministic-seed",
+        "feat.dna-schema",
+        "feat.procedural-anatomy",
+        "feat.coat-patterns"
+      ],
+      "type": "functional",
+      "acceptance": [
+        "Generating twice from the same DNA string produces geometrically identical meshes",
+        "The rendered snapshot for a given DNA string is pixel-identical across reloads",
+        "No Math.random or wall-clock time influences the generated pet geometry"
+      ],
+      "occurrenceKey": "d0:b18",
+      "narrative": "\n\nThis is a cross-cutting requirement: determinism spans the schema, the seeded RNG, anatomy, and coat\npatterns. It is the property that makes a DNA code meaningful as a shareable identity.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 7117,
+            "utf16Offset": 7115,
+            "line": 152,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 7672,
+            "utf16Offset": 7670,
+            "line": 154,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 7672,
+            "utf16Offset": 7670,
+            "line": 154,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 7863,
+            "utf16Offset": 7861,
+            "line": 159,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "req.anatomy-variety",
+      "title": "Anatomy parameters produce visible variety",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "requirement",
+      "features": [
+        "feat.procedural-anatomy"
+      ],
+      "type": "functional",
+      "acceptance": [
+        "Moving proportion parameters across their range produces visibly distinct silhouettes",
+        "Multiple distinct body archetypes are reachable from DNA values",
+        "Every parameter change updates the mesh without a full page reload"
+      ],
+      "occurrenceKey": "d0:b19",
+      "narrative": "\n\nVariety is the point of the generator. A parameter that does not visibly change the creature is a\ndesign failure.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 7863,
+            "utf16Offset": 7861,
+            "line": 159,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 8328,
+            "utf16Offset": 8326,
+            "line": 161,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 8328,
+            "utf16Offset": 8326,
+            "line": 161,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 8445,
+            "utf16Offset": 8443,
+            "line": 166,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "req.pattern-rendering",
+      "title": "Coat patterns render correctly",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "requirement",
+      "features": [
+        "feat.coat-patterns"
+      ],
+      "type": "functional",
+      "acceptance": [
+        "Each supported pattern family renders with a correct root-to-tip gradient",
+        "Pattern parameters (colors, scale, density) visibly affect the coat",
+        "Changing pattern family swaps the generated pattern deterministically"
+      ],
+      "occurrenceKey": "d0:b20",
+      "narrative": "\n\nCoat patterns are a core part of the visual identity, so their correctness is a functional\nrequirement, not merely a polish item.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 8445,
+            "utf16Offset": 8443,
+            "line": 166,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 8890,
+            "utf16Offset": 8888,
+            "line": 168,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 8890,
+            "utf16Offset": 8888,
+            "line": 168,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 9023,
+            "utf16Offset": 9021,
+            "line": 173,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "req.serialize-roundtrip",
+      "title": "DNA code round-trips losslessly",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "requirement",
+      "features": [
+        "feat.dna-schema",
+        "feat.dna-export"
+      ],
+      "type": "functional",
+      "acceptance": [
+        "A DNA code deserializes to the exact original parameter values",
+        "serialize(deserialize(code)) yields the same code",
+        "The codec rejects malformed or unknown codes without throwing"
+      ],
+      "occurrenceKey": "d0:b21",
+      "narrative": "\n\nThe DNA code is the only external representation of a pet, so it must round-trip without loss.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 9023,
+            "utf16Offset": 9021,
+            "line": 173,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 9449,
+            "utf16Offset": 9447,
+            "line": 175,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 9449,
+            "utf16Offset": 9447,
+            "line": 175,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 9547,
+            "utf16Offset": 9545,
+            "line": 179,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "req.realtime-performance",
+      "title": "Sustained real-time performance",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "requirement",
+      "features": [
+        "feat.param-ui",
+        "feat.procedural-anatomy",
+        "feat.coat-patterns"
+      ],
+      "type": "quality",
+      "acceptance": [
+        "The app sustains 60 FPS at 2x DPR on a mid-tier GPU",
+        "Parameter changes and regeneration complete within one frame budget",
+        "The render loop performs no per-frame heap allocations"
+      ],
+      "occurrenceKey": "d0:b22",
+      "narrative": "\n\nInteractive regeneration must not visibly hitch; the loop is written to avoid per-frame allocations.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 9547,
+            "utf16Offset": 9545,
+            "line": 179,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 9998,
+            "utf16Offset": 9996,
+            "line": 181,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 9998,
+            "utf16Offset": 9996,
+            "line": 181,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 10102,
+            "utf16Offset": 10100,
+            "line": 185,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "req.visual-consistency",
+      "title": "Seam-free, smooth visuals",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "requirement",
+      "features": [
+        "feat.coat-patterns"
+      ],
+      "type": "quality",
+      "acceptance": [
+        "Patterns show no visible UV seams or banding",
+        "Gradients and pattern density are smooth across the surface",
+        "Colors render in linear space with consistent tone mapping"
+      ],
+      "occurrenceKey": "d0:b23",
+      "narrative": "\n\nProcedural patterns are prone to seams and banding; this requirement makes smoothness explicit.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 10102,
+            "utf16Offset": 10100,
+            "line": 185,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 10492,
+            "utf16Offset": 10490,
+            "line": 187,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 10492,
+            "utf16Offset": 10490,
+            "line": 187,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 10591,
+            "utf16Offset": 10589,
+            "line": 191,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "req.local-first",
+      "title": "Local-first, offline-capable",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "requirement",
+      "features": [
+        "feat.local-persistence",
+        "feat.dna-export"
+      ],
+      "type": "constraint",
+      "acceptance": [
+        "The app runs from a static host with no backend requests",
+        "All state is stored in localStorage",
+        "No network access is required for generation, saving, or export"
+      ],
+      "occurrenceKey": "d0:b24",
+      "narrative": "\n\nStep 1 is single-player and offline by design; a future economy layer must not require retrofitting\nthe core.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 10591,
+            "utf16Offset": 10589,
+            "line": 191,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 10995,
+            "utf16Offset": 10993,
+            "line": 193,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 10995,
+            "utf16Offset": 10993,
+            "line": 193,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 11108,
+            "utf16Offset": 11106,
+            "line": 198,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "req.clean-room",
+      "title": "Original, clean-room implementation",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "requirement",
+      "features": [
+        "feat.procedural-anatomy",
+        "feat.coat-patterns",
+        "feat.dna-schema"
+      ],
+      "type": "constraint",
+      "acceptance": [
+        "All source is original and not copied from the reference project",
+        "Shader and geometry code is authored from the specification, not pasted",
+        "No third-party runtime assets or code are bundled"
+      ],
+      "occurrenceKey": "d0:b25",
+      "narrative": "\n\nThe project is inspired by, but implemented independently from, an existing fur demo. Techniques are\nfair game; specific code is not.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 11108,
+            "utf16Offset": 11106,
+            "line": 198,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 11570,
+            "utf16Offset": 11568,
+            "line": 200,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 11570,
+            "utf16Offset": 11568,
+            "line": 200,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 11707,
+            "utf16Offset": 11705,
+            "line": 205,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "req.export-extensibility",
+      "title": "Export surface is extensible",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "requirement",
+      "features": [
+        "feat.dna-export"
+      ],
+      "type": "constraint",
+      "acceptance": [
+        "The export module exposes a stable interface for adding new export targets",
+        "Adding a GLB exporter does not require changes to anatomy or coat code",
+        "The DNA code and PNG snapshot are produced through the same export interface"
+      ],
+      "occurrenceKey": "d0:b26",
+      "narrative": "\n\nGLB model export is deferred but must be additive, so the export surface is designed as an interface\nfrom day one.\n\n## Development scope\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 11707,
+            "utf16Offset": 11705,
+            "line": 205,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 12161,
+            "utf16Offset": 12159,
+            "line": 207,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 12161,
+            "utf16Offset": 12159,
+            "line": 207,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 12301,
+            "utf16Offset": 12299,
+            "line": 214,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "scope.step1-generation-core",
+      "title": "Step 1 - Generation Core",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "scope",
+      "features": [
+        "feat.dna-schema",
+        "feat.deterministic-seed",
+        "feat.procedural-anatomy",
+        "feat.coat-patterns",
+        "feat.param-ui",
+        "feat.local-persistence",
+        "feat.dna-export"
+      ],
+      "workflow": {
+        "stages": [
+          {
+            "key": "design",
+            "title": "Design"
+          },
+          {
+            "key": "foundation",
+            "title": "Foundation"
+          },
+          {
+            "key": "implementation",
+            "title": "Implementation"
+          },
+          {
+            "key": "verification",
+            "title": "Verification"
+          }
+        ]
+      },
+      "occurrenceKey": "d0:b27",
+      "narrative": "\n\nA single development scope with four ordered stages. Design fixes the schema and interfaces;\nFoundation delivers the DNA, store, and seeded RNG; Implementation delivers anatomy, coat, UI,\nexport, and persistence; Verification confirms determinism, round-trip, and performance.\n\n## Actions\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 12301,
+            "utf16Offset": 12299,
+            "line": 214,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 12812,
+            "utf16Offset": 12810,
+            "line": 216,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Development scope"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 12812,
+            "utf16Offset": 12810,
+            "line": 216,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 13104,
+            "utf16Offset": 13102,
+            "line": 224,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Development scope"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "act.define-dna-schema",
+      "title": "Define the PetDNA schema and codec",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "action",
+      "features": [
+        "feat.dna-schema"
+      ],
+      "requirements": [
+        "req.dna-completeness",
+        "req.serialize-roundtrip"
+      ],
+      "scope": "scope.step1-generation-core",
+      "stage": "design",
+      "action_type": "implementation",
+      "instructions": "Define the PetDNA TypeScript type, per-field defaults, clamp/sanitize bounds, and the compact string codec. Document the field list and ranges in dna.ts.",
+      "applicability": "",
+      "definition_of_done": "dna.ts compiles under strict TypeScript; every field has a default, clamp bounds, and a stable position in the serialized code; round-trip unit tests are specified.",
+      "evidence_guidance": "",
+      "covers_rule_ids": [],
+      "occurrenceKey": "d0:b28",
+      "narrative": "\n\nDesign-stage implementation that fixes the contract everything else builds on.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 13104,
+            "utf16Offset": 13102,
+            "line": 224,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 13803,
+            "utf16Offset": 13801,
+            "line": 226,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 13803,
+            "utf16Offset": 13801,
+            "line": 226,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 13885,
+            "utf16Offset": 13883,
+            "line": 230,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "act.implement-seeded-rng",
+      "title": "Implement the deterministic seeded PRNG",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "action",
+      "features": [
+        "feat.deterministic-seed"
+      ],
+      "requirements": [
+        "req.deterministic-reproducibility"
+      ],
+      "scope": "scope.step1-generation-core",
+      "stage": "foundation",
+      "action_type": "implementation",
+      "instructions": "Implement a deterministic hash-based PRNG whose state derives solely from the DNA string. Route all procedural variation (anatomy jitter, pattern noise) through it.",
+      "applicability": "",
+      "definition_of_done": "The PRNG produces identical sequences for identical seeds; a fixture of 1,000 seeds reproduces exactly; no Math.random is used in geometry or pattern generation.",
+      "evidence_guidance": "",
+      "covers_rule_ids": [],
+      "occurrenceKey": "d0:b29",
+      "narrative": "\n\nFoundation-stage work that makes reproducibility possible.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 13885,
+            "utf16Offset": 13883,
+            "line": 230,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 14599,
+            "utf16Offset": 14597,
+            "line": 232,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 14599,
+            "utf16Offset": 14597,
+            "line": 232,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 14661,
+            "utf16Offset": 14659,
+            "line": 236,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "act.implement-dna-store",
+      "title": "Implement the DNA store and subscriptions",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "action",
+      "features": [
+        "feat.dna-schema"
+      ],
+      "requirements": [
+        "req.dna-completeness"
+      ],
+      "scope": "scope.step1-generation-core",
+      "stage": "foundation",
+      "action_type": "implementation",
+      "instructions": "Implement the mutable DNA store with updateDNA(patch) and a subscriber list. The renderer and UI must communicate only through this store.",
+      "applicability": "",
+      "definition_of_done": "updateDNA notifies subscribers synchronously; the UI holds no direct reference to Three.js objects; the store holds no DOM references.",
+      "evidence_guidance": "",
+      "covers_rule_ids": [],
+      "occurrenceKey": "d0:b30",
+      "narrative": "\n\nThis store is the decoupling seam between UI and renderer.\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 14661,
+            "utf16Offset": 14659,
+            "line": 236,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 15302,
+            "utf16Offset": 15300,
+            "line": 238,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 15302,
+            "utf16Offset": 15300,
+            "line": 238,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 15364,
+            "utf16Offset": 15362,
+            "line": 242,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "act.build-anatomy",
+      "title": "Build the procedural anatomy generator",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "action",
+      "features": [
+        "feat.procedural-anatomy"
+      ],
+      "requirements": [
+        "req.anatomy-variety",
+        "req.clean-room"
+      ],
+      "scope": "scope.step1-generation-core",
+      "stage": "implementation",
+      "action_type": "implementation",
+      "instructions": "Implement buildGeometry(dna) producing a rig-compatible BufferGeometry from anatomy parameters (body, proportions, ears, tail, face). Keep the vertex layout skinned-mesh-ready.",
+      "applicability": "",
+      "definition_of_done": "Changing anatomy parameters regenerates a visibly distinct, manifold mesh; the geometry uses a bone-influence-ready vertex layout from the start.",
+      "evidence_guidance": "",
+      "covers_rule_ids": [],
+      "occurrenceKey": "d0:b31",
+      "narrative": "\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 15364,
+            "utf16Offset": 15362,
+            "line": 242,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 16073,
+            "utf16Offset": 16071,
+            "line": 244,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 16073,
+            "utf16Offset": 16071,
+            "line": 244,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 16075,
+            "utf16Offset": 16073,
+            "line": 246,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "act.build-coat-shaders",
+      "title": "Build the procedural coat shaders",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "action",
+      "features": [
+        "feat.coat-patterns"
+      ],
+      "requirements": [
+        "req.pattern-rendering",
+        "req.visual-consistency",
+        "req.clean-room"
+      ],
+      "scope": "scope.step1-generation-core",
+      "stage": "implementation",
+      "action_type": "implementation",
+      "instructions": "Implement the coat ShaderMaterial: root-to-tip gradient plus procedural pattern families (solid, spotted, brindled) driven by DNA and seeded noise. Author GLSL from scratch.",
+      "applicability": "",
+      "definition_of_done": "Each pattern family renders with no seams; color and density parameters visibly change the coat; shaders are original.",
+      "evidence_guidance": "",
+      "covers_rule_ids": [],
+      "occurrenceKey": "d0:b32",
+      "narrative": "\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 16075,
+            "utf16Offset": 16073,
+            "line": 246,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 16776,
+            "utf16Offset": 16774,
+            "line": 248,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 16776,
+            "utf16Offset": 16774,
+            "line": 248,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 16778,
+            "utf16Offset": 16776,
+            "line": 250,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "act.build-ui",
+      "title": "Build the parameter control UI",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "action",
+      "features": [
+        "feat.param-ui"
+      ],
+      "requirements": [
+        "req.realtime-performance"
+      ],
+      "scope": "scope.step1-generation-core",
+      "stage": "implementation",
+      "action_type": "implementation",
+      "instructions": "Build the DOM control panel: sliders, color pickers, a randomize button, and orbit camera wiring. The UI emits updateDNA patches only.",
+      "applicability": "",
+      "definition_of_done": "Every DNA field is editable; randomize produces a valid in-range DNA; the UI never mutates renderer objects directly.",
+      "evidence_guidance": "",
+      "covers_rule_ids": [],
+      "occurrenceKey": "d0:b33",
+      "narrative": "\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 16778,
+            "utf16Offset": 16776,
+            "line": 250,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 17382,
+            "utf16Offset": 17380,
+            "line": 252,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 17382,
+            "utf16Offset": 17380,
+            "line": 252,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 17384,
+            "utf16Offset": 17382,
+            "line": 254,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "act.build-export",
+      "title": "Build the DNA code and PNG export",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "action",
+      "features": [
+        "feat.dna-export"
+      ],
+      "requirements": [
+        "req.serialize-roundtrip",
+        "req.export-extensibility",
+        "req.local-first"
+      ],
+      "scope": "scope.step1-generation-core",
+      "stage": "implementation",
+      "action_type": "implementation",
+      "instructions": "Implement the export module behind a common interface: emit the DNA code (copyable string) and a PNG portrait snapshot from the current camera. Structure it so a GLB target is additive.",
+      "applicability": "",
+      "definition_of_done": "Copying the DNA code and reproducing it yields the identical pet; PNG export captures the framed pet; the interface accepts an additional target without touching anatomy or coat code.",
+      "evidence_guidance": "",
+      "covers_rule_ids": [],
+      "occurrenceKey": "d0:b34",
+      "narrative": "\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 17384,
+            "utf16Offset": 17382,
+            "line": 254,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 18158,
+            "utf16Offset": 18156,
+            "line": 256,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 18158,
+            "utf16Offset": 18156,
+            "line": 256,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 18160,
+            "utf16Offset": 18158,
+            "line": 258,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "act.build-persistence",
+      "title": "Build local persistence",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "action",
+      "features": [
+        "feat.local-persistence"
+      ],
+      "requirements": [
+        "req.local-first"
+      ],
+      "scope": "scope.step1-generation-core",
+      "stage": "implementation",
+      "action_type": "implementation",
+      "instructions": "Persist the current DNA to localStorage on change and restore it on load, validating against the schema with a safe fallback to defaults.",
+      "applicability": "",
+      "definition_of_done": "Reloading restores the last pet exactly; corrupt or missing storage falls back to defaults without error.",
+      "evidence_guidance": "",
+      "covers_rule_ids": [],
+      "occurrenceKey": "d0:b35",
+      "narrative": "\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 18160,
+            "utf16Offset": 18158,
+            "line": 258,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 18757,
+            "utf16Offset": 18755,
+            "line": 260,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 18757,
+            "utf16Offset": 18755,
+            "line": 260,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 18759,
+            "utf16Offset": 18757,
+            "line": 262,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "act.verify-determinism",
+      "title": "Verify deterministic reproducibility",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "action",
+      "features": [
+        "feat.deterministic-seed"
+      ],
+      "requirements": [
+        "req.deterministic-reproducibility"
+      ],
+      "scope": "scope.step1-generation-core",
+      "stage": "verification",
+      "action_type": "verification",
+      "instructions": "Run the automated determinism checks: generate the same DNA twice and diff geometry hashes and PNG snapshots across reloads.",
+      "applicability": "",
+      "definition_of_done": "All determinism checks pass; a written summary records the hash comparison method and results.",
+      "evidence_guidance": "",
+      "covers_rule_ids": [],
+      "occurrenceKey": "d0:b36",
+      "narrative": "\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 18759,
+            "utf16Offset": 18757,
+            "line": 262,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 19361,
+            "utf16Offset": 19359,
+            "line": 264,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 19361,
+            "utf16Offset": 19359,
+            "line": 264,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 19363,
+            "utf16Offset": 19361,
+            "line": 266,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "act.document-dna-format",
+      "title": "Document the DNA codec format",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "action",
+      "features": [
+        "feat.dna-schema",
+        "feat.dna-export"
+      ],
+      "requirements": [
+        "req.serialize-roundtrip"
+      ],
+      "scope": null,
+      "stage": null,
+      "action_type": "documentation",
+      "instructions": "Write a short human-readable spec of the DNA codec (field order, ranges, encoding) so a pet can be re-derived from a code by other tools or engines without reading the TypeScript.",
+      "applicability": "",
+      "definition_of_done": "A Markdown spec exists beside dna.ts; a reader can reconstruct the field list and ranges from it alone.",
+      "evidence_guidance": "",
+      "covers_rule_ids": [],
+      "occurrenceKey": "d0:b37",
+      "narrative": "\n\nThis action is deliberately unscoped: it is lightweight documentation work that does not belong to a\ndevelopment stage.\n\n## Decisions\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 19363,
+            "utf16Offset": 19361,
+            "line": 266,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 19963,
+            "utf16Offset": 19961,
+            "line": 268,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 19963,
+            "utf16Offset": 19961,
+            "line": 268,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 20100,
+            "utf16Offset": 20098,
+            "line": 275,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "dec.stack-choice",
+      "title": "Use TypeScript, Three.js (WebGL2), Vite, and vanilla DOM",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "decision",
+      "features": [
+        "feat.dna-schema",
+        "feat.param-ui"
+      ],
+      "requirements": [
+        "req.local-first"
+      ],
+      "rationale": "TypeScript gives the DNA schema a compile-time contract; Three.js on WebGL2 runs anywhere with no install and is sufficient for stylized fur; Vite provides a zero-friction dev loop; vanilla DOM keeps the UI dependency-free. No backend keeps Step 1 local-first.",
+      "alternatives": [
+        "Raw WebGL2 (too much boilerplate for camera and orbit)",
+        "Babylon.js (heavier; its abstractions get in the way of custom shaders)",
+        "WebGPU (deferred; adds friction without benefit at this stage)",
+        "React or Svelte UI (unnecessary state complexity for sliders and pickers)"
+      ],
+      "occurrenceKey": "d0:b38",
+      "narrative": "\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 20100,
+            "utf16Offset": 20098,
+            "line": 275,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 20922,
+            "utf16Offset": 20920,
+            "line": 277,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Decisions"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 20922,
+            "utf16Offset": 20920,
+            "line": 277,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 20924,
+            "utf16Offset": 20922,
+            "line": 279,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Decisions"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "dec.seeded-rng",
+      "title": "Deterministic seeded PRNG instead of Math.random",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "decision",
+      "features": [
+        "feat.deterministic-seed"
+      ],
+      "requirements": [
+        "req.deterministic-reproducibility"
+      ],
+      "rationale": "A deterministic hash-based PRNG seeded from the DNA guarantees reproducibility and makes rarity and provenance auditable later. Math.random would break identical regeneration and shareable codes.",
+      "alternatives": [
+        "Math.random (non-deterministic, breaks reproducibility)",
+        "A noise npm package (adds a dependency for something trivial to author)"
+      ],
+      "occurrenceKey": "d0:b39",
+      "narrative": "\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 20924,
+            "utf16Offset": 20922,
+            "line": 279,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 21541,
+            "utf16Offset": 21539,
+            "line": 281,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Decisions"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 21541,
+            "utf16Offset": 21539,
+            "line": 281,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 21543,
+            "utf16Offset": 21541,
+            "line": 283,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Decisions"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "dec.rig-compatible-geometry",
+      "title": "Build geometry rig-compatible from day one",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "decision",
+      "features": [
+        "feat.procedural-anatomy"
+      ],
+      "requirements": [
+        "req.anatomy-variety",
+        "req.clean-room"
+      ],
+      "rationale": "The pet must eventually walk and jump (Step 2), so the vertex layout and bone-influence structure are designed now even though Step 1 is static. This avoids a full geometry rebuild later.",
+      "alternatives": [
+        "Static one-off sculpt (fast now, requires a full rebuild for animation)"
+      ],
+      "occurrenceKey": "d0:b40",
+      "narrative": "\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 21543,
+            "utf16Offset": 21541,
+            "line": 283,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 22104,
+            "utf16Offset": 22102,
+            "line": 285,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Decisions"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 22104,
+            "utf16Offset": 22102,
+            "line": 285,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 22106,
+            "utf16Offset": 22104,
+            "line": 287,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Decisions"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "dec.export-interface",
+      "title": "DNA code and PNG now, GLB additive later",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "decision",
+      "features": [
+        "feat.dna-export"
+      ],
+      "requirements": [
+        "req.export-extensibility"
+      ],
+      "rationale": "Shipping DNA code and PNG snapshot behind a common export interface satisfies the immediate share-and-reproduce need while making GLB model export an additive target rather than a rearchitecture.",
+      "alternatives": [
+        "Build GLB export now (more work before the core is proven)",
+        "No export (blocks sharing and reproducibility)"
+      ],
+      "occurrenceKey": "d0:b41",
+      "narrative": "\n\n## Planned checks\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 22106,
+            "utf16Offset": 22104,
+            "line": 287,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 22682,
+            "utf16Offset": 22680,
+            "line": 289,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Decisions"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 22682,
+            "utf16Offset": 22680,
+            "line": 289,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 22703,
+            "utf16Offset": 22701,
+            "line": 293,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Decisions"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "check.determinism",
+      "title": "Deterministic reproducibility check",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "check",
+      "requirements": [
+        "req.deterministic-reproducibility"
+      ],
+      "method": "automated",
+      "expected": [
+        "Two generations from the same DNA string produce identical geometry hashes",
+        "PNG snapshots are pixel-identical across reloads"
+      ],
+      "instructions": "Script generates each DNA twice and compares vertex buffers and rendered framebuffers.",
+      "occurrenceKey": "d0:b42",
+      "narrative": "\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 22703,
+            "utf16Offset": 22701,
+            "line": 293,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 23175,
+            "utf16Offset": 23173,
+            "line": 295,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Planned checks"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 23175,
+            "utf16Offset": 23173,
+            "line": 295,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 23177,
+            "utf16Offset": 23175,
+            "line": 297,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Planned checks"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "check.dna-roundtrip",
+      "title": "DNA code round-trip check",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "check",
+      "requirements": [
+        "req.serialize-roundtrip"
+      ],
+      "method": "automated",
+      "expected": [
+        "serialize(deserialize(code)) equals code for a fixture of codes",
+        "Malformed codes are rejected without throwing"
+      ],
+      "instructions": "Unit tests iterate a fixture set of DNA codes.",
+      "occurrenceKey": "d0:b43",
+      "narrative": "\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 23177,
+            "utf16Offset": 23175,
+            "line": 297,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 23577,
+            "utf16Offset": 23575,
+            "line": 299,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Planned checks"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 23577,
+            "utf16Offset": 23575,
+            "line": 299,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 23579,
+            "utf16Offset": 23577,
+            "line": 301,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Planned checks"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "check.anatomy-variety",
+      "title": "Anatomy variety check",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "check",
+      "requirements": [
+        "req.anatomy-variety"
+      ],
+      "method": "manual",
+      "expected": [
+        "Sweeping each proportion slider produces clearly different silhouettes",
+        "No parameter leaves the mesh visually unchanged across its range"
+      ],
+      "instructions": "A human sweeps sliders and confirms visible change for each parameter.",
+      "occurrenceKey": "d0:b44",
+      "narrative": "\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 23579,
+            "utf16Offset": 23577,
+            "line": 301,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 24020,
+            "utf16Offset": 24018,
+            "line": 303,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Planned checks"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 24020,
+            "utf16Offset": 24018,
+            "line": 303,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 24022,
+            "utf16Offset": 24020,
+            "line": 305,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Planned checks"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "check.performance",
+      "title": "Real-time performance check",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "check",
+      "requirements": [
+        "req.realtime-performance"
+      ],
+      "method": "automated",
+      "expected": [
+        "60 FPS sustained at 2x DPR on a mid-tier GPU",
+        "Frame times remain within budget during regeneration"
+      ],
+      "instructions": "Instrument the loop with a frame-time histogram and run on a reference device.",
+      "occurrenceKey": "d0:b45",
+      "narrative": "\n\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 24022,
+            "utf16Offset": 24020,
+            "line": 305,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 24443,
+            "utf16Offset": 24441,
+            "line": 307,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Planned checks"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 24443,
+            "utf16Offset": 24441,
+            "line": 307,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 24445,
+            "utf16Offset": 24443,
+            "line": 309,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Planned checks"
+        ]
+      }
+    },
+    {
+      "ptb": "0.2",
+      "id": "check.pattern-seams",
+      "title": "Coat pattern seam check",
+      "project": "proj.vivarium-3d-pet-generator",
+      "kind": "check",
+      "requirements": [
+        "req.visual-consistency"
+      ],
+      "method": "manual",
+      "expected": [
+        "No UV seams or banding across any pattern family",
+        "Gradients are smooth under orbit"
+      ],
+      "instructions": "A human orbits the pet and inspects each pattern family for seams and banding.",
+      "occurrenceKey": "d0:b46",
+      "narrative": "\n",
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 24445,
+            "utf16Offset": 24443,
+            "line": 309,
+            "column": 1
+          },
+          "end": {
+            "byteOffset": 24843,
+            "utf16Offset": 24841,
+            "line": 311,
+            "column": 4
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Planned checks"
+        ]
+      },
+      "narrativeSource": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 24843,
+            "utf16Offset": 24841,
+            "line": 311,
+            "column": 4
+          },
+          "end": {
+            "byteOffset": 24844,
+            "utf16Offset": 24842,
+            "line": 312,
+            "column": 1
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Planned checks"
+        ]
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "id": "link:d0:b4:parent-component:/parent",
+      "fromKey": "d0:b4",
+      "relation": "parent-component",
+      "targetId": "cmp.anatomy",
+      "expectedKind": "component",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b3"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 2644,
+            "utf16Offset": 2642,
+            "line": 50,
+            "column": 151
+          },
+          "end": {
+            "byteOffset": 2657,
+            "utf16Offset": 2655,
+            "line": 50,
+            "column": 164
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b6:parent-component:/parent",
+      "fromKey": "d0:b6",
+      "relation": "parent-component",
+      "targetId": "cmp.coat",
+      "expectedKind": "component",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b5"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 3319,
+            "utf16Offset": 3317,
+            "line": 65,
+            "column": 144
+          },
+          "end": {
+            "byteOffset": 3329,
+            "utf16Offset": 3327,
+            "line": 65,
+            "column": 154
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Components"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b10:primary-component:/component",
+      "fromKey": "d0:b10",
+      "relation": "primary-component",
+      "targetId": "cmp.dna",
+      "expectedKind": "component",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b1"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 4508,
+            "utf16Offset": 4506,
+            "line": 95,
+            "column": 134
+          },
+          "end": {
+            "byteOffset": 4517,
+            "utf16Offset": 4515,
+            "line": 95,
+            "column": 143
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b11:primary-component:/component",
+      "fromKey": "d0:b11",
+      "relation": "primary-component",
+      "targetId": "cmp.dna",
+      "expectedKind": "component",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b1"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 4858,
+            "utf16Offset": 4856,
+            "line": 102,
+            "column": 159
+          },
+          "end": {
+            "byteOffset": 4867,
+            "utf16Offset": 4865,
+            "line": 102,
+            "column": 168
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b12:primary-component:/component",
+      "fromKey": "d0:b12",
+      "relation": "primary-component",
+      "targetId": "cmp.anatomy",
+      "expectedKind": "component",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b3"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 5188,
+            "utf16Offset": 5186,
+            "line": 109,
+            "column": 146
+          },
+          "end": {
+            "byteOffset": 5201,
+            "utf16Offset": 5199,
+            "line": 109,
+            "column": 159
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b13:primary-component:/component",
+      "fromKey": "d0:b13",
+      "relation": "primary-component",
+      "targetId": "cmp.coat",
+      "expectedKind": "component",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b5"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 5498,
+            "utf16Offset": 5496,
+            "line": 116,
+            "column": 147
+          },
+          "end": {
+            "byteOffset": 5508,
+            "utf16Offset": 5506,
+            "line": 116,
+            "column": 157
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b14:primary-component:/component",
+      "fromKey": "d0:b14",
+      "relation": "primary-component",
+      "targetId": "cmp.ui",
+      "expectedKind": "component",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b8"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 5793,
+            "utf16Offset": 5791,
+            "line": 123,
+            "column": 138
+          },
+          "end": {
+            "byteOffset": 5801,
+            "utf16Offset": 5799,
+            "line": 123,
+            "column": 146
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b15:primary-component:/component",
+      "fromKey": "d0:b15",
+      "relation": "primary-component",
+      "targetId": "cmp.state",
+      "expectedKind": "component",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b2"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 6074,
+            "utf16Offset": 6072,
+            "line": 130,
+            "column": 144
+          },
+          "end": {
+            "byteOffset": 6085,
+            "utf16Offset": 6083,
+            "line": 130,
+            "column": 155
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b16:primary-component:/component",
+      "fromKey": "d0:b16",
+      "relation": "primary-component",
+      "targetId": "cmp.export",
+      "expectedKind": "component",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b9"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 6361,
+            "utf16Offset": 6359,
+            "line": 137,
+            "column": 148
+          },
+          "end": {
+            "byteOffset": 6373,
+            "utf16Offset": 6371,
+            "line": 137,
+            "column": 160
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Features"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b17:applies-to-feature:/features/0",
+      "fromKey": "d0:b17",
+      "relation": "applies-to-feature",
+      "targetId": "feat.dna-schema",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b10"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 6683,
+            "utf16Offset": 6681,
+            "line": 146,
+            "column": 164
+          },
+          "end": {
+            "byteOffset": 6700,
+            "utf16Offset": 6698,
+            "line": 146,
+            "column": 181
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b18:applies-to-feature:/features/0",
+      "fromKey": "d0:b18",
+      "relation": "applies-to-feature",
+      "targetId": "feat.deterministic-seed",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b11"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 7302,
+            "utf16Offset": 7300,
+            "line": 153,
+            "column": 179
+          },
+          "end": {
+            "byteOffset": 7327,
+            "utf16Offset": 7325,
+            "line": 153,
+            "column": 204
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b18:applies-to-feature:/features/1",
+      "fromKey": "d0:b18",
+      "relation": "applies-to-feature",
+      "targetId": "feat.dna-schema",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b10"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 7328,
+            "utf16Offset": 7326,
+            "line": 153,
+            "column": 205
+          },
+          "end": {
+            "byteOffset": 7345,
+            "utf16Offset": 7343,
+            "line": 153,
+            "column": 222
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b18:applies-to-feature:/features/2",
+      "fromKey": "d0:b18",
+      "relation": "applies-to-feature",
+      "targetId": "feat.procedural-anatomy",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b12"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 7346,
+            "utf16Offset": 7344,
+            "line": 153,
+            "column": 223
+          },
+          "end": {
+            "byteOffset": 7371,
+            "utf16Offset": 7369,
+            "line": 153,
+            "column": 248
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b18:applies-to-feature:/features/3",
+      "fromKey": "d0:b18",
+      "relation": "applies-to-feature",
+      "targetId": "feat.coat-patterns",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b13"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 7372,
+            "utf16Offset": 7370,
+            "line": 153,
+            "column": 249
+          },
+          "end": {
+            "byteOffset": 7392,
+            "utf16Offset": 7390,
+            "line": 153,
+            "column": 269
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b19:applies-to-feature:/features/0",
+      "fromKey": "d0:b19",
+      "relation": "applies-to-feature",
+      "targetId": "feat.procedural-anatomy",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b12"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 8039,
+            "utf16Offset": 8037,
+            "line": 160,
+            "column": 170
+          },
+          "end": {
+            "byteOffset": 8064,
+            "utf16Offset": 8062,
+            "line": 160,
+            "column": 195
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b20:applies-to-feature:/features/0",
+      "fromKey": "d0:b20",
+      "relation": "applies-to-feature",
+      "targetId": "feat.coat-patterns",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b13"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 8611,
+            "utf16Offset": 8609,
+            "line": 167,
+            "column": 160
+          },
+          "end": {
+            "byteOffset": 8631,
+            "utf16Offset": 8629,
+            "line": 167,
+            "column": 180
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b21:applies-to-feature:/features/0",
+      "fromKey": "d0:b21",
+      "relation": "applies-to-feature",
+      "targetId": "feat.dna-schema",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b10"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 9192,
+            "utf16Offset": 9190,
+            "line": 174,
+            "column": 163
+          },
+          "end": {
+            "byteOffset": 9209,
+            "utf16Offset": 9207,
+            "line": 174,
+            "column": 180
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b21:applies-to-feature:/features/1",
+      "fromKey": "d0:b21",
+      "relation": "applies-to-feature",
+      "targetId": "feat.dna-export",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b16"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 9210,
+            "utf16Offset": 9208,
+            "line": 174,
+            "column": 181
+          },
+          "end": {
+            "byteOffset": 9227,
+            "utf16Offset": 9225,
+            "line": 174,
+            "column": 198
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b22:applies-to-feature:/features/0",
+      "fromKey": "d0:b22",
+      "relation": "applies-to-feature",
+      "targetId": "feat.param-ui",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b14"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 9717,
+            "utf16Offset": 9715,
+            "line": 180,
+            "column": 164
+          },
+          "end": {
+            "byteOffset": 9732,
+            "utf16Offset": 9730,
+            "line": 180,
+            "column": 179
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b22:applies-to-feature:/features/1",
+      "fromKey": "d0:b22",
+      "relation": "applies-to-feature",
+      "targetId": "feat.procedural-anatomy",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b12"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 9733,
+            "utf16Offset": 9731,
+            "line": 180,
+            "column": 180
+          },
+          "end": {
+            "byteOffset": 9758,
+            "utf16Offset": 9756,
+            "line": 180,
+            "column": 205
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b22:applies-to-feature:/features/2",
+      "fromKey": "d0:b22",
+      "relation": "applies-to-feature",
+      "targetId": "feat.coat-patterns",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b13"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 9759,
+            "utf16Offset": 9757,
+            "line": 180,
+            "column": 206
+          },
+          "end": {
+            "byteOffset": 9779,
+            "utf16Offset": 9777,
+            "line": 180,
+            "column": 226
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b23:applies-to-feature:/features/0",
+      "fromKey": "d0:b23",
+      "relation": "applies-to-feature",
+      "targetId": "feat.coat-patterns",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b13"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 10264,
+            "utf16Offset": 10262,
+            "line": 186,
+            "column": 156
+          },
+          "end": {
+            "byteOffset": 10284,
+            "utf16Offset": 10282,
+            "line": 186,
+            "column": 176
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b24:applies-to-feature:/features/0",
+      "fromKey": "d0:b24",
+      "relation": "applies-to-feature",
+      "targetId": "feat.local-persistence",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b15"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 10749,
+            "utf16Offset": 10747,
+            "line": 192,
+            "column": 152
+          },
+          "end": {
+            "byteOffset": 10773,
+            "utf16Offset": 10771,
+            "line": 192,
+            "column": 176
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b24:applies-to-feature:/features/1",
+      "fromKey": "d0:b24",
+      "relation": "applies-to-feature",
+      "targetId": "feat.dna-export",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b16"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 10774,
+            "utf16Offset": 10772,
+            "line": 192,
+            "column": 177
+          },
+          "end": {
+            "byteOffset": 10791,
+            "utf16Offset": 10789,
+            "line": 192,
+            "column": 194
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b25:applies-to-feature:/features/0",
+      "fromKey": "d0:b25",
+      "relation": "applies-to-feature",
+      "targetId": "feat.procedural-anatomy",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b12"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 11272,
+            "utf16Offset": 11270,
+            "line": 199,
+            "column": 158
+          },
+          "end": {
+            "byteOffset": 11297,
+            "utf16Offset": 11295,
+            "line": 199,
+            "column": 183
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b25:applies-to-feature:/features/1",
+      "fromKey": "d0:b25",
+      "relation": "applies-to-feature",
+      "targetId": "feat.coat-patterns",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b13"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 11298,
+            "utf16Offset": 11296,
+            "line": 199,
+            "column": 184
+          },
+          "end": {
+            "byteOffset": 11318,
+            "utf16Offset": 11316,
+            "line": 199,
+            "column": 204
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b25:applies-to-feature:/features/2",
+      "fromKey": "d0:b25",
+      "relation": "applies-to-feature",
+      "targetId": "feat.dna-schema",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b10"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 11319,
+            "utf16Offset": 11317,
+            "line": 199,
+            "column": 205
+          },
+          "end": {
+            "byteOffset": 11336,
+            "utf16Offset": 11334,
+            "line": 199,
+            "column": 222
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b26:applies-to-feature:/features/0",
+      "fromKey": "d0:b26",
+      "relation": "applies-to-feature",
+      "targetId": "feat.dna-export",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b16"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 11874,
+            "utf16Offset": 11872,
+            "line": 206,
+            "column": 161
+          },
+          "end": {
+            "byteOffset": 11891,
+            "utf16Offset": 11889,
+            "line": 206,
+            "column": 178
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Requirements"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b27:concerns-feature:/features/0",
+      "fromKey": "d0:b27",
+      "relation": "concerns-feature",
+      "targetId": "feat.dna-schema",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b10"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 12461,
+            "utf16Offset": 12459,
+            "line": 215,
+            "column": 154
+          },
+          "end": {
+            "byteOffset": 12478,
+            "utf16Offset": 12476,
+            "line": 215,
+            "column": 171
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Development scope"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b27:concerns-feature:/features/1",
+      "fromKey": "d0:b27",
+      "relation": "concerns-feature",
+      "targetId": "feat.deterministic-seed",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b11"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 12479,
+            "utf16Offset": 12477,
+            "line": 215,
+            "column": 172
+          },
+          "end": {
+            "byteOffset": 12504,
+            "utf16Offset": 12502,
+            "line": 215,
+            "column": 197
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Development scope"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b27:concerns-feature:/features/2",
+      "fromKey": "d0:b27",
+      "relation": "concerns-feature",
+      "targetId": "feat.procedural-anatomy",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b12"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 12505,
+            "utf16Offset": 12503,
+            "line": 215,
+            "column": 198
+          },
+          "end": {
+            "byteOffset": 12530,
+            "utf16Offset": 12528,
+            "line": 215,
+            "column": 223
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Development scope"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b27:concerns-feature:/features/3",
+      "fromKey": "d0:b27",
+      "relation": "concerns-feature",
+      "targetId": "feat.coat-patterns",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b13"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 12531,
+            "utf16Offset": 12529,
+            "line": 215,
+            "column": 224
+          },
+          "end": {
+            "byteOffset": 12551,
+            "utf16Offset": 12549,
+            "line": 215,
+            "column": 244
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Development scope"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b27:concerns-feature:/features/4",
+      "fromKey": "d0:b27",
+      "relation": "concerns-feature",
+      "targetId": "feat.param-ui",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b14"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 12552,
+            "utf16Offset": 12550,
+            "line": 215,
+            "column": 245
+          },
+          "end": {
+            "byteOffset": 12567,
+            "utf16Offset": 12565,
+            "line": 215,
+            "column": 260
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Development scope"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b27:concerns-feature:/features/5",
+      "fromKey": "d0:b27",
+      "relation": "concerns-feature",
+      "targetId": "feat.local-persistence",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b15"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 12568,
+            "utf16Offset": 12566,
+            "line": 215,
+            "column": 261
+          },
+          "end": {
+            "byteOffset": 12592,
+            "utf16Offset": 12590,
+            "line": 215,
+            "column": 285
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Development scope"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b27:concerns-feature:/features/6",
+      "fromKey": "d0:b27",
+      "relation": "concerns-feature",
+      "targetId": "feat.dna-export",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b16"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 12593,
+            "utf16Offset": 12591,
+            "line": 215,
+            "column": 286
+          },
+          "end": {
+            "byteOffset": 12610,
+            "utf16Offset": 12608,
+            "line": 215,
+            "column": 303
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Development scope"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b28:concerns-feature:/features/0",
+      "fromKey": "d0:b28",
+      "relation": "concerns-feature",
+      "targetId": "feat.dna-schema",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b10"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 13269,
+            "utf16Offset": 13267,
+            "line": 225,
+            "column": 159
+          },
+          "end": {
+            "byteOffset": 13286,
+            "utf16Offset": 13284,
+            "line": 225,
+            "column": 176
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b28:addresses-requirement:/requirements/0",
+      "fromKey": "d0:b28",
+      "relation": "addresses-requirement",
+      "targetId": "req.dna-completeness",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b17"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 13304,
+            "utf16Offset": 13302,
+            "line": 225,
+            "column": 194
+          },
+          "end": {
+            "byteOffset": 13326,
+            "utf16Offset": 13324,
+            "line": 225,
+            "column": 216
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b28:addresses-requirement:/requirements/1",
+      "fromKey": "d0:b28",
+      "relation": "addresses-requirement",
+      "targetId": "req.serialize-roundtrip",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b21"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 13327,
+            "utf16Offset": 13325,
+            "line": 225,
+            "column": 217
+          },
+          "end": {
+            "byteOffset": 13352,
+            "utf16Offset": 13350,
+            "line": 225,
+            "column": 242
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b28:concerns-scope:/scope",
+      "fromKey": "d0:b28",
+      "relation": "concerns-scope",
+      "targetId": "scope.step1-generation-core",
+      "expectedKind": "scope",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b27"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 13362,
+            "utf16Offset": 13360,
+            "line": 225,
+            "column": 252
+          },
+          "end": {
+            "byteOffset": 13391,
+            "utf16Offset": 13389,
+            "line": 225,
+            "column": 281
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b29:concerns-feature:/features/0",
+      "fromKey": "d0:b29",
+      "relation": "concerns-feature",
+      "targetId": "feat.deterministic-seed",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b11"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 14058,
+            "utf16Offset": 14056,
+            "line": 231,
+            "column": 167
+          },
+          "end": {
+            "byteOffset": 14083,
+            "utf16Offset": 14081,
+            "line": 231,
+            "column": 192
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b29:addresses-requirement:/requirements/0",
+      "fromKey": "d0:b29",
+      "relation": "addresses-requirement",
+      "targetId": "req.deterministic-reproducibility",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b18"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 14101,
+            "utf16Offset": 14099,
+            "line": 231,
+            "column": 210
+          },
+          "end": {
+            "byteOffset": 14136,
+            "utf16Offset": 14134,
+            "line": 231,
+            "column": 245
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b29:concerns-scope:/scope",
+      "fromKey": "d0:b29",
+      "relation": "concerns-scope",
+      "targetId": "scope.step1-generation-core",
+      "expectedKind": "scope",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b27"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 14146,
+            "utf16Offset": 14144,
+            "line": 231,
+            "column": 255
+          },
+          "end": {
+            "byteOffset": 14175,
+            "utf16Offset": 14173,
+            "line": 231,
+            "column": 284
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b30:concerns-feature:/features/0",
+      "fromKey": "d0:b30",
+      "relation": "concerns-feature",
+      "targetId": "feat.dna-schema",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b10"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 14835,
+            "utf16Offset": 14833,
+            "line": 237,
+            "column": 168
+          },
+          "end": {
+            "byteOffset": 14852,
+            "utf16Offset": 14850,
+            "line": 237,
+            "column": 185
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b30:addresses-requirement:/requirements/0",
+      "fromKey": "d0:b30",
+      "relation": "addresses-requirement",
+      "targetId": "req.dna-completeness",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b17"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 14870,
+            "utf16Offset": 14868,
+            "line": 237,
+            "column": 203
+          },
+          "end": {
+            "byteOffset": 14892,
+            "utf16Offset": 14890,
+            "line": 237,
+            "column": 225
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b30:concerns-scope:/scope",
+      "fromKey": "d0:b30",
+      "relation": "concerns-scope",
+      "targetId": "scope.step1-generation-core",
+      "expectedKind": "scope",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b27"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 14902,
+            "utf16Offset": 14900,
+            "line": 237,
+            "column": 235
+          },
+          "end": {
+            "byteOffset": 14931,
+            "utf16Offset": 14929,
+            "line": 237,
+            "column": 264
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b31:concerns-feature:/features/0",
+      "fromKey": "d0:b31",
+      "relation": "concerns-feature",
+      "targetId": "feat.procedural-anatomy",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b12"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 15529,
+            "utf16Offset": 15527,
+            "line": 243,
+            "column": 159
+          },
+          "end": {
+            "byteOffset": 15554,
+            "utf16Offset": 15552,
+            "line": 243,
+            "column": 184
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b31:addresses-requirement:/requirements/0",
+      "fromKey": "d0:b31",
+      "relation": "addresses-requirement",
+      "targetId": "req.anatomy-variety",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b19"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 15572,
+            "utf16Offset": 15570,
+            "line": 243,
+            "column": 202
+          },
+          "end": {
+            "byteOffset": 15593,
+            "utf16Offset": 15591,
+            "line": 243,
+            "column": 223
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b31:addresses-requirement:/requirements/1",
+      "fromKey": "d0:b31",
+      "relation": "addresses-requirement",
+      "targetId": "req.clean-room",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b25"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 15594,
+            "utf16Offset": 15592,
+            "line": 243,
+            "column": 224
+          },
+          "end": {
+            "byteOffset": 15610,
+            "utf16Offset": 15608,
+            "line": 243,
+            "column": 240
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b31:concerns-scope:/scope",
+      "fromKey": "d0:b31",
+      "relation": "concerns-scope",
+      "targetId": "scope.step1-generation-core",
+      "expectedKind": "scope",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b27"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 15620,
+            "utf16Offset": 15618,
+            "line": 243,
+            "column": 250
+          },
+          "end": {
+            "byteOffset": 15649,
+            "utf16Offset": 15647,
+            "line": 243,
+            "column": 279
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b32:concerns-feature:/features/0",
+      "fromKey": "d0:b32",
+      "relation": "concerns-feature",
+      "targetId": "feat.coat-patterns",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b13"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 16240,
+            "utf16Offset": 16238,
+            "line": 247,
+            "column": 159
+          },
+          "end": {
+            "byteOffset": 16260,
+            "utf16Offset": 16258,
+            "line": 247,
+            "column": 179
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b32:addresses-requirement:/requirements/0",
+      "fromKey": "d0:b32",
+      "relation": "addresses-requirement",
+      "targetId": "req.pattern-rendering",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b20"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 16278,
+            "utf16Offset": 16276,
+            "line": 247,
+            "column": 197
+          },
+          "end": {
+            "byteOffset": 16301,
+            "utf16Offset": 16299,
+            "line": 247,
+            "column": 220
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b32:addresses-requirement:/requirements/1",
+      "fromKey": "d0:b32",
+      "relation": "addresses-requirement",
+      "targetId": "req.visual-consistency",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b23"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 16302,
+            "utf16Offset": 16300,
+            "line": 247,
+            "column": 221
+          },
+          "end": {
+            "byteOffset": 16326,
+            "utf16Offset": 16324,
+            "line": 247,
+            "column": 245
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b32:addresses-requirement:/requirements/2",
+      "fromKey": "d0:b32",
+      "relation": "addresses-requirement",
+      "targetId": "req.clean-room",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b25"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 16327,
+            "utf16Offset": 16325,
+            "line": 247,
+            "column": 246
+          },
+          "end": {
+            "byteOffset": 16343,
+            "utf16Offset": 16341,
+            "line": 247,
+            "column": 262
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b32:concerns-scope:/scope",
+      "fromKey": "d0:b32",
+      "relation": "concerns-scope",
+      "targetId": "scope.step1-generation-core",
+      "expectedKind": "scope",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b27"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 16353,
+            "utf16Offset": 16351,
+            "line": 247,
+            "column": 272
+          },
+          "end": {
+            "byteOffset": 16382,
+            "utf16Offset": 16380,
+            "line": 247,
+            "column": 301
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b33:concerns-feature:/features/0",
+      "fromKey": "d0:b33",
+      "relation": "concerns-feature",
+      "targetId": "feat.param-ui",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b14"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 16930,
+            "utf16Offset": 16928,
+            "line": 251,
+            "column": 146
+          },
+          "end": {
+            "byteOffset": 16945,
+            "utf16Offset": 16943,
+            "line": 251,
+            "column": 161
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b33:addresses-requirement:/requirements/0",
+      "fromKey": "d0:b33",
+      "relation": "addresses-requirement",
+      "targetId": "req.realtime-performance",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b22"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 16963,
+            "utf16Offset": 16961,
+            "line": 251,
+            "column": 179
+          },
+          "end": {
+            "byteOffset": 16989,
+            "utf16Offset": 16987,
+            "line": 251,
+            "column": 205
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b33:concerns-scope:/scope",
+      "fromKey": "d0:b33",
+      "relation": "concerns-scope",
+      "targetId": "scope.step1-generation-core",
+      "expectedKind": "scope",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b27"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 16999,
+            "utf16Offset": 16997,
+            "line": 251,
+            "column": 215
+          },
+          "end": {
+            "byteOffset": 17028,
+            "utf16Offset": 17026,
+            "line": 251,
+            "column": 244
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b34:concerns-feature:/features/0",
+      "fromKey": "d0:b34",
+      "relation": "concerns-feature",
+      "targetId": "feat.dna-export",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b16"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 17543,
+            "utf16Offset": 17541,
+            "line": 255,
+            "column": 153
+          },
+          "end": {
+            "byteOffset": 17560,
+            "utf16Offset": 17558,
+            "line": 255,
+            "column": 170
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b34:addresses-requirement:/requirements/0",
+      "fromKey": "d0:b34",
+      "relation": "addresses-requirement",
+      "targetId": "req.serialize-roundtrip",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b21"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 17578,
+            "utf16Offset": 17576,
+            "line": 255,
+            "column": 188
+          },
+          "end": {
+            "byteOffset": 17603,
+            "utf16Offset": 17601,
+            "line": 255,
+            "column": 213
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b34:addresses-requirement:/requirements/1",
+      "fromKey": "d0:b34",
+      "relation": "addresses-requirement",
+      "targetId": "req.export-extensibility",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b26"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 17604,
+            "utf16Offset": 17602,
+            "line": 255,
+            "column": 214
+          },
+          "end": {
+            "byteOffset": 17630,
+            "utf16Offset": 17628,
+            "line": 255,
+            "column": 240
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b34:addresses-requirement:/requirements/2",
+      "fromKey": "d0:b34",
+      "relation": "addresses-requirement",
+      "targetId": "req.local-first",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b24"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 17631,
+            "utf16Offset": 17629,
+            "line": 255,
+            "column": 241
+          },
+          "end": {
+            "byteOffset": 17648,
+            "utf16Offset": 17646,
+            "line": 255,
+            "column": 258
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b34:concerns-scope:/scope",
+      "fromKey": "d0:b34",
+      "relation": "concerns-scope",
+      "targetId": "scope.step1-generation-core",
+      "expectedKind": "scope",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b27"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 17658,
+            "utf16Offset": 17656,
+            "line": 255,
+            "column": 268
+          },
+          "end": {
+            "byteOffset": 17687,
+            "utf16Offset": 17685,
+            "line": 255,
+            "column": 297
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b35:concerns-feature:/features/0",
+      "fromKey": "d0:b35",
+      "relation": "concerns-feature",
+      "targetId": "feat.local-persistence",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b15"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 18314,
+            "utf16Offset": 18312,
+            "line": 259,
+            "column": 148
+          },
+          "end": {
+            "byteOffset": 18338,
+            "utf16Offset": 18336,
+            "line": 259,
+            "column": 172
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b35:addresses-requirement:/requirements/0",
+      "fromKey": "d0:b35",
+      "relation": "addresses-requirement",
+      "targetId": "req.local-first",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b24"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 18356,
+            "utf16Offset": 18354,
+            "line": 259,
+            "column": 190
+          },
+          "end": {
+            "byteOffset": 18373,
+            "utf16Offset": 18371,
+            "line": 259,
+            "column": 207
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b35:concerns-scope:/scope",
+      "fromKey": "d0:b35",
+      "relation": "concerns-scope",
+      "targetId": "scope.step1-generation-core",
+      "expectedKind": "scope",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b27"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 18383,
+            "utf16Offset": 18381,
+            "line": 259,
+            "column": 217
+          },
+          "end": {
+            "byteOffset": 18412,
+            "utf16Offset": 18410,
+            "line": 259,
+            "column": 246
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b36:concerns-feature:/features/0",
+      "fromKey": "d0:b36",
+      "relation": "concerns-feature",
+      "targetId": "feat.deterministic-seed",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b11"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 18927,
+            "utf16Offset": 18925,
+            "line": 263,
+            "column": 162
+          },
+          "end": {
+            "byteOffset": 18952,
+            "utf16Offset": 18950,
+            "line": 263,
+            "column": 187
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b36:addresses-requirement:/requirements/0",
+      "fromKey": "d0:b36",
+      "relation": "addresses-requirement",
+      "targetId": "req.deterministic-reproducibility",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b18"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 18970,
+            "utf16Offset": 18968,
+            "line": 263,
+            "column": 205
+          },
+          "end": {
+            "byteOffset": 19005,
+            "utf16Offset": 19003,
+            "line": 263,
+            "column": 240
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b36:concerns-scope:/scope",
+      "fromKey": "d0:b36",
+      "relation": "concerns-scope",
+      "targetId": "scope.step1-generation-core",
+      "expectedKind": "scope",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b27"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 19015,
+            "utf16Offset": 19013,
+            "line": 263,
+            "column": 250
+          },
+          "end": {
+            "byteOffset": 19044,
+            "utf16Offset": 19042,
+            "line": 263,
+            "column": 279
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b37:concerns-feature:/features/0",
+      "fromKey": "d0:b37",
+      "relation": "concerns-feature",
+      "targetId": "feat.dna-schema",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b10"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 19525,
+            "utf16Offset": 19523,
+            "line": 267,
+            "column": 156
+          },
+          "end": {
+            "byteOffset": 19542,
+            "utf16Offset": 19540,
+            "line": 267,
+            "column": 173
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b37:concerns-feature:/features/1",
+      "fromKey": "d0:b37",
+      "relation": "concerns-feature",
+      "targetId": "feat.dna-export",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b16"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 19543,
+            "utf16Offset": 19541,
+            "line": 267,
+            "column": 174
+          },
+          "end": {
+            "byteOffset": 19560,
+            "utf16Offset": 19558,
+            "line": 267,
+            "column": 191
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b37:addresses-requirement:/requirements/0",
+      "fromKey": "d0:b37",
+      "relation": "addresses-requirement",
+      "targetId": "req.serialize-roundtrip",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b21"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 19578,
+            "utf16Offset": 19576,
+            "line": 267,
+            "column": 209
+          },
+          "end": {
+            "byteOffset": 19603,
+            "utf16Offset": 19601,
+            "line": 267,
+            "column": 234
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Actions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b38:affects-feature:/features/0",
+      "fromKey": "d0:b38",
+      "relation": "affects-feature",
+      "targetId": "feat.dna-schema",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b10"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 20284,
+            "utf16Offset": 20282,
+            "line": 276,
+            "column": 178
+          },
+          "end": {
+            "byteOffset": 20301,
+            "utf16Offset": 20299,
+            "line": 276,
+            "column": 195
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Decisions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b38:affects-feature:/features/1",
+      "fromKey": "d0:b38",
+      "relation": "affects-feature",
+      "targetId": "feat.param-ui",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b14"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 20302,
+            "utf16Offset": 20300,
+            "line": 276,
+            "column": 196
+          },
+          "end": {
+            "byteOffset": 20317,
+            "utf16Offset": 20315,
+            "line": 276,
+            "column": 211
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Decisions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b38:affects-requirement:/requirements/0",
+      "fromKey": "d0:b38",
+      "relation": "affects-requirement",
+      "targetId": "req.local-first",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b24"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 20335,
+            "utf16Offset": 20333,
+            "line": 276,
+            "column": 229
+          },
+          "end": {
+            "byteOffset": 20352,
+            "utf16Offset": 20350,
+            "line": 276,
+            "column": 246
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Decisions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b39:affects-feature:/features/0",
+      "fromKey": "d0:b39",
+      "relation": "affects-feature",
+      "targetId": "feat.deterministic-seed",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b11"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 21098,
+            "utf16Offset": 21096,
+            "line": 280,
+            "column": 168
+          },
+          "end": {
+            "byteOffset": 21123,
+            "utf16Offset": 21121,
+            "line": 280,
+            "column": 193
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Decisions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b39:affects-requirement:/requirements/0",
+      "fromKey": "d0:b39",
+      "relation": "affects-requirement",
+      "targetId": "req.deterministic-reproducibility",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b18"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 21141,
+            "utf16Offset": 21139,
+            "line": 280,
+            "column": 211
+          },
+          "end": {
+            "byteOffset": 21176,
+            "utf16Offset": 21174,
+            "line": 280,
+            "column": 246
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Decisions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b40:affects-feature:/features/0",
+      "fromKey": "d0:b40",
+      "relation": "affects-feature",
+      "targetId": "feat.procedural-anatomy",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b12"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 21724,
+            "utf16Offset": 21722,
+            "line": 284,
+            "column": 175
+          },
+          "end": {
+            "byteOffset": 21749,
+            "utf16Offset": 21747,
+            "line": 284,
+            "column": 200
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Decisions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b40:affects-requirement:/requirements/0",
+      "fromKey": "d0:b40",
+      "relation": "affects-requirement",
+      "targetId": "req.anatomy-variety",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b19"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 21767,
+            "utf16Offset": 21765,
+            "line": 284,
+            "column": 218
+          },
+          "end": {
+            "byteOffset": 21788,
+            "utf16Offset": 21786,
+            "line": 284,
+            "column": 239
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Decisions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b40:affects-requirement:/requirements/1",
+      "fromKey": "d0:b40",
+      "relation": "affects-requirement",
+      "targetId": "req.clean-room",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b25"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 21789,
+            "utf16Offset": 21787,
+            "line": 284,
+            "column": 240
+          },
+          "end": {
+            "byteOffset": 21805,
+            "utf16Offset": 21803,
+            "line": 284,
+            "column": 256
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Decisions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b41:affects-feature:/features/0",
+      "fromKey": "d0:b41",
+      "relation": "affects-feature",
+      "targetId": "feat.dna-export",
+      "expectedKind": "feature",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b16"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 22278,
+            "utf16Offset": 22276,
+            "line": 288,
+            "column": 166
+          },
+          "end": {
+            "byteOffset": 22295,
+            "utf16Offset": 22293,
+            "line": 288,
+            "column": 183
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Decisions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b41:affects-requirement:/requirements/0",
+      "fromKey": "d0:b41",
+      "relation": "affects-requirement",
+      "targetId": "req.export-extensibility",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b26"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 22313,
+            "utf16Offset": 22311,
+            "line": 288,
+            "column": 201
+          },
+          "end": {
+            "byteOffset": 22339,
+            "utf16Offset": 22337,
+            "line": 288,
+            "column": 227
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Decisions"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b42:plans-to-verify:/requirements/0",
+      "fromKey": "d0:b42",
+      "relation": "plans-to-verify",
+      "targetId": "req.deterministic-reproducibility",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b18"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 22868,
+            "utf16Offset": 22866,
+            "line": 294,
+            "column": 159
+          },
+          "end": {
+            "byteOffset": 22903,
+            "utf16Offset": 22901,
+            "line": 294,
+            "column": 194
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Planned checks"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b43:plans-to-verify:/requirements/0",
+      "fromKey": "d0:b43",
+      "relation": "plans-to-verify",
+      "targetId": "req.serialize-roundtrip",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b21"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 23334,
+            "utf16Offset": 23332,
+            "line": 298,
+            "column": 151
+          },
+          "end": {
+            "byteOffset": 23359,
+            "utf16Offset": 23357,
+            "line": 298,
+            "column": 176
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Planned checks"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b44:plans-to-verify:/requirements/0",
+      "fromKey": "d0:b44",
+      "relation": "plans-to-verify",
+      "targetId": "req.anatomy-variety",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b19"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 23734,
+            "utf16Offset": 23732,
+            "line": 302,
+            "column": 149
+          },
+          "end": {
+            "byteOffset": 23755,
+            "utf16Offset": 23753,
+            "line": 302,
+            "column": 170
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Planned checks"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b45:plans-to-verify:/requirements/0",
+      "fromKey": "d0:b45",
+      "relation": "plans-to-verify",
+      "targetId": "req.realtime-performance",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b22"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 24179,
+            "utf16Offset": 24177,
+            "line": 306,
+            "column": 151
+          },
+          "end": {
+            "byteOffset": 24205,
+            "utf16Offset": 24203,
+            "line": 306,
+            "column": 177
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Planned checks"
+        ]
+      }
+    },
+    {
+      "id": "link:d0:b46:plans-to-verify:/requirements/0",
+      "fromKey": "d0:b46",
+      "relation": "plans-to-verify",
+      "targetId": "req.visual-consistency",
+      "expectedKind": "requirement",
+      "status": "resolved",
+      "targetKeys": [
+        "d0:b23"
+      ],
+      "source": {
+        "documentId": "d0",
+        "span": {
+          "start": {
+            "byteOffset": 24600,
+            "utf16Offset": 24598,
+            "line": 310,
+            "column": 149
+          },
+          "end": {
+            "byteOffset": 24624,
+            "utf16Offset": 24622,
+            "line": 310,
+            "column": 173
+          }
+        },
+        "headingPath": [
+          "Vivarium 3D Pet Generator — Engineering Blueprint (Single File)",
+          "Planned checks"
+        ]
+      }
+    }
+  ]
+}

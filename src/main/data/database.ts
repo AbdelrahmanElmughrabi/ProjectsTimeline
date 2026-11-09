@@ -6,6 +6,9 @@ import { AppError, payload, positiveId, requiredText } from '../domain';
 import { selectResumeCheckpoint } from '../resume';
 import { calculateReleaseProgress } from '../progress';
 import * as workflowData from './workflows';
+import * as knowledgeData from './knowledge';
+import type { BlueprintPreviewSnapshot } from '../../shared/blueprint-preview';
+import type { PreparedFormation } from '../../shared/knowledge';
 
 const projectColumns = 'id, name, created_at AS createdAt';
 const actionQuery = `SELECT a.id, a.project_id AS projectId, a.title, a.created_at AS createdAt,
@@ -90,6 +93,7 @@ export class WorkspaceStore {
   }
 
   getHomeSummary(): HomeProjectSummary[] {
+    const knowledge = knowledgeData.homeKnowledge(this.db);
     const rows = this.db.prepare(`WITH latest_checkpoint AS (
       SELECT *, ROW_NUMBER() OVER (PARTITION BY project_id ORDER BY created_at DESC, id DESC) AS rank
       FROM checkpoints
@@ -112,6 +116,7 @@ export class WorkspaceStore {
         accomplished: row.accomplished as string, nextSteps: row.nextSteps as string, createdAt: row.checkpointAt as string },
       activity: row.activityId === null ? null : { id: row.activityId as number, source: row.source as 'checkpoint' | 'action-event',
         description: row.description as string, createdAt: row.activityAt as string },
+      ...(knowledge.has(row.id as number) ? { knowledge: knowledge.get(row.id as number)! } : {}),
     }));
   }
 
@@ -121,6 +126,15 @@ export class WorkspaceStore {
     return this.db.prepare(`INSERT INTO projects(name, created_at) VALUES (?, ?) RETURNING ${projectColumns}`)
       .get(name, new Date().toISOString()) as unknown as Project;
   }
+
+  existingKnowledgeFormation(snapshot: BlueprintPreviewSnapshot) { return knowledgeData.existingFormation(this.db, snapshot); }
+  readFormationReceipt(operationId: string, digest: string) { return knowledgeData.receipt(this.db, operationId, digest); }
+  commitKnowledgeFormation(snapshot: BlueprintPreviewSnapshot, prepared: PreparedFormation) {
+    return this.transaction(() => knowledgeData.formKnowledge(this.db, snapshot, prepared));
+  }
+  openKnowledgeWorkspace(input: unknown) { return knowledgeData.openKnowledgeWorkspace(this.db, input); }
+  getKnowledgeRecord(input: unknown) { return knowledgeData.getKnowledgeRecord(this.db, input); }
+  getKnowledgeSource(input: unknown) { return knowledgeData.getKnowledgeSource(this.db, input); }
 
   openProject(input: unknown): ProjectDetail {
     const values = payload(input, ['projectId']);

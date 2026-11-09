@@ -1,6 +1,94 @@
 # ProjectsTimeline — Engineering checklist
 
-Current gate, 2026-11-06: the design package/five decisions are approved with refinements, and **V1 Home only** is implemented/automatically verified. Final **49 Node + 14 Electron + 3 rebuilt-packaged = 66/66 pass**, with build/typechecks and compact/wide screenshots. PTB stable ordering/parser/SQL remain future gates; no migration/dependency change or implementation agents. Stop for V1 acceptance before V2.
+## V3a1a UX stabilization implementation, 2026-11-07
+
+- [x] Measured Fit, readable zoom, targeted reveal, and separate drag, pan and Arrange behavior.
+- [x] Directed edge captions, focus and inspector scroll, multi-step Back, compact navigation, Captured sources and Journal with conditional Resume.
+- [x] Checked original source and graph equality, release progress and history, responsive rendering, and rebuilt Windows package recovery. [Verification](v3a1a-stabilization-verification.md).
+- [x] Owner accepted stabilization on 2026-11-09. [Manual feedback](v3a1a-stabilization-verification.md#manual-acceptance).
+- [ ] Check the real native picker and screen-reader behavior. Track dense-map and workspace polish in the [visual backlog](design/visual-engineering-backlog.md).
+- [ ] Review and approve the [V5a issue draft](design/v5a-issue-draft.md) and its design before migration 005 or implementation.
+
+## Post-V3a1a UX stabilization design, 2026-11-07
+
+- [x] Reviewed Antigravity's independent report and two visuals at `adad730`. Kept its artifacts on the assigned branch.
+- [x] Reproduced Fit, off-screen reveal, skipped neighborhood, focus and edge occlusion on the packaged baseline. Recorded the inspector scroll and wide FieldLedger claims separately.
+- [x] Reran 92 Node, 25 Electron, 5 packaged recovery and 4 knowledge journeys on the rebuilt executable. Added two disposable probes. [Evidence](verification.md).
+- [x] Approved the [bounded renderer scope and visual acceptance criteria](design/post-v3a1a-ux-review.md#proposed-small-implementation-slice) at `f417ef5`. V5a and multi-source work retain separate gates.
+
+## V3a1a production checkpoint, 2026-11-07
+
+**Implemented and automatically verified.** [ADR 0008](adr/0008-durable-knowledge-formation.md) · [Run results, screenshots and manual journey](v3a1a-verification-report.md).
+
+- [x] Reviewed capture creates a project and persists typed proposals, exact source, authored links and one real event in a single transaction.
+- [x] Migration 004 matches the approved SQL body. Populated legacy data, backup, rollback and packaged recovery verified.
+- [x] Receipt replay, competing plans, interrupted writes and failed read recovery exercised. Proposed and operational IDs remain independent.
+- [x] Actual packaged Overview, Map, inspector and exact-source journey at 800, 1160 and 1540 window widths. Drag, viewport stability, keyboard navigation and focus return exercised.
+- [ ] Record a separate owner-run full Vivarium restart journey if performed. Packaged automation already covers recovery.
+
+## V3a1a final concerns gate, 2026-11-07
+
+[Final recommendation/inventory](design/v3a1a-final-design-review.md) · [revised contract](design/v3a1a-implementation-proposal.md) · [exact 004](design/v3a1a-schema-proposal.md). Overall direction approved; migration/production authorization still pending.
+
+| Item | Current state / evidence |
+| --- | --- |
+| Action identity | **Revised recommendation:** knowledge-only Proposed entity ID; ordinary row/mapping created in later explicit commitment. V5a targets entity identity, not a preallocated action ID. Legacy reads/mutators unchanged now; future mapped work needs development/release guards before adoption. |
+| Source identity | **Revised recommendation:** source-binding ID attaches to project; native IDs are capture provenance. No permanent one-source project constraint/PTB-only storage literal; main still strictly PTB-only. Crosswalk/adapter semantics deferred. |
+| Minimal schema | **Reviewed draft:** 13 necessary typed tables, 29 guards with complete inventory; remove duplicate action projection/four guards and unused workspace/current pointers. Revision-1 anchors retained for context/acceptance; future history/snapshot policies not claimed. |
+| Actual verification | **61 disposable checks pass** with SQL + actual unchanged legacy store, including release-membership UPDATE and ID collisions; all new trigger groups exercised. DTO and Node/main scratch compilation pass. App/package/migration-runner/real map acceptance not run. |
+| Preserved scope | **Approved visual requirements retained:** connected map/Overview, exact source, keyboard/readability/three widths, real new import and rebuilt packaged restart; legacy Resume/releases/workflows/security intact. No workflow execution/adoption/Obsidian/MCP. |
+| Next gate | **Pending:** authorize revised 004/implementation; baseline rerun then one complete V3a1a slice. Earlier draft results below are historical. |
+
+## V3a1a concrete proposal gate, 2026-11-07
+
+User approved refined C/corrections and **V3a1a → V5a → V3a1b → V3b1**. [Implementation/DTO/map/test proposal](design/v3a1a-implementation-proposal.md), [exact 004 SQL draft](design/v3a1a-schema-proposal.md). No production implementation or migration yet.
+
+| Item | State / evidence |
+| --- | --- |
+| Visual/delivery direction | **Approved:** refined C as inspiration, not prototype reuse; first persistent slice has actual component/feature edges, expandable requirements and exact stored source. |
+| Concrete persistence/transactions | **Proposed:** 13 typed additive tables, immutable capture/receipt, stable entities/revisions/links; main-owned all-proposal formation, new-project-only, receipt-first retries. Preserve 001–003/all legacy data. |
+| Compatibility/security | **Designed:** five named additions to current 34-method bridge, legacy proposal/release guards, no renderer graph/path authority, unchanged CSP/app:///sender boundaries. No new dependency or operational scope/evidence tables. |
+| Specification checks | **Verified only as a draft:** 23 in-memory SQL smoke checks; extracted DTO block compiles against current shared types. Two lighter read-only reviews; identified receipt, PTB, revision/trigger/order and UI focus gaps corrected. |
+| Production acceptance | **Not run / not implemented:** existing baseline rerun, migration/failure/retry APIs, real connected UI, source/keyboard/three-width and rebuilt packaged restart tests are implementation gates, not claimed results. |
+| History/manual gate | **Pending:** concrete proposal/schema approval before 004/production code; ADR 0008 after approval. V5a remains next, separately authorized. Earlier manual acceptance gates remain open. |
+
+Previous review/verification entries below are historical; they do not override this newly approved direction or mark the proposed slice implemented.
+
+## Current gate — consolidated Concept C review, 2026-11-07
+
+**Design/integration planning only.** Reviewed AG 92a7129 against 63c18e9; ancestry/27-path ownership verified, no merge or source/dependency/migration changes. [Independent findings](design/v3-consolidated-review.md) · [capability matrix](design/v3-capability-audit.md) · [updated slices](design/product-implementation-roadmap.md).
+
+| Item | State / evidence |
+| --- | --- |
+| Final visual direction | **Undecided (reviewed recommendation):** refined Concept C, source-backed neighborhoods, one inspector and readable narrow alternative; no prototype-code adoption. Original VD meanings preserved; user acceptance pending. |
+| Prototype/source/code review | **Verified within review scope:** all three AG reports read; exact source built and output-redirected harness passes. Targeted probes reproduce silent state removal/auto-ack, source fidelity gaps, selection refit/0px drag, BODY focus and null-placement notice. Supplementary source/hash claims corrected. |
+| Backend capability mapping | **Reviewed proposal:** actual 34-method bridge and schema v3 audited; main preview lacks cached authoritative Apply snapshot; development graph/adoption/scopes/linked context absent. No fake API or migration treated as implemented. |
+| Slice/schema gate | **Undecided:** smaller durable knowledge formation → immediate V5a linked context → selective unscoped work → optional scope activation. Concrete additive SQL/DTO/receipt/guard review before coding, 001–003 and release history protected. |
+| Existing work/history | **Preserved:** AG branch/report/prototype unchanged; nine pre-existing Codex screenshot edits hash-preserved/uncommitted; production code/tests/security/policies/ADRs untouched. App suite not rerun for this review. |
+
+Next: user reviews canonical VD1–VD5 and the proposed first scope. No production BEGIN, new AG assignment or dependency installation. Previous design/runtime evidence below remains historical, not new user acceptance.
+
+
+## Prior visual redirection checkpoint, 2026-11-07
+
+**Design assessment and isolated prototypes only.** Preservation baseline 47f73c6 contains the installed tooling and paused drafts. No production source/config/dependency/test/migration/ADR change in this phase. [Contract/VD1–VD5](design/v3-product-experience-contract.md), [study/screenshots](design/v3-visual-prototype/README.md), [inventory](design/v3-ui-component-inventory.md), [roadmap](design/product-implementation-roadmap.md), [Antigravity prompt](agent-handoffs/antigravity-v3-workspace-design.md).
+
+| Category | Work / state | Evidence / next gate |
+| --- | --- | --- |
+| UX direction | Two graph-first concepts produced; final composition **Undecided** | Atlas versus Focus Workbench rendered with real Vivarium definitions; independent user/Antigravity review before selecting production layout. Paused board-first composition superseded, historical checkpoint retained. |
+| Source/domain integrity | Approved foundations retained; new adapter/map policy **Undecided** | Deterministic PTB, independent development/release ownership, explicit approval, counts/Not assessed. VD1–VD5 plus concrete command/SQL review gate implementation. |
+| Tooling | Exercised study path **Verified, prototype only** | Installed/lock versions match; actual React Flow/ELK/Tailwind/Base UI dialog build/render under current strict CSP. shadcn configured, no generated app components adopted. Build warnings/scale limits recorded. |
+| Verification | Actual checks **Verified within stated scope** | Fresh app build/typechecks + 78/78 Node, zero skips; read-only real-source validation; pure projection and actual isolated Electron/Playwright journey, source/focus, simulated complete/reopen/context and 800/1160/1540 screenshots. Not full app Electron/packaged rerun. |
+| Ownership | External design review **pending** | Two lighter Codex read-only reviews completed; Antigravity manual prompt/isolated ownership prepared, not launched. No implementation agent or production BEGIN. |
+
+Next gate: user reviews the two concepts, source/authority boundaries and VD1–VD5; manually deliver the design-only Antigravity prompt. Existing manual V1/V2 acceptance and inherited dev-tool maintenance remain separate. No production implementation/migration from documenting the backlog.
+
+## Historical implementation records
+
+
+V2 checkpoint: **V2 implemented/automatically verified; user acceptance pending.** Final source bb2fd95 integrates reviewed AG fb49a4e/489c9c7 and closes AG-UI-001–003 through rebuilt-UI evidence. **78 Node + 21 Electron/UI + 4 rebuilt-packaged = 103 passing cases, zero skips**, both TS targets/build/package pass. Production audit zero; full audit retains 12 moderate inherited build-tool chain findings (no flagged package code in ASAR). Schema v3/security/legacy history unchanged. [Final report/manual checklist](v2-verification-report.md), [queue](agent-handoffs/v2-review-queue.md). Stop before V3a.
+
+Prior V1 checkpoint, 2026-11-06: the design package/five decisions are approved with refinements, and **V1 Home** is implemented/automatically verified. Final **49 Node + 14 Electron + 3 rebuilt-packaged = 66/66 pass**, with build/typechecks and compact/wide screenshots. No migration/dependency change or implementation agents at that checkpoint. V1 acceptance remains open; the current V2 Phase A authorization is recorded above.
 
 Updated: 2026-11-06. Foundation, Resume, Visual Foundation, Development Stages & Progress and the approved workflow milestone are implemented. Final workflow suite: **47 Node + 12 Electron + 3 packaged = 62/62 passed**, including build/typechecks, rebuilt Windows package, migration/restart recovery and compact UI checks. Manual acceptance remains open. Workflow decisions are recorded in ADR 0005; prior ownership authorization is recorded in ADR 0004.
 
@@ -82,3 +170,10 @@ These supplement preserved M1 evidence. The Continue Implementation brief approv
 | V1 Home | PA-01/18: default project cards, actual checkpoint/activity and project continuity | Implemented | Explicitly authorized slice complete, 66 checks pass; user manual acceptance pending |
 | V1 read model | Existing-record query, deterministic ties, no manufactured events or new migration | Verified | Two real-file Node scenarios prove isolation, empty legacy activity, timestamp/ID ties, no writes, no full-project loading and reopen equality; schema stays v3 |
 | V1 continuity/failure | Mounted drafts, same-project refresh, read retries and superseded responses/focus | Verified | Two real Electron scenarios plus packaged Home→Resume recovery pass; Workflows/Releases regressions retained; no V2 started |
+| V2 contract/collaboration | Preview-only parser/acquisition/session/DTO/states/order and separate UI ownership/reporting | Designed | Final v2-preview-1 + nullable package selection; confirmed BEGIN and reviewed final AG commits; all concrete UI findings resolved, user acceptance remains |
+| V2 baseline | Preserve actual working V1/release/workflow/persistence/security behavior | Verified | Fresh 49 Node + 14 Electron + 3 existing-packaged checks pass before changes; no V2 runtime/security coverage claimed |
+| V2 parser/graph/acquisition | Strict deterministic captured preview; bounded Windows-safe file access; no writes | Verified | Final Node 78/78: 29 new + all old; both fixture graphs, hostile syntax/IDs/relationships, scope resolution, alias/junction/race and database equality |
+| V2 bridge/navigation | Three fixed trusted commands; Home → inspect → refresh/cancel with retained drafts | Verified | Final 21/21 Electron/UI cases, zero skips; exact 34 methods, all original regressions + actual source/diagnostic/focus/error/three-width checks |
+| V2 packaging | Actual locked dependency ESM inside Windows package and old recovery | Verified | Final rebuild and 4/4 packaged recovery pass; renderer bytes match ASAR and final UI tested in package |
+| V2 UI acceptance | AG bounded presentation, related-source ownership, opener focus and real UI cases | Implemented | Automated behavior/layout checks pass; user native-picker/visual/context acceptance remains in final report |
+| Maintenance | Inherited packaging-tool advisory review | Undecided | Full audit 12 moderate dev-chain findings; production audit zero, flagged code absent from package. Separate compatible update review; no force-fix/major downgrade |

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ActionDefinitionInput, HomeProjectSummary, Project, ProjectDetail, Result } from '../shared/contracts';
+import type { FormationReceipt, KnowledgeWorkspace, PreparedFormation } from '../shared/knowledge';
 
-type Operation = 'create' | 'open' | 'action' | 'complete' | 'checkpoint' | 'release' | 'refresh' | null;
+type Operation = 'create' | 'open' | 'action' | 'complete' | 'checkpoint' | 'release' | 'refresh' | 'formation' | null;
 type Notice = { kind: 'success' | 'error' | 'warning'; text: string } | null;
 
 function unwrap<T>(result: Result<T>): T {
@@ -13,6 +14,7 @@ export function useProjectWorkspace() {
   const api = window.workspace;
   const [projects, setProjects] = useState<Project[]>([]);
   const [detail, setDetail] = useState<ProjectDetail | null>(null);
+  const [knowledge, setKnowledge] = useState<KnowledgeWorkspace | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState('');
@@ -97,9 +99,11 @@ export function useProjectWorkspace() {
   }, [loadProjects, refreshHome]);
 
   async function readProject(projectId: number, token: number): Promise<boolean> {
-    const snapshot = unwrap(await api.openProject({ projectId }));
+    const [result, graph] = await Promise.all([api.openProject({ projectId }), api.openKnowledgeWorkspace({ projectId })]);
+    const snapshot = unwrap(result), knowledge = unwrap(graph);
     if (!current(token, projectId)) return false;
     setDetail(snapshot);
+    setKnowledge(knowledge);
     setStale(false);
     return true;
   }
@@ -111,7 +115,7 @@ export function useProjectWorkspace() {
     selected.current = projectId;
     setSelectedId(projectId);
     const token = ++request.current;
-    if (!preserve) setDetail(null);
+    if (!preserve) { setDetail(null); setKnowledge(null); }
     setStale(preserve);
     setNotice(null);
     setOperation('open');
@@ -122,6 +126,38 @@ export function useProjectWorkspace() {
       return false;
     } finally {
       if (current(token, projectId)) setOperation(null);
+    }
+  }
+
+  async function formKnowledge(plan: PreparedFormation): Promise<FormationReceipt> {
+    if (operation.current !== null || listLoading.current) throw new Error('Wait for the current workspace operation to finish.');
+    const token = ++request.current;
+    setOperation('formation');
+    setNotice(null);
+    let receipt: FormationReceipt | null = null;
+    try {
+      const response = await api.applyKnowledgeFormation({ operationId: plan.operationId, reviewDigest: plan.reviewDigest });
+      if (!response.ok) throw Object.assign(new Error(response.error.message), { code: response.error.code });
+      receipt = response.value.receipt;
+      if (!mounted.current) return receipt;
+      selected.current = receipt.project.id;
+      setSelectedId(receipt.project.id); setDetail(null); setKnowledge(null); setStale(true);
+      homeRequest.current++; setHomeStale(true); setHomeLoading(false);
+      setNotice({ kind: 'success', text: 'Knowledge project created. Loading saved data…' });
+      if (!await loadProjects()) throw new Error('Could not refresh the project list.');
+      await readProject(receipt.project.id, token);
+      if (current(token, receipt.project.id)) setNotice({ kind: 'success', text: 'Knowledge project created. Definitions are proposed; no operational work was committed.' });
+      void refreshHome();
+      return receipt;
+    } catch (error) {
+      if (!receipt) throw error;
+      if (current(token, receipt.project.id)) {
+        setStale(true);
+        setNotice({ kind: 'warning', text: 'Project created, but saved data could not be loaded. Retry loading; creation will not be repeated.' });
+      }
+      return receipt;
+    } finally {
+      if (mounted.current && request.current === token) setOperation(null);
     }
   }
 
@@ -182,7 +218,7 @@ export function useProjectWorkspace() {
   }
 
   return {
-    projects, detail, selectedId, loading, listError, busy, notice, stale,
+    projects, detail, knowledge, selectedId, loading, listError, busy, notice, stale, formKnowledge,
     homeProjects, homeLoading, homeError, homeStale, refreshHome,
     openProject, returnToProject: (projectId: number) => openProject(projectId, true), retryLoading,
     createProject: (name: string) => execute('create', () => api.createProject({ name }), 'Project created.'),

@@ -3,6 +3,14 @@ import type { WorkspaceApi } from '../shared/contracts';
 
 // Sandboxed preload imports only Electron at runtime; each bridge method has a fixed channel.
 const api: WorkspaceApi = {
+  prepareKnowledgeFormation: (input) => ipcRenderer.invoke('workspace:prepareKnowledgeFormation', input),
+  applyKnowledgeFormation: (input) => ipcRenderer.invoke('workspace:applyKnowledgeFormation', input),
+  openKnowledgeWorkspace: (input) => ipcRenderer.invoke('workspace:openKnowledgeWorkspace', input),
+  getKnowledgeRecord: (input) => ipcRenderer.invoke('workspace:getKnowledgeRecord', input),
+  getKnowledgeSource: (input) => ipcRenderer.invoke('workspace:getKnowledgeSource', input),
+  chooseBlueprintPreview: () => ipcRenderer.invoke('workspace:chooseBlueprintPreview'),
+  refreshBlueprintPreview: (input) => ipcRenderer.invoke('workspace:refreshBlueprintPreview', input),
+  cancelBlueprintPreview: () => ipcRenderer.invoke('workspace:cancelBlueprintPreview'),
   listProjects: () => ipcRenderer.invoke('workspace:listProjects'),
   getHomeSummary: () => ipcRenderer.invoke('workspace:getHomeSummary'),
   createProject: (input) => ipcRenderer.invoke('workspace:createProject', input),

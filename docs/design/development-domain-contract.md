@@ -1,6 +1,8 @@
 # Development domain, ownership and lifecycle proposal
 
-2026-11-06 · **Behavioral design approved with counts-first refinement; not SQL or implemented development commands.** Independent project records/scopes, one current scope/action, explicit lifecycle and audited moves are approved. Only V1 Home is authorized now; concrete schema/DTOs need their separate review. [PTB](ptb-v0.2-contract.md) · [UX](connected-workspace-design.md).
+2026-11-07 · **Core behavioral design approved with counts-first refinement; not SQL or implemented development commands.** V1/V2 are implemented; redirected V3 remains design-only. Independent project records/scopes, one current scope/action, explicit lifecycle and audited moves remain approved. Work-state/blocker refinements below remain proposals for their command slice; visual decisions VD1–VD5 do not silently approve those transitions or a schema. [PTB](ptb-v0.2-contract.md) · [UX](connected-workspace-design.md) · [experience](v3-product-experience-contract.md) · [adoption/merge](blueprint-adoption-merge-policy.md).
+
+Concrete first gate: [revised V3a1a proposal](v3a1a-implementation-proposal.md), [final identity/source/guard comparison](v3a1a-final-design-review.md) and [004 SQL draft](v3a1a-schema-proposal.md). Refined C and V3a1a → V5a → V3a1b → V3b1 are approved. Recommended refinement for this final review: formation saves Draft/Proposed/Planned definitions with permanent knowledge entity IDs; ordinary action rows/mapping wait for commitment. Source binding is separate from project identity. No operational scope/commitment transition now; concrete approval remains pending.
 
 ## Ownership and boundaries
 
@@ -15,9 +17,9 @@
 | Checkpoint / event | Project-owned actual save/transition with linked context; preserve user-authored reasoning separately from system transition facts. |
 | Release | Existing v3 ownership, gates, revisions, provenance and frozen confirmations remain intact. Future development capture uses revisioned snapshots, not a live completion join. |
 
-Reuse ordinary `actions`/`action_details` through additive development context, explicit links and main-side guards. Existing release-bound rows stay in the release subsystem. New development commitments must not flow through `assignAction(releaseId, ...)`. Legacy unbound work keeps its real completion/history and existing interactions; show Legacy work until explicitly classified/adopted, never invent an import/commit event in the past. Legacy releases are not development scopes.
+Reuse ordinary `actions`/`action_details` **on explicit commitment**, through a later reviewed entity/action mapping, development context/links and guards. Stable development identity is the knowledge entity ID from formation onward. Existing release-bound rows stay in the release subsystem. New development commitments must not flow through `assignAction(releaseId, ...)`. Legacy unbound work keeps its real completion/history and existing interactions; show Legacy work until explicitly classified/adopted, never invent an import/commit event in the past. Legacy releases are not development scopes.
 
-PTB identities are project-bound external IDs, distinct from internal IDs. All views share the same actual action ID after import/adoption; no duplicate action per feature or tab. Imported proposals may use existing base action rows plus new context, but old generic completion APIs must reject new uncommitted/rejected proposals. Exact additive tables/DTOs and migration guards are the next schema review, not implicit approval here.
+PTB native identities belong to a source binding/capture, distinct from internal project/entity IDs. All knowledge views and later linked checkpoints share the same entity ID before/after adoption; no duplicate action per feature/tab. The former shared-ID intent does not require preallocating a legacy `actions.id`. Proposed definitions have no ordinary rows, so legacy APIs cannot mutate them. Before materializing future committed development work, guard its mapping from release insertion/update and validate development lifecycle semantics. Exact tables/DTOs remain under final review.
 
 ## Scope lifecycle
 
@@ -54,3 +56,41 @@ Checkpoint additions are optional problem/intention/unresolved questions plus li
 Mutations take expected record/scope revisions; stale writes ask for refresh/review and retain input. Effective changes increment affected revisions and audit once, no-ops do neither. Main owns timestamps and validates same-project typed links; database constraints back those boundaries. Events keep immutable before/after values and actors/origin, not made-up past dates. Acknowledged save plus failed refresh retries reads, not the command.
 
 Before any migration, review concrete tables/constraints and a populated-v3 preservation fixture: all original IDs, text, timestamps, completion, templates/origins, release revisions/provenance/confirmation, events and checkpoints must match before/after and after packaged restart. Keep 001–003 immutable, existing policy function/security unchanged and backup/rollback/newer-schema refusal. This document approves no migration number or schema by itself.
+
+## V3 refinements proposed for review
+
+These supplement, rather than replace, the approved ownership/lifecycle above. No production state machine is changed in this phase.
+
+| Concern | Recommended invariant / observable behavior |
+| --- | --- |
+| Definition acceptance versus action commitment | Accept a particular requirement revision separately from committing actions. Linked Draft requirements remain visibly unresolved; batch review shows and acknowledges them rather than silently accepting them. Accepting a requirement neither completes work nor creates evidence. |
+| Scope activation | Draft plans have proposed placement only. A reviewed Apply may explicitly activate a chosen inline plan and commit chosen actions in one transaction; otherwise defer scoped commitment or explicitly choose unscoped placement. Preserve original proposed placement in provenance. No implicit activation from a selected action. |
+| Work state (proposed work-state policy) | Committed applicable actions are Not started / In progress / Done. Explicit Start records state and chosen focus; it is not a timer. Complete and Reopen record real transitions; recommended Reopen → Not started until explicitly started again. Selecting, importing or opening a record never changes work state. Excluded/proposed work cannot start. |
+| Focus | At most one chosen focus per project; selecting a new focus does not erase other In progress states. Saved Resume target is independent of current focus and remains the user's earlier intention. Neither focus nor number of In progress actions estimates elapsed time. |
+| Blockers (proposed work-state policy) | Explicit authored reason linked to a record, with open/resolved lifecycle and actual resolution reason/time. Blocked is an independent attention marker, not another mutually exclusive work state or inferred dependency. An unresolved blocker prevents ordinary completion until explicitly resolved or dismissed with reason in the reviewed completion transaction. Preserve that disposition/history. |
+| Local revision | Editing title/details/relationships creates an explicit local revision; source snapshot remains immutable. A meaningful change to Done work requires Reopen or a follow-up, not a rewrite of what was completed. Rename/reorganization preserves internal identities and historical references. Changes to requirements require explicit reacceptance of their new revision. |
+| Local stage edits | Active development stage edits/reorder preserve stage identity and existing membership. Removing a populated stage requires explicit mapping/Unassigned disposition; terminal scope reopens first. No editor may silently discard committed work or synchronize a source template. |
+| Definition versus truth | Draft/accepted requirement, proposed/accepted decision, planned check, completed action and actual requirement assessment are independent. Rich decision/evidence operations wait for their own slices; show Not assessed rather than treating a stored plan as verification. |
+| Context | Saved target uses durable internal IDs and exact authored text; saved view/filter are optional return hints. If the hint hides the target, explain and offer Show target. If retired/missing, show the historical context plus current/history fallback; never silently select a replacement. |
+
+The [adoption policy](blueprint-adoption-merge-policy.md) defines captured-versus-live source authority, idempotent receipts, explicit legacy binding and later three-way updates. “Keep local” advances the reviewed source baseline with an override marker; “Skip” does not. Omission never deletes local records. An imported source may not update completion, accepted decisions or actual observations.
+
+### PTB's missing planning semantics
+
+PTB v0.2 gives typed relationships and authored inline-stage order. It has **no approved priority, action dependency, blocker, schedule, action rank or start-hint fields**. Relationship/narrative order cannot supply these meanings. Current parser compatibility and deterministic source presentation stay unchanged.
+
+| Need | Minimal proposed first behavior | Future extension gate |
+| --- | --- | --- |
+| Useful roadmap | Ordinal authored stages and feature organization, explicit local action ordering later | Persist order explicitly; file position never becomes priority. Reimport cannot override a local order silently. |
+| Blocked work | Local authored blocker records, never source-as-outcome | Versioned source may propose constraints later; it cannot import resolved/actual blockers as historical events. |
+| Dependencies / next work | No automatic prerequisite or recommendation engine; saved next step and chosen focus first | Separately specify same-project typed dependency targets, cycles, direction, optional/excluded prerequisites, freshness and override behavior before adding fields/ready queues. |
+| Priority / starting point | Explicit user choice; neutral stable browse order | Versioned priority/rank/start-hint vocabulary and conflict rules. A hint stays a proposal, not a committed intention. |
+| Calendar timeline | No bars/dates without actual authored scheduling | Specify date granularity/time zone, dependency on scope/action revisions, and unscheduled work display. No inferred duration from counts or stages. |
+
+Do not silently operationalize unknown v0.2 metadata, rewrite the existing parser, or require a richer PTB version for basic adoption. Any extension needs deterministic validation, version negotiation, cross-file identity tests and an explicit contract change before implementation.
+
+## Consolidated review clarifications
+
+AG 92a7129's state sets are simulations, not an approved transition implementation. Reviewed adoption is additive per-item deltas, with current accepted/active/committed state read-only and explicit corrective commands; clearing review checkboxes cannot erase commitment, deactivate a scope or revoke a revision. One effective-placement selector treats explicit null as intentional unscoped membership, not fallback to source placement.
+
+Linked checkpoints explicitly choose a target (chosen focus or project by default; Use selected record opt-in). Browsing alone never changes chosen focus or saved intent. Save does not itself commit/start work. Continue resolves saved target and validated view/lens/filter hints, preserving authored text/history on missing/stale targets. Concrete Start/focus/blocker policies still need their command-slice review; they are not prerequisites for first linked context recovery.

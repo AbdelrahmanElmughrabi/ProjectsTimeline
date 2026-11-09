@@ -1,5 +1,7 @@
 # Antigravity — ProjectsTimeline collaboration prompt
 
+V2 collaboration is complete and automatically verified; user acceptance remains. See [final report](v2-verification-report.md) and [Codex report](agent-handoffs/reports/codex-v2-preview.md). This generic prompt and original V2 assignment remain history, not a new agent launch/assignment or authorization to begin V3a.
+
 Paste the following into Antigravity. It starts with review only; future implementation needs a specifically approved task. This is a development handoff, not app-level agent integration or permission to change the product plan.
 
 ```text

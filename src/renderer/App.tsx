@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useProjectWorkspace } from './useProjectWorkspace';
 import { ResumePanel } from './ResumePanel';
@@ -9,18 +9,79 @@ import { ReleaseWorkspace } from './ReleaseWorkspace';
 import { WorkflowLibrary } from './WorkflowLibrary';
 import { useWorkflowLibrary } from './useWorkflowLibrary';
 import { ProjectHome } from './ProjectHome';
+import { BlueprintPreview } from './blueprint-preview/BlueprintPreview';
+import { useBlueprintPreview } from './useBlueprintPreview';
+import { BlueprintFormation } from './BlueprintFormation';
+import { ProjectKnowledgeWorkspace } from './knowledge/ProjectKnowledgeWorkspace';
 
 export default function App() {
   const workspace = useProjectWorkspace();
   const library = useWorkflowLibrary();
+  const preview = useBlueprintPreview();
+  const previewNavigation = useRef(0);
+  const previewHomeFocus = useRef(false);
   const { projects, detail, selectedId, loading, listError, busy, notice, stale } = workspace;
   const [projectName, setProjectName] = useState('');
   const [actionTitle, setActionTitle] = useState('');
   const [accomplished, setAccomplished] = useState('');
   const [nextSteps, setNextSteps] = useState('');
   const [selectedReleaseId, setSelectedReleaseId] = useState<number | null>(null);
-  const [view, setView] = useState<'home' | 'project' | 'workflows'>('home');
-  const disabled = busy !== null || library.busy || stale;
+  const [view, setView] = useState<'home' | 'project' | 'workflows' | 'preview'>('home');
+  const [knowledgeTools, setKnowledgeTools] = useState(false);
+  const [projectMenuOpen, setProjectMenuOpen] = useState(false);
+  const toolsOpener = useRef<HTMLElement | null>(null);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const [formationBlocked, setFormationBlocked] = useState(false);
+  const disabled = busy !== null || library.busy || stale || view === 'preview';
+  const inKnowledgeProject = view === 'project' && workspace.knowledge !== null;
+
+  useEffect(() => {
+    if (view === 'home' && previewHomeFocus.current) {
+      previewHomeFocus.current = false;
+      document.getElementById('blueprint-select')?.focus();
+    }
+  }, [view]);
+
+  async function navigate(next: 'home' | 'project' | 'workflows') {
+    if (formationBlocked) return;
+    const token = ++previewNavigation.current;
+    if (view === 'preview' && !await preview.cancel()) return;
+    if (token !== previewNavigation.current) return;
+    setView(next);
+    setProjectMenuOpen(false);
+    if (next === 'home') void workspace.refreshHome();
+  }
+
+  async function startPreview() {
+    const token = ++previewNavigation.current;
+    setView('preview');
+    const outcome = await preview.choose();
+    if (token === previewNavigation.current && outcome === 'cancelled') {
+      previewHomeFocus.current = true;
+      setView('home');
+    }
+  }
+
+  async function cancelPreview() {
+    if (formationBlocked) return;
+    const token = ++previewNavigation.current;
+    if (await preview.cancel() && token === previewNavigation.current) {
+      previewHomeFocus.current = true;
+      setView('home');
+      void workspace.refreshHome();
+    }
+  }
+
+  async function selectProject(id: number) {
+    if (formationBlocked) return;
+    setProjectMenuOpen(false);
+    setKnowledgeTools(false);
+    const token = ++previewNavigation.current;
+    if (view === 'preview' && !await preview.cancel()) return;
+    if (token !== previewNavigation.current) return;
+    if (view === 'home' || view === 'preview' || (id === selectedId && workspace.knowledge)) void openFromHome(id);
+    else { setView('project'); void workspace.openProject(id); }
+  }
 
   useEffect(() => {
     if (detail) { setActionTitle(''); setAccomplished(''); setNextSteps(''); setSelectedReleaseId(null); }
@@ -35,6 +96,7 @@ export default function App() {
   }
 
   async function openFromHome(projectId: number) {
+    setKnowledgeTools(false);
     setView('project');
     if (await workspace.returnToProject(projectId)) document.getElementById('workspace-main')?.focus();
   }
@@ -51,18 +113,47 @@ export default function App() {
     }
   }
 
+  function openKnowledgeTools(opener: HTMLElement, destination: 'tools' | 'journal' | 'resume') {
+    toolsOpener.current = opener;
+    setKnowledgeTools(true);
+    requestAnimationFrame(() => {
+      const id = destination === 'journal' ? 'checkpoint-heading' : destination === 'resume' ? 'resume-heading' : 'project-title';
+      const heading = document.getElementById(id);
+      if (heading) {
+        heading.tabIndex = -1;
+        heading.focus();
+      }
+    });
+  }
+
+  function closeKnowledgeTools() {
+    setKnowledgeTools(false);
+    requestAnimationFrame(() => {
+      const opener = toolsOpener.current;
+      (opener?.isConnected && opener.getClientRects().length ? opener : document.getElementById('workspace-main'))?.focus();
+    });
+  }
+
   const checkpoints = detail?.checkpoints ?? [];
   const backlogActions = detail?.actions.filter(action => action.releaseId === null) ?? [];
 
   return (
-    <div className="shell">
+    <div className={`shell${inKnowledgeProject ? ' knowledge-shell' : ''}${projectMenuOpen ? ' is-project-menu-open' : ''}`} onKeyDown={event => {
+      if (event.key === 'Escape' && projectMenuOpen && menuButton.current?.getClientRects().length && (event.target as HTMLElement).closest('#project-navigation, .compact-project-nav')) {
+        setProjectMenuOpen(false);
+        menuButton.current.focus();
+      }
+    }}>
       <a className="skip-link" href="#workspace-main" onClick={event => { event.preventDefault(); document.getElementById('workspace-main')?.focus(); }}>Skip to workspace</a>
+      {inKnowledgeProject && <div className="compact-project-nav">
+        <button ref={menuButton} className="button button-light" aria-controls="project-navigation" aria-expanded={projectMenuOpen} onClick={() => setProjectMenuOpen(!projectMenuOpen)}>Projects & navigation</button>
+      </div>}
       <ProjectSidebar
         projects={projects} selectedId={selectedId} view={view} loading={loading} listError={listError}
-        navigationDisabled={(busy !== null && busy !== 'open') || library.busy || loading}
+        navigationDisabled={formationBlocked || (busy !== null && busy !== 'open') || library.busy || loading || preview.state.phase === 'cancelling'}
         retryDisabled={loading || busy !== null || library.busy}
-        onViewChange={(next) => { setView(next); if (next === 'home') void workspace.refreshHome(); }}
-        onSelect={(id) => { if (view === 'home') void openFromHome(id); else { setView('project'); void workspace.openProject(id); } }} onRetry={() => void workspace.retryLoading()}
+        onViewChange={next => void navigate(next)}
+        onSelect={id => void selectProject(id)} onRetry={() => void workspace.retryLoading()}
       >
         <form className="create-form" onSubmit={createProject}>
           <label htmlFor="project-name">New project</label>
@@ -72,18 +163,30 @@ export default function App() {
       </ProjectSidebar>
 
       <main className="main-content" id="workspace-main" tabIndex={-1}>
+        {view === 'preview' && <>
+          {preview.state.phase === 'ready' && <BlueprintFormation snapshot={preview.state.snapshot} onApply={workspace.formKnowledge} onBlocked={setFormationBlocked}
+            onOpenExisting={id => void selectProject(id)} onCreated={() => {
+              setFormationBlocked(false); setKnowledgeTools(false); setView('project'); void preview.cancel();
+              requestAnimationFrame(() => (document.getElementById('knowledge-map-heading') ?? document.getElementById('workspace-main'))?.focus());
+            }} />}
+          <div inert={formationBlocked} aria-busy={formationBlocked}><BlueprintPreview state={preview.state} selection={preview.selection} onChoose={() => void preview.choose()} onRefresh={() => void preview.refresh()} onCancel={() => void cancelPreview()} onSelect={preview.onSelect} /></div>
+        </>}
         {view === 'workflows' && <WorkflowLibrary {...library} onRetry={() => void library.refresh()} />}
-        {view !== 'workflows' && <>
+        {view !== 'workflows' && view !== 'preview' && <>
         {notice && <div className={`notice ${notice.kind}`} role={notice.kind === 'success' ? 'status' : 'alert'}>{notice.text}</div>}
         {(stale || notice?.kind === 'warning' || (selectedId !== null && !detail && busy === null)) && <div className="refresh-state"><p>Displayed information may be out of date. Reload saved data before making more changes.</p><button className="button button-primary" disabled={busy !== null} onClick={() => void workspace.retryLoading()}>Retry loading</button></div>}
         </>}
         {view === 'home' && <ProjectHome projects={workspace.homeProjects} loading={workspace.homeLoading} error={workspace.homeError} stale={workspace.homeStale} disabled={disabled}
-          onOpen={id => void openFromHome(id)} onRefresh={() => void workspace.refreshHome()} onCreate={() => document.getElementById('project-name')?.focus()} />}
+          onOpen={id => void openFromHome(id)} onRefresh={() => void workspace.refreshHome()} onCreate={() => document.getElementById('project-name')?.focus()} onPreview={() => void startPreview()} />}
         <div className="workspace-project" hidden={view !== 'project'}>
         {detail ? <>
+          {workspace.knowledge && <div hidden={knowledgeTools}><ProjectKnowledgeWorkspace key={`${workspace.knowledge.project.id}:${workspace.knowledge.receipt.importId}`} data={workspace.knowledge}
+            active={inKnowledgeProject && !knowledgeTools} hasResume={!!detail.resume && !stale} onProjectTools={openKnowledgeTools} /></div>}
+          {workspace.knowledge && knowledgeTools && <div className="knowledge-tools-note"><button className="button button-light" onClick={closeKnowledgeTools}>← Back to knowledge workspace</button><p>Project journal, actions and releases. Knowledge proposals remain separate from the backlog.</p></div>}
+          <div hidden={workspace.knowledge !== null && !knowledgeTools}>
           <WorkspaceHeader name={detail.project.name} />
-          <div className="workspace-grid">
-            <ResumePanel resume={detail.resume} stale={stale} disabled={disabled} />
+          <div className={`workspace-grid${workspace.knowledge && !detail.resume ? ' without-resume' : ''}`}>
+            {(!workspace.knowledge || detail.resume) && <ResumePanel resume={detail.resume} stale={stale} disabled={disabled} />}
             <div className="workspace-body">
           <Panel className="action-panel" id="actions-heading" title="Actions" eyebrow="Project backlog" accessory={<span className="count-pill" aria-label={`Action count: ${backlogActions.length}`}>{backlogActions.length}</span>}>
             <form className="inline-form" onSubmit={addAction}>
@@ -111,6 +214,7 @@ export default function App() {
           </Panel>
           <details className="event-history"><summary>Action audit history ({detail.actionEvents.length})</summary>{detail.actionEvents.length ? <ol>{detail.actionEvents.map(event => <li key={event.id}><time dateTime={event.createdAt}>{new Date(event.createdAt).toLocaleString()}</time><span>{event.actionId !== null && <strong>{detail.actions.find(action => action.id === event.actionId)?.title}: </strong>}{event.description}</span></li>)}</ol> : <p className="empty-copy">No action events recorded.</p>}</details>
             </div>
+          </div>
           </div>
         </> : <section className="welcome">
           <div className="welcome-icon" aria-hidden="true">↗</div><p className="eyebrow">A little progress, every day</p><h1>{busy === 'open' ? 'Loading project…' : selectedId !== null ? 'Project could not be loaded' : listError ? 'Projects are unavailable' : projects.length ? 'Choose a project' : 'Start with a project'}</h1><p>{listError ? 'Retry loading your projects from the sidebar.' : 'Select a project from the sidebar, or create one to begin tracking actions and checkpoints.'}</p>

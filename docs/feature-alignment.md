@@ -1,6 +1,10 @@
 # ProjectsTimeline — Feature alignment and incremental roadmap
 
-Current milestone, 2026-11-06: **V1 Home and Project Continuity implemented; manual acceptance pending.** User approved the design package/refinements, authorizing V1 only. Final **49 Node + 14 Electron + 3 rebuilt-packaged = 66/66 pass**. One read-only summary uses existing records; schema v3, security and release/Resume rules stay unchanged. [V1 plan](v1-home-plan.md), [ADR 0006](adr/0006-home-project-continuity.md), [evidence](verification.md). No V2/new migration or agents started.
+**Historical roadmap and milestone records through V2.** For current scope and gates, see the [implementation roadmap](design/product-implementation-roadmap.md).
+
+V2 checkpoint: **V2 implemented and automatically verified, user acceptance pending at that checkpoint.** Final source bb2fd95 integrates AG fb49a4e/489c9c7. All three UI findings were resolved on the rebuilt renderer. 78 Node + 21 Electron/UI + 4 final-packaged cases passed with zero skips and preserved schema v3, policies and history. The production audit was clear and the full dev-tool audit recorded 12 moderate findings for separate review. [Final report/screenshots/manual checklist](v2-verification-report.md).
+
+Prior V1 checkpoint, 2026-11-06: **Home and Project Continuity implemented; manual acceptance pending.** At that checkpoint user authorized V1 only; **49 Node + 14 Electron + 3 rebuilt-packaged = 66/66 pass**. One read-only summary uses existing records; schema v3, security and release/Resume rules stay unchanged. [V1 plan](v1-home-plan.md), [ADR 0006](adr/0006-home-project-continuity.md), [evidence](verification.md). Later V2 authorization/status is recorded above.
 
 Status: **Reusable Engineering Workflows implemented and automatically verified; manual acceptance pending.** Updated: 2026-11-06. Earlier Resume, Visual Foundation and Development Stages & Progress slices remain implemented. Workflow decisions are accepted in [ADR 0005](adr/0005-reusable-workflows.md). Schema v3; dependencies unchanged. Final suite: **47 Node + 12 Electron + 3 packaged = 62/62 passed**, with rebuilt Windows recovery and 800/1160/1440 UI checks. Stop before the next milestone.
 

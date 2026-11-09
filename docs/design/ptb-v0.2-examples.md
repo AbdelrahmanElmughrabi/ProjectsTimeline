@@ -2,7 +2,14 @@
 
 2026-11-06 · **Design fixtures and specification walkthroughs, not running app features.** [Contract](ptb-v0.2-contract.md) · [Domain](development-domain-contract.md) · [Traceability](product-traceability.md).
 
-## What was checked
+## Current visual-design review, 2026-11-07
+
+The existing production V2 capture/parser was executed read-only on Desk Notes (Valid 15 records/29 typed links), FieldLedger (Valid 37/82) and the real external Vivarium single/multi packages (both Valid 47/86). Vivarium has seven features, one four-stage scope, nine scoped actions plus one unscoped; its deliberate invalid package remains blocked/inspectable. Four single/multi narrative bodies differ, so their semantic hashes correctly differ despite matching normalized metadata/relationships. No source project was edited/executed.
+
+The redirected [visual experience contract](v3-product-experience-contract.md) reuses both release-free journeys below and adds the real Vivarium walkthrough. Its [isolated interactive prototype](v3-visual-prototype/README.md) contains Vivarium only; current UI interaction checks are design simulation, not implemented import/persistence/restart. [Actual results](../verification.md). The older extractor/62-test statements below describe the original specification-review checkpoint, not today's parser availability or test result.
+
+## Original specification review (historical)
+
 
 Created two realistic engineering plans using exactly the same record format. A temporary inline Node/standard-library documentation check read their explicit JSON blocks and checked common metadata/prefixes, unique IDs, same-project typed targets, component cycles, stage ownership, action type/detail presence, requirement-to-planned-check coverage and absence of imported status/results. It compared normalized records/bodies after combining files and reversing presentation order. It did not write any source/test/helper code into the application, call its bridge, run an importer or change a database.
 

@@ -1,6 +1,8 @@
 # ProjectsTimeline — Feature alignment and incremental roadmap
 
-Current work: **V2 implemented/automatically verified; user acceptance pending.** Final source bb2fd95 integrates AG fb49a4e/489c9c7; all three UI findings resolved on the rebuilt renderer. 78 Node + 21 Electron/UI + 4 final-packaged cases pass, zero skips; schema v3/policies/history preserved. Production audit zero; full dev-tool audit has 12 inherited moderate chain findings for separate review. [Final report/screenshots/manual checklist](v2-verification-report.md). No V3a authorized.
+**Historical roadmap and milestone records through V2.** For current scope and gates, see the [implementation roadmap](design/product-implementation-roadmap.md).
+
+V2 checkpoint: **V2 implemented and automatically verified, user acceptance pending at that checkpoint.** Final source bb2fd95 integrates AG fb49a4e/489c9c7. All three UI findings were resolved on the rebuilt renderer. 78 Node + 21 Electron/UI + 4 final-packaged cases passed with zero skips and preserved schema v3, policies and history. The production audit was clear and the full dev-tool audit recorded 12 moderate findings for separate review. [Final report/screenshots/manual checklist](v2-verification-report.md).
 
 Prior V1 checkpoint, 2026-11-06: **Home and Project Continuity implemented; manual acceptance pending.** At that checkpoint user authorized V1 only; **49 Node + 14 Electron + 3 rebuilt-packaged = 66/66 pass**. One read-only summary uses existing records; schema v3, security and release/Resume rules stay unchanged. [V1 plan](v1-home-plan.md), [ADR 0006](adr/0006-home-project-continuity.md), [evidence](verification.md). Later V2 authorization/status is recorded above.
 

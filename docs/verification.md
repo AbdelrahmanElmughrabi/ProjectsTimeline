@@ -1,5 +1,11 @@
 # ProjectsTimeline — Verification record
 
+## V3a1a acceptance and workflow consolidation, 2026-11-09
+
+The owner accepted UX stabilization. Native picker, screen-reader behavior and dense-map polish remain open. The [stabilization report](v3a1a-stabilization-verification.md#manual-acceptance) records the feedback separately from automated evidence. The [documentation audit](documentation-audit.md) records the verified GitHub refs and limits of the read-only remote checks. This checkpoint updates documentation and local templates. It does not add V5a, migration 005 or an Actions workflow. No application tests were rerun for this checkpoint.
+
+Verified 342 local links and assets across 22 changed Markdown files, including nine heading anchors, plus both template references. All nine pre-existing prototype PNGs and the V5a technical draft matched their baseline hashes.
+
 ## V3a1a UX stabilization, 2026-11-07
 
 Renderer and focused tests at `e0d16fe`, based on approved `f417ef5`. **92/92 Node, 28/28 Electron, 5/5 rebuilt-package recovery and 7/7 packaged knowledge journeys**. Zero skips. Rebuilt and inspected the packaged Windows app at 800, 1160 and 1540 px. The graph, exact source and existing release commitments and progress were verified across camera and geometry changes. [Test evidence, screenshots, limits and manual acceptance](v3a1a-stabilization-verification.md).

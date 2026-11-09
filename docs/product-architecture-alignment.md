@@ -1,6 +1,6 @@
 # ProjectsTimeline — Product & Architecture Alignment
 
-2026-11-07 · **Current phase: V3a1a implemented and automatically verified. User acceptance pending.** Reviewed PTB capture now forms a durable knowledge project with Overview, interactive Map and exact stored source. The [verification report](v3a1a-verification-report.md) and [ADR 0008](adr/0008-durable-knowledge-formation.md) supersede the pre-implementation status in the design records.
+2026-11-09 · **V3a1a implemented and verified, with UX stabilization accepted.** Reviewed PTB capture forms a durable knowledge project with Overview, interactive Map and exact stored source. [Stabilization acceptance and open checks](v3a1a-stabilization-verification.md#manual-acceptance) · [ADR 0008](adr/0008-durable-knowledge-formation.md) · [Current roadmap](design/product-implementation-roadmap.md).
 
 ## Review package
 
@@ -52,4 +52,4 @@ Already approved foundations stay approved: deterministic PTB, independent proje
 
 Codex owns canonical design/integration; Antigravity's original reports/prototype remain on its isolated branch. All three reports were read directly; a redirected copy of its actual harness passes, and additional probes independently reproduce adoption/provenance/layout/focus gaps. Two lighter read-only Codex reviews supplement those checks. No new external assignment/automatic merge follows.
 
-The user approved refined C with the review corrections and the smaller delivery sequence: durable knowledge formation, **immediate linked recovery**, unscoped adoption, then optional inline scope activation. The concrete V3a1a SQL/DTO/revision/transaction proposal now requires approval before coding. Extra graph digests, v0.1 support, generic format tiers, MCP and later operational/evidence/snapshot schemas remain outside this slice. AG's prototype remains research.
+The user approved refined C and the smaller delivery sequence: durable knowledge formation, **immediate linked recovery**, unscoped adoption, then optional inline scope activation. V3a1a shipped under ADR 0008. The [V5a proposal](design/v5a-linked-development-continuity.md) awaits implementation approval. Extra graph digests, v0.1 support, generic format tiers, MCP and later operational/evidence/snapshot schemas retain separate design gates. Antigravity's prototype remains research.

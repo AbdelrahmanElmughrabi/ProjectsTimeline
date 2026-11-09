@@ -4,6 +4,8 @@
 
 ## Checkouts and owners
 
+For new work, follow the [engineering workflow](../engineering-workflow.md). This handoff records the V2 example.
+
 | Role | Checkout/branch | Authority |
 | --- | --- | --- |
 | Codex | Current checkout codex/v2-preview-integration; backend checkpoint codex/v2-preview-backend | Integration owner; backend, shared contracts/commands, root navigation/controller, dependencies, security, integration/regression tests and engineering records |

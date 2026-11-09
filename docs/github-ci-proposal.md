@@ -1,0 +1,26 @@
+# GitHub Actions and branch protection proposal
+
+**For owner review.** The audited branch and GitHub default-branch tip contain no checked-in workflows. Existing runs are local evidence. The Git remote returned branch refs. Anonymous GitHub metadata requests returned 404, so repository visibility, plan, Actions policy and live protection could not be confirmed. Check these in the owner account before enabling a pilot. [Audit](documentation-audit.md).
+
+## One Windows job to start
+
+- After approval, add one `Windows checks` job for pull requests on GitHub-hosted `windows-2025` x64. Check out the PR revision and use Node `24.21.0` as the initial pin, verified locally with npm `11.19.0`. Log the actual versions. Run `npm ci` then `npm test`. The test command already builds both TypeScript targets, bundles the renderer, copies migrations and runs the Node suites. No separate typecheck or build step is needed. [Runner labels](https://docs.github.com/en/actions/how-tos/write-workflows/choose-where-workflows-run/choose-the-runner-for-a-job) · [npm ci](https://docs.npmjs.com/cli/v11/commands/npm-ci/).
+- Use read-only contents permission, full commit SHA pins for reviewed Actions, no secrets or publishing, and a 15-minute job timeout for the pilot. Run on `pull_request` and avoid running untrusted PR code with the permissions of `pull_request_target`. [GitHub Actions security guidance](https://docs.github.com/en/actions/reference/security/secure-use).
+- Start as a visible advisory check. Measure clean runner time and reliability before making it required. Keep the lockfile and normal install scripts, including Electron's runtime download. `npm ci` needs access to the registry and Electron binary source. Record Node/npm and bundled Electron versions with verification. An npm download cache can be added if installation time warrants it.
+
+## Coverage and rollout
+
+| Layer | Evidence and placement |
+| --- | --- |
+| TypeScript, Node and SQLite | `npm test` is the first CI candidate. It covers both TS targets, Vite, domain/IPC checks, preview paths, real-file migrations, rollback and backup tests. Windows also exercises junction and path behavior. |
+| Electron | `npm run test:e2e` builds and launches the real Electron renderer. Pilot it on the same Windows image with an isolated profile and confirm app launch, focus and pointer reliability across repeat clean runs. It uses bundled Chromium. Keep it local until the runner is dependable. |
+| Windows package and recovery | Pilot `npm run package` then `npm run test:packaged` in the same Windows x64 job and checkout. The latter consumes the executable and uses built output for packaged checks. It covers ASAR assets, bundled runtime/SQLite, upgrade and restart. For packaging-impacting milestones also run knowledge journeys against the rebuilt executable via `PROJECTS_TIMELINE_EXECUTABLE`. Keep local package verification required by the milestone while CI reliability is being measured. |
+| Native desktop and visual acceptance | Keep owner checks on real Windows for the native chooser, screen-reader reading order/focus, actual display scaling, visual density, and signed installer behavior if an installer is introduced. The automated chooser supplies a path. Inspect meaningful screenshots and interactions rather than relying on file existence. |
+
+If evidence is needed on runner failures, upload only test logs and fixture screenshots. Keep real project sources, databases, profiles and dumps out of CI artifacts. Electron automation and packaged recovery results in [verification](verification.md) are local until an actual Actions run is recorded.
+
+## Dependency and merge policy
+
+- Review the lockfile and run `npm audit --omit=dev` plus a full `npm audit` when dependencies change. Triage build-chain findings as well as production exposure. A separate advisory `npm audit --omit=dev --audit-level=high` job is an option after agreeing an escalation threshold. Review any proposed fix before updating dependencies. Historical V2 audit numbers describe that run. [npm audit options](https://docs.npmjs.com/cli/v11/commands/npm-audit/).
+- After approval and a stable pilot, consider requiring PRs and the single stable check on the actual default branch, with force pushes and deletion blocked. Review administrator bypass behavior first. Keep formal approval count at zero while solo and record the owner's review in the PR. A PR author cannot approve their own PR. Require one eligible independent review if collaboration makes that practical. [Protected-branch rules](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/managing-a-branch-protection-rule) · [Review limitations](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/approving-a-pull-request-with-required-reviews).
+- GitHub Free supports protected branches for public repositories. Private repositories need an eligible plan such as Pro, Team or Enterprise. If protection is unavailable, apply the documented review and verification gate manually. [Plan eligibility](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/managing-a-branch-protection-rule).

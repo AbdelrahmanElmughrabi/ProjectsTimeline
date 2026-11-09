@@ -1,8 +1,8 @@
 # V3 UI → parser/domain → bridge → persistence capability audit
 
-2026-11-07 · Actual baseline **63c18e9**, AG study **92a7129**. **All new commands/entities below are proposals, not implemented APIs or approved SQL.** [Consolidated review](v3-consolidated-review.md) · [roadmap](product-implementation-roadmap.md).
+2026-11-07 · **Historical capability audit at `63c18e9` with the Antigravity study at `92a7129`.** Proposed commands and entities describe that design checkpoint. For the shipped subset and current gates, see [ADR 0008](../adr/0008-durable-knowledge-formation.md) and the [roadmap](product-implementation-roadmap.md). [Consolidated review](v3-consolidated-review.md).
 
-Existing authority: [shared API](../../src/shared/contracts.ts), [preview DTO](../../src/shared/blueprint-preview.ts), [preload](../../src/preload/index.ts), [main registration](../../src/main/ipc.ts), [session](../../src/main/blueprint/session.ts), [store](../../src/main/data/database.ts), migrations 001–003. There are 34 fixed named bridge methods; no graph/apply/requirement/scope/linked-context API. A prototype's missing window.workspace confirms isolation, not backend integration.
+The audited baseline used [shared API](../../src/shared/contracts.ts), [preview DTO](../../src/shared/blueprint-preview.ts), [preload](../../src/preload/index.ts), [main registration](../../src/main/ipc.ts), [session](../../src/main/blueprint/session.ts), [store](../../src/main/data/database.ts) and migrations 001–003. It exposed 34 named bridge methods. Graph/apply, requirement/scope operations and linked context were all later proposals at that point. The prototype ran in isolation from the bridge.
 
 ## Capability matrix
 

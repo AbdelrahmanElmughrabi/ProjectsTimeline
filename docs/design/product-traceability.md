@@ -1,6 +1,6 @@
 # Product requirements → screens → domain → persistence → acceptance
 
-2026-11-07 · **Domain-to-view map; refined C/first sequence approved, no production V3.** V1 implements Home continuity; V2 implements deterministic read-only preview. PA-06 onward remain future behavior unless explicitly noted. [Concrete V3a1a operations, component boundaries and acceptance](v3a1a-implementation-proposal.md) / [004 draft](v3a1a-schema-proposal.md) await approval. [Full capability audit](v3-capability-audit.md) · [A/B/C review](v3-consolidated-review.md) · [experience](v3-product-experience-contract.md) · [roadmap](product-implementation-roadmap.md).
+**Design-time domain-to-view map, 2026-11-07.** The rows below describe the V1/V2 baseline and the broader product design. V3a1a subsequently shipped with migration 004 and the owner accepted its UX stabilization. For shipped behavior and current gates, use [ADR 0008](../adr/0008-durable-knowledge-formation.md), [verification](../v3a1a-verification-report.md) and the [roadmap](product-implementation-roadmap.md). [Capability audit](v3-capability-audit.md) · [A/B/C review](v3-consolidated-review.md) · [Experience contract](v3-product-experience-contract.md).
 
 Command names and persistence groups are candidate contracts; none exist merely because listed here. All mutations use named main-side validation, same-project ownership, revision checks and atomic history. No generic SQL/filesystem channel.
 
@@ -51,7 +51,7 @@ These are **candidate responsibilities**, not a request to add every method at o
 
 ## Persistence and existing-code impact
 
-- Current authority is schema v3: projects, actions/details, checkpoints, release/stage/evidence/history records and workflow templates. No durable PTB source binding or development graph exists yet.
+- The design baseline was schema v3: projects, actions/details, checkpoints, release/stage/evidence/history and workflow templates. Schema v4 later added durable PTB source bindings and knowledge graphs. [Approved schema](v3a1a-schema-proposal.md).
 - First formation needs reviewed **additive** source/capture/binding/receipt records; permanent components/features/requirement revisions/typed relationships; development action context/commitment; actual events. Preserve proposed decisions/check definitions and draft scope plans without interpreting them as accepted decisions, runs or activated scopes. Concrete tables/constraints need review; this is not approval to build all later evidence/snapshot tables.
 - Linked recovery needs optional checkpoint context/target links. Inline activation additionally needs independent development scope/stage instances and membership history. Local work states/blockers need explicit transition semantics before storage. Never repurpose `release_stages` or make release-bound actions development members.
 - Shared contracts → preload/main command allowlist → main validation → store transaction → controller acknowledgement → shared views change together in each slice. Revised V3a1a has no ordinary action rows/mapping for proposals, so no legacy query filtering/guard change. Before V3a1b reuses ordinary work, its mapping must enforce development lifecycle and release insertion/update isolation; hiding a checkbox is insufficient.

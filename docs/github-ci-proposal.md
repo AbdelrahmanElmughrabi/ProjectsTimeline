@@ -1,25 +1,23 @@
 # GitHub Actions and branch protection proposal
 
-**For owner review.** The V2/V3a1a baseline is on `main` at `57c43f1`. Its tree contains no Actions workflows and GitHub lists zero Actions runs. Confirm that repository policy permits hosted Actions before publishing the pilot. [Merged baseline PR](https://github.com/AbdelrahmanElmughrabi/ProjectsTimeline/pull/1) · [Earlier audit](documentation-audit.md).
+**Advisory pilot merged.** `main` at `1e18dd7` contains the Windows PR check and the test-only canonical-path correction exposed by the first hosted run. The corrected hosted run passed 92/92 with zero skips. Future coverage and branch-protection proposals remain separate. [Merged CI PR](https://github.com/AbdelrahmanElmughrabi/ProjectsTimeline/pull/2) · [Successful hosted run](https://github.com/AbdelrahmanElmughrabi/ProjectsTimeline/actions/runs/42566363806).
 
 ## One Windows job to start
 
-- **Approval requested.** Create and publish `codex/ci-windows-checks` from verified `main` and open one PR targeting `main` with only `.github/workflows/windows-checks.yml`. Opening that PR is intended to trigger the advisory run. Keep the check optional and leave repository settings and branch protection as they are.
-- After approval, add one `Windows checks` job for pull requests on GitHub-hosted `windows-2025` x64. Check out the PR revision and use Node `24.21.0` as the initial pin, verified locally with npm `11.19.0`. Log the actual versions. Run `npm ci` then `npm test`. The test command already builds both TypeScript targets, bundles the renderer, copies migrations and runs the Node suites. No separate typecheck or build step is needed. [Runner labels](https://docs.github.com/en/actions/how-tos/write-workflows/choose-where-workflows-run/choose-the-runner-for-a-job) · [npm ci](https://docs.npmjs.com/cli/v11/commands/npm-ci/).
-- Use read-only contents permission, full commit SHA pins for reviewed Actions, no secrets or publishing, and a 15-minute job timeout. Trigger on `pull_request` targeting `main`. [GitHub Actions security guidance](https://docs.github.com/en/actions/reference/security/secure-use).
-- Start as a visible advisory check. Measure clean runner time and reliability before making it required. Keep the lockfile and normal install scripts, including Electron's runtime download. `npm ci` needs access to the registry and Electron binary source. Record Node/npm and bundled Electron versions with verification. An npm download cache can be added if installation time warrants it.
-- **Pilot acceptance.** Record the Actions run URL, tested revision, Node/npm versions, elapsed time and Node test totals. Verify the clean install and expected 92 passing tests with zero skips on the hosted runner. Electron, packaging and manual desktop checks stay local for this pilot. Return the result for review before expanding coverage or requiring the check.
+- The advisory job runs on `pull_request` targeting `main` using GitHub-hosted `windows-2025` x64. It logs the checkout and tool versions, runs `npm ci`, then `npm test` to build both TypeScript targets and the renderer and run the Node suites. [Workflow](../.github/workflows/windows-checks.yml).
+- The job uses read-only contents permission, full SHA pins, a 15-minute timeout, no repository secrets and no npm cache. [GitHub Actions security guidance](https://docs.github.com/en/actions/reference/security/secure-use).
+- The successful job took 1m 12s with Node `24.21.0` and npm `11.19.0`. Electron GUI, packaging and native desktop checks remain local or manual. [Hosted run](https://github.com/AbdelrahmanElmughrabi/ProjectsTimeline/actions/runs/42566363806).
 
 ## Coverage and rollout
 
 | Layer | Evidence and placement |
 | --- | --- |
-| TypeScript, Node and SQLite | `npm test` is the first CI candidate. It covers both TS targets, Vite, domain/IPC checks, preview paths, real-file migrations, rollback and backup tests. Windows also exercises junction and path behavior. |
+| TypeScript, Node and SQLite | Hosted CI runs `npm test`. It covers both TS targets, Vite, domain/IPC checks, preview paths, real-file migrations, rollback and backup tests. Windows also exercises junction and path behavior. |
 | Electron | `npm run test:e2e` builds and launches the real Electron renderer. Pilot it on the same Windows image with an isolated profile and confirm app launch, focus and pointer reliability across repeat clean runs. It uses bundled Chromium. Keep it local until the runner is dependable. |
 | Windows package and recovery | Pilot `npm run package` then `npm run test:packaged` in the same Windows x64 job and checkout. The latter consumes the executable and uses built output for packaged checks. It covers ASAR assets, bundled runtime/SQLite, upgrade and restart. For packaging-impacting milestones also run knowledge journeys against the rebuilt executable via `PROJECTS_TIMELINE_EXECUTABLE`. Keep local package verification required by the milestone while CI reliability is being measured. |
 | Native desktop and visual acceptance | Keep owner checks on real Windows for the native chooser, screen-reader reading order/focus, actual display scaling, visual density, and signed installer behavior if an installer is introduced. The automated chooser supplies a path. Inspect meaningful screenshots and interactions rather than relying on file existence. |
 
-If evidence is needed on runner failures, upload only test logs and fixture screenshots. Keep real project sources, databases, profiles and dumps out of CI artifacts. Electron automation and packaged recovery results in [verification](verification.md) are local until an actual Actions run is recorded.
+If evidence is needed on runner failures, upload only test logs and fixture screenshots. Keep real project sources, databases, profiles and dumps out of CI artifacts. Record local Electron and packaged recovery results in [verification](verification.md).
 
 ## Dependency and merge policy
 

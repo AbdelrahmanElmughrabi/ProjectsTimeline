@@ -1,14 +1,14 @@
 # GitHub Actions and branch protection proposal
 
-**For owner review.** On 2026-11-09, read-only GitHub checks confirmed the repository is private, the default branch `main` reports as unprotected, and the repository lists zero Actions runs. The local design checkout and both verified remote tips (`main` and `codex/v3-product-experience-design`) contain no workflow files. The connection did not expose workflow inventory, Actions policy or detailed protection settings. Confirm Actions permissions and the intended PR base with the owner before the pilot. `main` is still on an older product baseline. [Earlier audit](documentation-audit.md).
-
-Use a separate pilot branch from updated `main` after the [default-branch integration](documentation-audit.md#default-branch-integration-proposal). Approval of the baseline PR leaves the CI pilot at its own review gate.
+**For owner review.** The V2/V3a1a baseline is on `main` at `57c43f1`. Its tree contains no Actions workflows and GitHub lists zero Actions runs. Confirm that repository policy permits hosted Actions before publishing the pilot. [Merged baseline PR](https://github.com/AbdelrahmanElmughrabi/ProjectsTimeline/pull/1) · [Earlier audit](documentation-audit.md).
 
 ## One Windows job to start
 
+- **Approval requested.** Create and publish `codex/ci-windows-checks` from verified `main` and open one PR targeting `main` with only `.github/workflows/windows-checks.yml`. Opening that PR is intended to trigger the advisory run. Keep the check optional and leave repository settings and branch protection as they are.
 - After approval, add one `Windows checks` job for pull requests on GitHub-hosted `windows-2025` x64. Check out the PR revision and use Node `24.21.0` as the initial pin, verified locally with npm `11.19.0`. Log the actual versions. Run `npm ci` then `npm test`. The test command already builds both TypeScript targets, bundles the renderer, copies migrations and runs the Node suites. No separate typecheck or build step is needed. [Runner labels](https://docs.github.com/en/actions/how-tos/write-workflows/choose-where-workflows-run/choose-the-runner-for-a-job) · [npm ci](https://docs.npmjs.com/cli/v11/commands/npm-ci/).
-- Use read-only contents permission, full commit SHA pins for reviewed Actions, no secrets or publishing, and a 15-minute job timeout for the pilot. Run on `pull_request` and avoid running untrusted PR code with the permissions of `pull_request_target`. [GitHub Actions security guidance](https://docs.github.com/en/actions/reference/security/secure-use).
+- Use read-only contents permission, full commit SHA pins for reviewed Actions, no secrets or publishing, and a 15-minute job timeout. Trigger on `pull_request` targeting `main`. [GitHub Actions security guidance](https://docs.github.com/en/actions/reference/security/secure-use).
 - Start as a visible advisory check. Measure clean runner time and reliability before making it required. Keep the lockfile and normal install scripts, including Electron's runtime download. `npm ci` needs access to the registry and Electron binary source. Record Node/npm and bundled Electron versions with verification. An npm download cache can be added if installation time warrants it.
+- **Pilot acceptance.** Record the Actions run URL, tested revision, Node/npm versions, elapsed time and Node test totals. Verify the clean install and expected 92 passing tests with zero skips on the hosted runner. Electron, packaging and manual desktop checks stay local for this pilot. Return the result for review before expanding coverage or requiring the check.
 
 ## Coverage and rollout
 

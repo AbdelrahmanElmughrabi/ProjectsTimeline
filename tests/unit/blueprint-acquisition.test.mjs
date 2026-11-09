@@ -123,15 +123,16 @@ test('preview/select/refresh/cancel leave populated schema-v4 tables and enginee
 
 test('an observed replacement during handle reading cannot publish a valid source graph', async t => {
   const dir = temporaryDirectory(t); const entry = join(dir, 'project.md'); writeFileSync(entry, project());
+  const canonicalEntry = await fsPromises.realpath(entry);
   const originalOpen = fsPromises.open;
   let changed = false;
   t.mock.method(fsPromises, 'open', async (...args) => {
     const handle = await originalOpen(...args);
-    if (args[0] === entry) {
+    if (args[0] === canonicalEntry) {
       const originalRead = handle.read.bind(handle);
       handle.read = async (...readArgs) => {
         const result = await originalRead(...readArgs);
-        if (!changed) { changed = true; appendFileSync(entry, '\nChanged during capture'); }
+        if (!changed) { changed = true; appendFileSync(canonicalEntry, '\nChanged during capture'); }
         return result;
       };
     }

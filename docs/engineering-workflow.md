@@ -15,12 +15,12 @@ Use this process for meaningful changes. A small documentation correction can us
 | Role | Responsibility |
 | --- | --- |
 | Product owner | Prioritize, approve decisions and scope, review and accept, authorize publishing and merge. |
-| Main planner | Define scope, acceptance and architecture. The same person can fill this role. |
+| Product and architecture discussion | Explore vision, user flows, priorities and tradeoffs, then propose scope and acceptance for the owner's decision. This is a planning activity within the existing workflow. |
 | Codex | Implement the approved scope, verify it, keep records current and prepare reviewable local commits. |
 | Antigravity | Optional independent UX review with owner authorization in an isolated worktree. |
 | GitHub Actions | Independent automated verification once approved. |
 
-One integration owner reviews delivered work. If an independent reviewer is useful, record a frozen base SHA, task, branch/worktree, exclusive write paths, approval gate and expected evidence. Have the reviewer return exact refs, checks and open findings. Keep research/prototype commits isolated unless explicitly reviewed for integration. Existing [V2 collaboration](agent-handoffs/v2-collaboration.md) is a worked example. Routine changes stay in one checkout.
+Codex is the integration owner and reviews delivered work. If an independent reviewer is useful, record a frozen base SHA, task, branch/worktree, exclusive write paths, approval gate and expected evidence. Have the reviewer return exact refs, checks and open findings. Keep research/prototype commits isolated unless explicitly reviewed for integration. Existing [V2 collaboration](agent-handoffs/v2-collaboration.md) is a worked example. Routine changes stay in one checkout.
 
 ## Verification and owner review
 

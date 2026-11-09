@@ -1,6 +1,8 @@
 # GitHub Actions and branch protection proposal
 
-**For owner review.** The audited branch and GitHub default-branch tip contain no checked-in workflows. Existing runs are local evidence. The Git remote returned branch refs. Anonymous GitHub metadata requests returned 404, so repository visibility, plan, Actions policy and live protection could not be confirmed. Check these in the owner account before enabling a pilot. [Audit](documentation-audit.md).
+**For owner review.** On 2026-11-09, read-only GitHub checks confirmed the repository is private, the default branch `main` reports as unprotected, and the repository lists zero Actions runs. The local design checkout and both verified remote tips (`main` and `codex/v3-product-experience-design`) contain no workflow files. The connection did not expose workflow inventory, Actions policy or detailed protection settings. Confirm Actions permissions and the intended PR base with the owner before the pilot. `main` is still on an older product baseline. [Earlier audit](documentation-audit.md).
+
+Use a separate pilot branch from updated `main` after the [default-branch integration](documentation-audit.md#default-branch-integration-proposal). Approval of the baseline PR leaves the CI pilot at its own review gate.
 
 ## One Windows job to start
 

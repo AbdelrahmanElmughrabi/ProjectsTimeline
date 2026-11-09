@@ -1,6 +1,6 @@
 # V5a issue draft — Resume linked engineering context
 
-Local draft for owner review · proposed label `feature` · [Technical proposal](v5a-linked-development-continuity.md) · [Roadmap](product-implementation-roadmap.md).
+Local draft for owner review · proposed label `feature` · [Technical proposal](v5a-linked-development-continuity.md) · [Roadmap](product-implementation-roadmap.md). After approval and baseline integration, publish this as a separate issue and base its implementation PR on updated `main`. [Integration sequence](../documentation-audit.md#default-branch-integration-proposal).
 
 ## Problem and expected behavior
 
@@ -23,8 +23,14 @@ An ordinary checkpoint records what happened and what to do next. When the note 
 
 ## Owner decisions before implementation
 
-1. Use **Record checkpoint** in the inspector and separate **Resume Development** and **Open project** entry points when Home has linked context? Confirm the editor placement on compact windows and whether the pinned target changes only through cancel and reopen.
-2. Keep the next step visible and the longer notes expandable? Confirm the optional note labels and whether **Previous checkpoints** opens the existing Journal filtered to that record.
-3. Confirm latest checkpoint wins even when unlinked, and a revised or missing target opens the selected Journal entry with the saved revision available where possible. Decide how prominently the revision notice appears.
+| Decision for approval | Recommended default and tradeoff |
+| --- | --- |
+| Editor on wide and compact windows | Use one labelled dialog, centered at a comfortable reading width on wide windows and near full width with its own scroll on compact windows. Reuse the stored-source dialog's focus return. Pin the selected record and revision visibly. Cancel and reopen to change the target. The dialog briefly covers the map and leaves its layout and inspector state intact. |
+| Immediate Resume context | Keep **Open project** and add **Resume Development** only when the latest checkpoint is linked. Show its target, timestamp and next step immediately on return to the inspector. Keep the accomplishment and optional problem, reasoning and questions one expansion away. Preserve existing Home summary content and project-level Resume. |
+| Linked and unlinked Journal entries | Use one newest-first history. Mark linked entries with the record title and kind. **Previous checkpoints** opens the same Journal with a clearable record filter. A newer unlinked checkpoint wins Resume, while earlier links remain available from Journal. This keeps the latest authored intent and avoids parallel timelines. |
+| Changed or unavailable target | Open the selected checkpoint in Journal with a short status notice. Offer **View saved definition** and **Open current record** when those reads are possible. Keep the authored text visible and offer read-only retry for transient failures. The extra step makes revision differences explicit. |
+| Map entry point | Add one **Record checkpoint** action near the selected inspector record heading for the five supported kinds, once the record loads. Keep graph nodes and the canvas toolbar dedicated to exploration. This requires selecting a record first and makes the target visible before writing. |
 
-Separately approve the proposed target kinds, schema and request-key contract in the [technical design](v5a-linked-development-continuity.md). For owner review, trace one Save from the inspector to the named IPC and SQLite transaction. Step through the rollback test between the two inserts and compare the result to a lost acknowledgement after commit.
+These defaults build on the existing responsive inspector, source dialog, project-level Resume and combined checkpoint history. [Map and inspector](../../src/renderer/knowledge/ProjectKnowledgeWorkspace.tsx) · [Project tools and history](../../src/renderer/App.tsx) · [Resume](../../src/renderer/ResumePanel.tsx).
+
+Separately approve the five target kinds, migration 005, typed IPC and idempotent save contract in the [technical design](v5a-linked-development-continuity.md). For owner review, trace one Save from the inspector to the named IPC and SQLite transaction. Step through the rollback test between the two inserts and compare the result to a lost acknowledgement after commit.

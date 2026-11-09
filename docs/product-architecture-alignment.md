@@ -2,6 +2,20 @@
 
 2026-11-09 · **V3a1a implemented and verified, with UX stabilization accepted.** Reviewed PTB capture forms a durable knowledge project with Overview, interactive Map and exact stored source. [Stabilization acceptance and open checks](v3a1a-stabilization-verification.md#manual-acceptance) · [ADR 0008](adr/0008-durable-knowledge-formation.md) · [Current roadmap](design/product-implementation-roadmap.md).
 
+## Product direction and decision handoff
+
+ProjectsTimeline helps a developer understand a complex project and return to it without reconstructing the context from memory. Decisions and their reasoning, unresolved problems, actual work and the next step should be easy to find. The workspace should make disciplined engineering approachable for developers who are still learning it.
+
+The direction is a visual engineering workspace. Explore source-backed components, features, requirements and relationships, see what needs attention, then record meaningful activity and resume from it. Multiple reviewed sources, ordinary Markdown and Obsidian notes, and optional external engineering tools could extend this journey through individually reviewed integrations. [Experience contract](design/v3-product-experience-contract.md) · [Source ingestion design](design/multi-format-ingestion-design.md).
+
+Established decisions guide each slice:
+
+- Preserve provenance and authored relationship semantics. Keep proposals, commitments, actual work and verified outcomes distinct. Any AI-assisted interpretation stays optional and reviewable.
+- Keep diagram position and layout as presentation state. Make the UI responsive and approachable while preserving traceability to exact captured source.
+- Deliver complete vertical slices that preserve compatibility and existing records. Revisit decisions when new evidence warrants it and retain the rationale and history. [Engineering workflow](engineering-workflow.md) · [Formation ADR](adr/0008-durable-knowledge-formation.md).
+
+V5a linked continuity is next for design approval. The planned order then moves to selective action adoption, optional development scopes and development-purpose workflows. Focus Canvas, live source navigation, a unified workspace, multi-source attachment, a date-free roadmap, conditional Gantt, richer diagram semantics, optional AI assistance and MCP remain proposals in the [visual engineering backlog](design/visual-engineering-backlog.md). [Delivery sequence](design/product-implementation-roadmap.md#smaller-complete-vertical-slices).
+
 ## Review package
 
 | Requested deliverable | Evidence / canonical document |

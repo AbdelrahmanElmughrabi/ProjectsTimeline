@@ -2,6 +2,15 @@
 
 2026-11-09 · **V3a1a implemented and verified. UX stabilization accepted. V5a design under review.** [Formation evidence](../v3a1a-verification-report.md) · [Stabilization acceptance and open checks](../v3a1a-stabilization-verification.md#manual-acceptance) · [ADR 0008](../adr/0008-durable-knowledge-formation.md).
 
+## Fresh-session briefing
+
+- **Product and architecture.** ProjectsTimeline is a local Windows engineering workspace for project memory, authored knowledge and verified delivery history. React uses a named typed Electron bridge. Main owns validation and SQLite. Schema v4 holds reviewed PTB knowledge and exact source alongside legacy journals, workflows and frozen releases. [Product direction and decisions](../product-architecture-alignment.md#product-direction-and-decision-handoff) · [Run and verify](../../README.md#run-and-verify).
+- **Verified baseline.** `e0d16fe` is the latest verified application code and `21d5091` records the packaged evidence. `aed6a7e` records owner acceptance and drafts the V5a issue. `e799c84` consolidates the engineering workflow. Use `codex/v3-product-experience-design` for the current local baseline until the [default-branch integration](../documentation-audit.md#default-branch-integration-proposal) is approved and verified. [Verification index](../verification.md) · [Engineering checklist](../engineering-checklist.md).
+- **Next approved action.** Review the [V5a issue and owner decisions](v5a-issue-draft.md#owner-decisions-before-implementation) against the [technical proposal](v5a-linked-development-continuity.md). Production code and migration 005 require explicit approval. Native picker, screen-reader checks, owner-run Vivarium restart and dense-map polish remain open after stabilization acceptance. The [visual backlog](visual-engineering-backlog.md) tracks deferred capabilities. The [CI pilot](../github-ci-proposal.md) has a separate approval gate.
+- **Start work.** Read [AGENTS.md](../../AGENTS.md) and the assigned task, then run `git status --short --branch`, `git log -5 --oneline` and `git worktree list`. Verify the intended base includes the latest briefing. Preserve unrelated edits and existing checkouts. Follow the [engineering workflow](../engineering-workflow.md) for roles, approvals, verification and handoff. The prior worktrees are inventoried in the [documentation audit](../documentation-audit.md).
+
+Use this briefing and the linked evidence for current status. Dated ADRs, checklists and handoff reports may describe an earlier approval gate.
+
 ## Preservation and delivery choice
 
 V1/V2 remain working foundations. Migration 004 adds durable knowledge and preserves existing release, Resume and workflow records. Source/runtime history for V2 remains at bb2fd95/b16f212, tooling/paused research at 47f73c6 and visual handoff at 63c18e9. Antigravity's design study stays on its own branch.

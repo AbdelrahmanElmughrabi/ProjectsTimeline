@@ -1,5 +1,55 @@
 # ProjectsTimeline — Verification record
 
+## SWE Baseline V0.2 local integration, 2026-11-11
+
+Owner-authorized documentation and instruction integration on `codex/swe-v02-integration`, based on PR #3 head `cbafdd828a39716a3044f6b833083b27b1f7a09a`. PR #3 owns the roadmap and CI-status corrections. This increment adds automatic task routing and completion/review expectations to the existing instructions and workflow, and drafts constitution version 0.1.0 from existing decisions. Constitution ratification awaits owner review. The [workflow](engineering-workflow.md#workflow-selection) and [constitution](../.specify/memory/constitution.md) contain the reviewable behavior and principles.
+
+### Verification and preservation
+
+| Check | Result and evidence |
+| --- | --- |
+| Native constitution template | Passed. `.specify/scripts/powershell/resolve-template.ps1 constitution-template -Json` resolved the installed scaffold. Used the installed `speckit-constitution` skill for the draft. |
+| Markdown and instruction checks | Passed. An inline Python assertion check resolved 30 local Markdown targets including five anchors in the changed instructions, constitution and new evidence section. All original nonempty instruction/workflow lines remain in order. Constitution placeholders are resolved, version is 0.1.0 and ratification is pending. Log at `artifacts/swe-v02-integration/document-checks.txt`. |
+| Whitespace and scope | Passed `git diff --check` and `git diff --cached --check`. The staged path assertion contains exactly `AGENTS.md`, `docs/engineering-workflow.md`, `docs/verification.md` and `.specify/memory/constitution.md`. |
+| Installed capabilities | Passed. `specify artifact list --json` exposes nine commands. PowerShell parser checks found zero syntax errors across the six installed scripts. |
+| Spec Kit integration health | Failed, pre-existing. `specify integration status --json` exits 1 for unsafe `agy`/`codex` multi-install and nine shared file claims. All nine current skills match the Codex manifest, and all 12 core manifest files match. |
+| Feature prerequisites | Not run for this documentation increment. There is no selected feature or `specs/` directory. |
+| Application suites and hosted CI | Not run for this documentation increment. Prior results remain attributed to their tested revisions. |
+
+The pre-edit snapshot is in ignored `artifacts/swe-v02-integration/before-hashes.json`. Assertions verified 44 pre-existing installed files/screenshots byte-for-byte, with the constitution as the sole installation edit. Both PR #3 documentation files and its local branch ref match the frozen base. The installed scaffolding and skills were already untracked. Only the constitution is added to version control by this increment, so another checkout needs its own reviewed Spec Kit installation.
+
+### Native cleanup inspection and approval preview
+
+Inspected the locally installed Specify CLI 1.3.2 implementation, including `integrations/command_uninstall.py`, `integrations/manifest.py`, `integrations/base.py`, `integration_state.py`, event cleanup and extension/preset cleanup. Antigravity inherits hash-guarded teardown. The non-default integration's removal keeps the current default, filters settings to remaining integrations and removes its own manifest. Native initialization options are cleared only when removing the default. This installation has no extension or preset registries, event ownership or external adapter packages to clean up.
+
+For the inspected current state, the source-backed preview of `specify integration uninstall agy` without force is as follows. Execution still requires the owner's separate approval, and the preview must be refreshed if installation state changes.
+
+| Path | Expected native action |
+| --- | --- |
+| `.specify/integration.json` | Rewrite installed integrations and settings to retain `codex` as the sole installed/default integration. |
+| `.specify/integrations/agy.manifest.json` | Remove the Antigravity ownership manifest. |
+| `.agents/skills/speckit-analyze/SKILL.md` | Preserve because current hash differs from the Antigravity manifest and matches Codex. |
+| `.agents/skills/speckit-checklist/SKILL.md` | Preserve for the same hash reason. |
+| `.agents/skills/speckit-clarify/SKILL.md` | Preserve for the same hash reason. |
+| `.agents/skills/speckit-constitution/SKILL.md` | Preserve for the same hash reason. |
+| `.agents/skills/speckit-converge/SKILL.md` | Preserve for the same hash reason. |
+| `.agents/skills/speckit-implement/SKILL.md` | Preserve for the same hash reason. |
+| `.agents/skills/speckit-plan/SKILL.md` | Preserve for the same hash reason. |
+| `.agents/skills/speckit-specify/SKILL.md` | Preserve for the same hash reason. |
+| `.agents/skills/speckit-tasks/SKILL.md` | Preserve for the same hash reason. |
+
+An assertion check verified all nine skill hashes and the absence of additional cleanup registries/packages against the source-backed preview. The exact path list is also in ignored `artifacts/swe-v02-integration/cleanup-preview.txt`. Cleanup is pending separate owner approval. The collision remains an open configuration issue.
+
+### Behavior trials
+
+| Trial | Status and observation to collect |
+| --- | --- |
+| Ordinary concrete bug request | Not run. Observe investigation, workflow selection, regression checks, review and procedural reminders. |
+| Ordinary approved feature request | Not run. Observe actual native skill use, requirements-to-check coverage, authorized implementation and completion evidence. |
+| Interrupted task resumed in a fresh session | Not run. Observe revision and artifact verification, recovered progress, blockers and next authorized action. |
+
+These instruction changes establish guidance. Behavioral improvement remains unproven until the trials supply observations. Next actions are owner review of this local diff and constitution draft, separate approval of any native cleanup, and the ordinary-request trials when suitable authorized work is available.
+
 ## V3a1a acceptance and workflow consolidation, 2026-11-09
 
 The owner accepted UX stabilization. Native picker, screen-reader behavior and dense-map polish remain open. The [stabilization report](v3a1a-stabilization-verification.md#manual-acceptance) records the feedback separately from automated evidence. The [documentation audit](documentation-audit.md) records the verified GitHub refs and limits of the read-only remote checks. This checkpoint updates documentation and local templates. It does not add V5a, migration 005 or an Actions workflow. No application tests were rerun for this checkpoint.

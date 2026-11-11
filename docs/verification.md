@@ -1,5 +1,21 @@
 # ProjectsTimeline — Verification record
 
+## Spec Kit integration collision cleanup, 2026-11-11
+
+The owner separately approved native cleanup with Codex as the default. Starting from local integration commit `e3b5707` on `codex/swe-v02-integration`, rechecked Specify CLI 1.3.2 teardown and refreshed the earlier preview against the current hashes. Executed `specify integration uninstall agy` without force. The command succeeded and preserved all nine current skills through its native hash checks.
+
+The actual installation changes matched the two-file preview. `.specify/integration.json` now lists only `codex` and its settings, with `codex` as the default. Native cleanup removed `.specify/integrations/agy.manifest.json`. The earlier integration section below records the historical pre-cleanup state and preview.
+
+| Check | Result and evidence |
+| --- | --- |
+| Integration health | Passed. `specify integration status --json` exits 0 with status `ok`, installed/default integration `codex`, zero modified or missing managed files and zero findings. |
+| Skill and core integrity | Passed. All nine Codex skills and all 12 core files match their installation manifests. |
+| Exact cleanup effects | Passed. A pre/post snapshot assertion found only the expected metadata update and manifest removal. Immediately after native cleanup, the other 48 captured files were byte-for-byte identical, including instructions, constitution, workflow records, PR #3 documents and screenshots. |
+| Native capabilities | Passed. `specify artifact list --json` still exposes nine commands. `resolve-template.ps1 -Json` resolves `spec-template`, `plan-template` and `constitution-template`. |
+| Application and behavior trials | Not run for this configuration cleanup. The V0.2 bug, feature and fresh-session trials remain pending. |
+
+Pre-cleanup metadata and hashes, final health JSON, the metadata diff and preservation results are in ignored `artifacts/swe-v02-integration/collision-cleanup/`. Installation files continue to be local untracked files, as recorded in the prior increment. This checkpoint records the cleanup in the existing engineering log. Next actions are owner review of the constitution draft and ordinary-request trials when suitable authorized work is available.
+
 ## SWE Baseline V0.2 local integration, 2026-11-11
 
 Owner-authorized documentation and instruction integration on `codex/swe-v02-integration`, based on PR #3 head `cbafdd828a39716a3044f6b833083b27b1f7a09a`. PR #3 owns the roadmap and CI-status corrections. This increment adds automatic task routing and completion/review expectations to the existing instructions and workflow, and drafts constitution version 0.1.0 from existing decisions. Constitution ratification awaits owner review. The [workflow](engineering-workflow.md#workflow-selection) and [constitution](../.specify/memory/constitution.md) contain the reviewable behavior and principles.

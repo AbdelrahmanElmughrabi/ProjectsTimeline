@@ -1,6 +1,8 @@
 # ProjectsTimeline
 
-ProjectsTimeline is a local-first desktop workspace for understanding a software project and picking up where you left off. It brings a source-linked **Engineering Map**, a **development journal**, and **saved next steps** into one Windows app.
+ProjectsTimeline aims to turn software engineering notes, including notes in Obsidian, into source-linked diagrams that help you understand a project and pick up where you left off.
+
+Today, the local-first Windows app builds its **Engineering Map** from structured PTB Markdown and keeps a **development journal** with **saved next steps**.
 
 **Active development · v0.1.0 · Unreleased.** Run it from source to try the current build.
 
@@ -26,12 +28,12 @@ React reads the graph through a typed Electron bridge. The main process validate
 
 **Why proposals stay out of tracked work.** I approved keeping imported proposals as stable engineering records. Creating backlog entries on import would have required guards to keep proposals out of completion and release workflows. The Vivarium test saved **47 definitions and 86 relationships** with zero tracked actions or releases. Recovery tests showed that an interrupted import leaves no partial project, and retrying after a lost acknowledgement returns the existing project. [Design review][proposal-design] · [Verification][formation-evidence]
 
-## Where it’s going
+## Future plans
 
 | Status | Direction |
 | --- | --- |
 | **Next · awaiting implementation approval** | **Linked checkpoints (V5a).** Save a checkpoint from an engineering record and return to that exact record revision after a restart. Keep the saved context readable in Journal if the record changes or becomes unavailable. [Design][v5a] |
-| **Exploratory** | **Diagrams from ordinary notes.** Work toward turning engineering content in Markdown and Obsidian into source-linked diagrams. Open questions include how to review ambiguous relationships and recognize the same record after notes are rewritten or reimported. [Ingestion design][ingestion] |
+| **Exploratory** | **Diagrams from ordinary Markdown and Obsidian notes.** Explore how to identify engineering records and relationships, review ambiguous links, and recognize the same record after a rewrite or reimport. [Ingestion design][ingestion] |
 | **Exploratory** | **Context for coding agents.** Explore giving an assistant the saved next step and relevant source, then using Git and CI evidence to propose status updates or reports for review. |
 
 ## Run and verify

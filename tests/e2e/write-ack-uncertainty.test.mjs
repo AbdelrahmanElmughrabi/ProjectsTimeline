@@ -80,7 +80,7 @@ for (const { kind, method, label } of scenarios) {
     await application.close(); application = undefined;
     application = await launchWorkspace(profile);
     page = await application.firstWindow();
-    await page.getByRole('heading', { name: 'Start with a project' }).waitFor();
+    await page.getByRole('button', { name: 'Home', exact: true }).waitFor();
     assert.equal(await persisted(page, kind, projectId, label), 1, 'one persisted row after restart');
   });
 }

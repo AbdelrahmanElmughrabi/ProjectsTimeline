@@ -4,6 +4,7 @@ import type { FormationReceipt, KnowledgeWorkspace, PreparedFormation } from '..
 
 type Operation = 'create' | 'open' | 'action' | 'complete' | 'checkpoint' | 'release' | 'refresh' | 'formation' | null;
 type Notice = { kind: 'success' | 'error' | 'warning'; text: string } | null;
+type UncertainSave = { kind: 'create' | 'action' | 'checkpoint'; checked: boolean };
 
 function unwrap<T>(result: Result<T>): T {
   if (!result.ok) throw new Error(result.error.message);
@@ -21,6 +22,7 @@ export function useProjectWorkspace() {
   const [busy, setBusy] = useState<Operation>(null);
   const [notice, setNotice] = useState<Notice>(null);
   const [stale, setStale] = useState(false);
+  const [uncertainSave, setUncertainSave] = useState<UncertainSave | null>(null);
   const [homeProjects, setHomeProjects] = useState<HomeProjectSummary[]>([]);
   const [homeLoading, setHomeLoading] = useState(true);
   const [homeError, setHomeError] = useState('');
@@ -32,6 +34,12 @@ export function useProjectWorkspace() {
   const homeRequest = useRef(0);
   const listLoading = useRef(true);
   const operation = useRef<Operation>(null);
+  const uncertain = useRef<UncertainSave | null>(null);
+
+  function setUncertainty(value: UncertainSave | null) {
+    uncertain.current = value;
+    setUncertainSave(value);
+  }
 
   function setOperation(value: Operation) {
     operation.current = value;
@@ -110,7 +118,7 @@ export function useProjectWorkspace() {
 
   async function openProject(projectId: number, keepSnapshot = false): Promise<boolean> {
     // A new selection may supersede an earlier read, but cannot interrupt a write/refresh.
-    if ((operation.current !== null && operation.current !== 'open') || listLoading.current) return false;
+    if ((operation.current !== null && operation.current !== 'open') || listLoading.current || uncertain.current !== null) return false;
     const preserve = keepSnapshot && selected.current === projectId && detail?.project.id === projectId;
     selected.current = projectId;
     setSelectedId(projectId);
@@ -161,17 +169,20 @@ export function useProjectWorkspace() {
     }
   }
 
-  // Review: commit acknowledgement and subsequent read have separate failure semantics.
+  // A STORAGE/transport error cannot tell us whether an append committed.
+  // Only the three owner-approved ordinary create/append operations fail closed.
   async function execute(name: Exclude<Operation, 'open' | 'refresh' | null>, command: () => Promise<Result<unknown>>, message: string): Promise<boolean> {
-    if (operation.current !== null || listLoading.current || stale) return false;
+    if (operation.current !== null || listLoading.current || stale || uncertain.current !== null) return false;
     const projectId = selected.current;
+    const mayAppend = name === 'create' || name === 'action' || name === 'checkpoint';
     if (name !== 'create' && (!detail || detail.project.id !== projectId)) return false;
     const token = ++request.current;
     setOperation(name);
     setNotice(null);
     let committed = false;
     try {
-      unwrap(await command());
+      const result = await command();
+      if (!result.ok) throw Object.assign(new Error(result.error.message), { code: result.error.code });
       committed = true;
       homeRequest.current++;
       setHomeStale(true);
@@ -188,7 +199,17 @@ export function useProjectWorkspace() {
           setStale(projectId !== null);
           setNotice({ kind: 'warning', text: 'Saved, but could not refresh. Retry loading to read the saved data; the save will not be repeated.' });
         } else {
-          setNotice({ kind: 'error', text: error instanceof Error ? error.message : 'Could not confirm the save.' });
+          const code = error && typeof error === 'object' && 'code' in error ? (error as { code?: unknown }).code : undefined;
+          if (mayAppend && code !== 'VALIDATION' && code !== 'NOT_FOUND' && code !== 'FORBIDDEN') {
+            setUncertainty({ kind: name as UncertainSave['kind'], checked: false });
+            setStale(projectId !== null);
+            homeRequest.current++;
+            setHomeStale(true);
+            setHomeLoading(false);
+            setNotice({ kind: 'warning', text: 'Save outcome is uncertain. The record may already be stored. Reload saved records before deciding whether to submit again.' });
+          } else {
+            setNotice({ kind: 'error', text: error instanceof Error ? error.message : 'Could not confirm the save.' });
+          }
         }
       }
     } finally {
@@ -204,9 +225,17 @@ export function useProjectWorkspace() {
     setOperation('refresh');
     setNotice(null);
     try {
-      if (listError && !await loadProjects()) throw new Error('Could not load the project list.');
-      if (projectId !== null) await readProject(projectId, token);
-      if (current(token, projectId)) setNotice({ kind: 'success', text: projectId === null ? 'Projects loaded.' : 'Workspace refreshed.' });
+      const pending = uncertain.current;
+      // A failed create has no listError: force the authoritative list read anyway.
+      if ((pending?.kind === 'create' || listError) && !await loadProjects()) throw new Error('Could not load the project list.');
+      if (projectId !== null && !await readProject(projectId, token)) return;
+      if (current(token, projectId)) {
+        if (pending && uncertain.current === pending) {
+          setUncertainty({ ...pending, checked: true });
+          setNotice({ kind: 'warning', text: 'Saved records reloaded. They may contain your entry, but matching text does not prove which submission created it. Choose how to resolve the retained draft.' });
+          void refreshHome();
+        } else setNotice({ kind: 'success', text: projectId === null ? 'Projects loaded.' : 'Workspace refreshed.' });
+      }
     } catch {
       if (current(token, projectId)) {
         setStale(projectId !== null);
@@ -217,8 +246,20 @@ export function useProjectWorkspace() {
     }
   }
 
+  function resolveUncertainSave(choice: 'discard' | 'retry'): UncertainSave['kind'] | null {
+    const pending = uncertain.current;
+    if (!pending?.checked || operation.current !== null) return null;
+    setUncertainty(null);
+    if (choice === 'retry') {
+      setNotice({ kind: 'warning', text: 'You allowed another submission after reviewing saved records. It may duplicate an earlier successful write.' });
+      return null;
+    }
+    setNotice({ kind: 'success', text: 'Draft discarded at your request. Saved records were not changed.' });
+    return pending.kind;
+  }
+
   return {
-    projects, detail, knowledge, selectedId, loading, listError, busy, notice, stale, formKnowledge,
+    projects, detail, knowledge, selectedId, loading, listError, busy, notice, stale, uncertainSave, resolveUncertainSave, formKnowledge,
     homeProjects, homeLoading, homeError, homeStale, refreshHome,
     openProject, returnToProject: (projectId: number) => openProject(projectId, true), retryLoading,
     createProject: (name: string) => execute('create', () => api.createProject({ name }), 'Project created.'),

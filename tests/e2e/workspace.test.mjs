@@ -111,13 +111,15 @@ test('actual failed checkpoint write preserves form input and allows retry', { t
     assert.equal(await page.getByLabel('What to do next', { exact: true }).inputValue(), 'Retry this save');
     assert.equal(await page.locator('.checkpoint-card').count(), 1);
     const resume = page.getByRole('region', { name: 'Resume Development', exact: true });
-    assert.equal(await resume.getByText('Confirmed next step', { exact: true }).count(), 1);
+    await resume.getByText(/needs a fresh load/).waitFor();
+    assert.equal(await resume.getByText('Confirmed next step', { exact: true }).count(), 0, 'stale Resume context must be withheld');
     assert.equal(await resume.getByText('Retry this save', { exact: true }).count(), 0);
     assert.equal(raw.prepare('SELECT COUNT(*) AS count FROM checkpoints').get().count, 1);
     mkdirSync(resolve('artifacts'), { recursive: true });
     await page.screenshot({ path: resolve('artifacts/visual-write-error.png'), fullPage: true, animations: 'disabled' });
     raw.exec('DROP TRIGGER fail_checkpoint');
     await page.getByRole('button', { name: 'Reload saved records', exact: true }).click();
+    await resume.getByText('Confirmed next step', { exact: true }).waitFor();
     await page.getByRole('button', { name: 'Allow another save after review', exact: true }).click();
     await page.getByRole('button', { name: 'Save checkpoint', exact: true }).click();
     await page.getByRole('status').filter({ hasText: 'Checkpoint saved.' }).waitFor();

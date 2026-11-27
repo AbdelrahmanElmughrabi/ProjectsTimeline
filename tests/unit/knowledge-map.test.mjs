@@ -71,13 +71,16 @@ test('expansion at the 40-card cap protects selected, anchor and explicit neighb
   assert.deepEqual(projectKnowledgeMap(data), atlas, 'collapse restores the original atlas');
 });
 
-test('expanding when every neighbor is already on canvas does not churn nodes or add edges', () => {
-  const data = workspace([node(1, 'component'), node(2, 'feature'), node(3, 'requirement')],
-    [link(1, 2, 1, 'primary-component'), link(2, 3, 2, 'applies-to-feature')]);
-  const before = projectKnowledgeMap(data, new Set([2]));
-  const after = projectKnowledgeMap(data, new Set([2]), null, null,
-    { expandedEntityId: 2, previousVisibleIds: new Set(before.nodes.map(n => n.entityId)) });
-  assert.deepEqual(after, before);
+test('at a full canvas, expansion with no hidden direct neighbors does not evict context', () => {
+  const nodes = [node(1, 'component'), node(46, 'feature'),
+    ...Array.from({ length: 44 }, (_, i) => node(i + 2, 'component')), node(47, 'requirement')];
+  const data = workspace(nodes, [link(1, 46, 1, 'primary-component'), link(900, 47, 46, 'applies-to-feature')]);
+  const before = projectKnowledgeMap(data);
+  assert.equal(before.nodes.length, 40);
+  assert.equal(before.nodes.some(n => n.entityId === 46), true, 'the only direct neighbor of component 1 is visible');
+  const after = projectKnowledgeMap(data, new Set([1]), null, null,
+    { expandedEntityId: 1, previousVisibleIds: new Set(before.nodes.map(n => n.entityId)) });
+  assert.deepEqual(after, before, 'do not evict unrelated cards just to simulate an expansion');
 });
 
 test('the 80-edge cap really truncates eligible authored links and prioritizes the focused late relationship', () => {

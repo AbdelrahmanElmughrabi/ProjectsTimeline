@@ -97,7 +97,10 @@ function focusVisible(...targets: (HTMLElement | null | undefined)[]) {
 }
 
 type CameraIntent = { kind: 'fit' } | { kind: 'reveal'; ids: string[] } | { kind: 'restore'; viewport: Viewport };
+type ExpansionIntent = { entityId: number; neighborId: number | null; previousVisibleIds: ReadonlySet<number> };
+
 type MapFrame = {
+  expansionIntent: ExpansionIntent | null; focusedRelationshipId: number | null;
   anchor: number | null; expanded: ReadonlySet<number>; revealId: number | null; selectedId: number | null;
   geometry: Map<string, XYPosition>; viewport: Viewport; compactDetail: boolean; outlineOpen: boolean;
   scroll: number; opener: HTMLElement; selectionOpener: HTMLElement | null;
@@ -131,6 +134,7 @@ export function ProjectKnowledgeWorkspace({ data, active, hasResume, onProjectTo
   const [outlineOpen, setOutlineOpen] = useState(false);
   const [showAllDefinitions, setShowAllDefinitions] = useState(false);
   const [expanded, setExpanded] = useState<ReadonlySet<number>>(() => new Set());
+  const [expansionIntent, setExpansionIntent] = useState<ExpansionIntent | null>(null);
   const [anchor, setAnchor] = useState<number | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [query, setQuery] = useState('');
@@ -146,6 +150,7 @@ export function ProjectKnowledgeWorkspace({ data, active, hasResume, onProjectTo
   const [revealId, setRevealId] = useState<number | null>(null);
   const [layoutError, setLayoutError] = useState('');
   const [edgeId, setEdgeId] = useState<string | null>(null);
+  const [focusedRelationshipId, setFocusedRelationshipId] = useState<number | null>(null);
   const [zoom, setZoom] = useState(openingViewport.zoom);
   const [cameraTask, setCameraTask] = useState<(CameraIntent & { generation: number }) | null>(null);
   const history = useRef<MapFrame[]>([]);
@@ -168,7 +173,13 @@ export function ProjectKnowledgeWorkspace({ data, active, hasResume, onProjectTo
   const cameraGeneration = useRef(0);
   const layoutNeeded = useRef<'initial' | 'neighborhood' | null>('initial');
   const branch = useRef<number | undefined>(undefined);
-  const projection = useMemo(() => projectKnowledgeMap(data, expanded, revealId, anchor), [data, expanded, revealId, anchor]);
+  const projection = useMemo(() => projectKnowledgeMap(data, expanded, revealId, anchor, {
+    selectedEntityId: selectedId,
+    expandedEntityId: expansionIntent?.entityId,
+    newNeighborEntityId: expansionIntent?.neighborId,
+    previousVisibleIds: expansionIntent?.previousVisibleIds,
+    focusedRelationshipId,
+  }), [data, expanded, revealId, anchor, selectedId, expansionIntent, focusedRelationshipId]);
   const visibleIds = useMemo(() => new Set(projection.nodes.map(node => node.entityId)), [projection]);
   const [nodes, setNodes] = useNodesState<Node<CardData>>([]);
   const { byId, adjacency } = useMemo(() => {
@@ -214,7 +225,8 @@ export function ProjectKnowledgeWorkspace({ data, active, hasResume, onProjectTo
     layoutNeeded.current = null;
     setCameraTask(null);
   }, []);
-  const choose = useCallback((id: number, opener?: HTMLElement) => {
+  const choose = useCallback((id: number, opener?: HTMLElement, relationshipId?: number) => {
+    setFocusedRelationshipId(relationshipId ?? null);
     inspectorScroll.current = null;
     if (opener) returnFocus.current = opener;
     setSelectedId(id);
@@ -227,11 +239,13 @@ export function ProjectKnowledgeWorkspace({ data, active, hasResume, onProjectTo
     const next = new Set(expanded);
     if (next.has(id)) {
       next.delete(id);
+      setExpansionIntent(current => current?.entityId === id ? null : current);
     } else {
       next.add(id);
       branch.current = id;
       const added = (adjacency.get(id) ?? []).map(link => link.fromEntityId === id ? link.toEntityId : link.fromEntityId)
         .filter(neighbor => !visibleIds.has(neighbor));
+      setExpansionIntent({ entityId: id, neighborId: added[0] ?? null, previousVisibleIds: visibleIds });
       queueCamera({ kind: 'reveal', ids: [id, ...added].map(String) });
     }
     setExpanded(next);
@@ -255,7 +269,10 @@ export function ProjectKnowledgeWorkspace({ data, active, hasResume, onProjectTo
       id, source: String(link.fromEntityId), target: String(link.toEntityId), sourceHandle: id, targetHandle: id,
       ariaLabel: `${byId.get(link.fromEntityId)?.title} · ${relationName[link.relation]} → ${byId.get(link.toEntityId)?.title}`,
       markerEnd: { type: MarkerType.ArrowClosed, color: '#bfb1f2', width: 16, height: 16 },
-      domAttributes: { onFocus: () => setEdgeId(id), onBlur: () => setEdgeId(current => current === id ? null : current) },
+      domAttributes: {
+        onFocus: () => { setEdgeId(id); setFocusedRelationshipId(link.relationshipId); },
+        onBlur: () => { setEdgeId(current => current === id ? null : current); setFocusedRelationshipId(current => current === link.relationshipId ? null : current); },
+      },
     };
   }), [byId, projection.links]);
   const activeEdge = edges.find(edge => edge.id === edgeId);
@@ -420,11 +437,11 @@ export function ProjectKnowledgeWorkspace({ data, active, hasResume, onProjectTo
     // Keep the atlas frame reachable when the oldest neighborhood falls out of history.
     if (history.current.length === 20) history.current.splice(1, 1);
     history.current.push({
-      anchor, expanded, revealId, selectedId, geometry: new Map(geometry.current), viewport: viewport.current,
+      anchor, expanded, revealId, selectedId, expansionIntent, focusedRelationshipId, geometry: new Map(geometry.current), viewport: viewport.current,
       compactDetail, outlineOpen, scroll: inspector.current?.scrollTop ?? 0, opener, selectionOpener: returnFocus.current,
     });
     layoutNeeded.current = 'neighborhood';
-    setAnchor(selectedId); setExpanded(new Set([selectedId])); setRevealId(null); setCompactDetail(false); setOutlineOpen(false);
+    setAnchor(selectedId); setExpanded(new Set([selectedId])); setExpansionIntent(null); setFocusedRelationshipId(null); setRevealId(null); setCompactDetail(false); setOutlineOpen(false);
     requestAnimationFrame(() => focusVisible(neighborhoodBack.current, mapHeading.current));
   };
   const returnToMap = () => {
@@ -434,7 +451,7 @@ export function ProjectKnowledgeWorkspace({ data, active, hasResume, onProjectTo
     geometry.current = saved.geometry;
     inspectorScroll.current = saved.scroll;
     returnFocus.current = saved.selectionOpener;
-    setAnchor(saved.anchor); setExpanded(saved.expanded); setRevealId(saved.revealId); setSelectedId(saved.selectedId);
+    setAnchor(saved.anchor); setExpanded(saved.expanded); setExpansionIntent(saved.expansionIntent); setFocusedRelationshipId(saved.focusedRelationshipId); setRevealId(saved.revealId); setSelectedId(saved.selectedId);
     setCompactDetail(saved.compactDetail); setOutlineOpen(saved.outlineOpen);
     queueCamera({ kind: 'restore', viewport: saved.viewport });
     requestAnimationFrame(() => {
@@ -445,7 +462,7 @@ export function ProjectKnowledgeWorkspace({ data, active, hasResume, onProjectTo
       focusVisible(saved.opener, exploreButton.current, inspectorTitle.current, neighborhoodBack.current, mapHeading.current);
     });
   };
-  const navigateRecord = (id: number, opener?: HTMLElement) => {
+  const navigateRecord = (id: number, opener?: HTMLElement, relationshipId?: number) => {
     if (!visibleIds.has(id)) {
       setRevealId(id);
       queueCamera({ kind: 'reveal', ids: [String(id)] });
@@ -453,7 +470,7 @@ export function ProjectKnowledgeWorkspace({ data, active, hasResume, onProjectTo
       queueCamera({ kind: 'reveal', ids: [String(id)] });
     }
     if (!opener) returnFocus.current = null;
-    choose(id, opener);
+    choose(id, opener, relationshipId);
   };
   const switchTab = (next: (typeof tabs)[number], focus = false) => {
     if (next !== tab) {
@@ -595,7 +612,7 @@ export function ProjectKnowledgeWorkspace({ data, active, hasResume, onProjectTo
           {recordLoading && <p className="kw-muted" role="status">Loading record…</p>}
           {recordError && <div className="kw-error" role="alert">{recordError}<button className="kw-text-button" onClick={() => setRecordAttempt(n => n + 1)}>Retry</button></div>}
           {data.review.needsReviewScopeEntityIds.includes(selected.entityId) && <div className="kw-review-banner"><strong>Needs review</strong><span>Workflow reference requires review. No stages are assumed.</span></div>}
-          {displayRecord && <Inspector record={displayRecord} related={related} byId={byId} onNavigate={navigateRecord} onSource={(target, el) => void openSource(target, el)} />}
+          {displayRecord && <Inspector record={displayRecord} related={related} byId={byId} onNavigate={(id, relationshipId) => navigateRecord(id, undefined, relationshipId)} onSource={(target, el) => void openSource(target, el)} />}
           <p className="kw-inspector-footer">Revision {selected.revision} · source {selected.externalId}</p>
         </aside>}
       </div>
@@ -610,7 +627,7 @@ export function ProjectKnowledgeWorkspace({ data, active, hasResume, onProjectTo
 
 function Inspector({ record, related, byId, onNavigate, onSource }: {
   record: KnowledgeRecord; related: readonly KnowledgeLink[]; byId: ReadonlyMap<number, KnowledgeNode>;
-  onNavigate: (id: number) => void; onSource: (target: KnowledgeSourceTarget, el: HTMLElement) => void;
+  onNavigate: (id: number, relationshipId: number) => void; onSource: (target: KnowledgeSourceTarget, el: HTMLElement) => void;
 }) {
   const field = (name: string, value: string | readonly string[] | null) => <div className="kw-field"><dt>{name}</dt><dd>{
     typeof value === 'string' || value === null ? value || 'Not provided' : value.length ? <ul>{value.map((item, index) => <li key={index}>{item}</li>)}</ul> : 'None recorded'
@@ -636,7 +653,7 @@ function Inspector({ record, related, byId, onNavigate, onSource }: {
         return <li key={link.relationshipId}>
           <span className="kw-relation-label"><span aria-hidden="true">{outgoing ? '→' : '←'} </span><span className="sr-only">{outgoing ? 'Outgoing: ' : 'Incoming: '}</span>{relation}</span>
           <button title="Open relationship source" aria-label={`Source: ${relation} · ${node?.title ?? 'record'}`} className="kw-source-icon" onClick={event => onSource({ kind: 'relationship', relationshipId: link.relationshipId }, event.currentTarget)}>Source</button>
-          {node && <button className="kw-related-link" onClick={() => onNavigate(node.entityId)}>{node.title}<small>{kindName[node.kind]}</small></button>}
+          {node && <button className="kw-related-link" onClick={() => onNavigate(node.entityId, link.relationshipId)}>{node.title}<small>{kindName[node.kind]}</small></button>}
         </li>;
       })}</ul> : <p className="kw-muted">No explicit relationships recorded.</p>}
     </section>

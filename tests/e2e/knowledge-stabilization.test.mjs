@@ -453,3 +453,83 @@ test('full Knowledge Map Expand reveals an authored requirement and retains its 
   await button(page, 'Collapse Seed feature').click();
   assert.equal(Object.keys(await positions(page)).length, 40);
 });
+
+test('80-edge cap preserves followed relationships across edge blur, Fit, Explore/Back, and clears on Close', { timeout: 120000 }, async t => {
+  const { app, page, directory } = await openApp(t);
+  await resize(app, page, 1540);
+  const project = 'proj.map-80edge-focus';
+  const allFeatures = Array.from({ length: 10 }, (_, i) => `feat.f${i + 1}`);
+  const records = [
+    { kind: 'project', id: project, title: 'Map 80-edge focus fixture' },
+    ...Array.from({ length: 10 }, (_, i) => ({ kind: 'component', id: `cmp.c${i + 1}`, title: `Component ${i + 1}`, project })),
+    ...Array.from({ length: 10 }, (_, i) => ({ kind: 'feature', id: `feat.f${i + 1}`, title: `Feature ${i + 1}`, project, component: `cmp.c${i + 1}` })),
+    ...Array.from({ length: 20 }, (_, i) => ({
+      kind: 'requirement', id: `req.r${i + 1}`, title: `Requirement ${i + 1}`, project,
+      type: 'functional', features: allFeatures, acceptance: ['Dense relationships'],
+    })),
+    { kind: 'requirement', id: 'req.r21', title: 'Late Target Req 21', project,
+      type: 'functional', features: ['feat.f10'], acceptance: ['Late link survives'] },
+    { kind: 'action', id: 'act.late', title: 'Late Action', project,
+      type: 'implementation', requirements: ['req.r21'], instructions: 'Verify followed edge lifecycle', definition_of_done: 'Checked' },
+  ];
+  const file = join(directory, 'map-80edge-focus.md');
+  writeFileSync(file, records.map(record => '```ptb\n' + JSON.stringify({ ptb: '0.2', ...record }) + '\n```').join('\n\n'));
+  await form(app, page, file, 'Map 80-edge focus fixture');
+  const saved = await snapshot(page, 'Map 80-edge focus fixture');
+  const id = external => saved.graph.nodes.find(node => node.externalId === external).entityId;
+  const feat10Id = id('feat.f10');
+  const req21Id = id('req.r21');
+  const actLateId = id('act.late');
+  const relLate = saved.graph.links.find(link => link.fromEntityId === req21Id && link.toEntityId === feat10Id);
+  const relActReq = saved.graph.links.find(link => link.fromEntityId === actLateId && link.toEntityId === req21Id);
+  assert.ok(relLate && relActReq);
+
+  await button(page, 'Expand Feature 1').click();
+  await page.waitForFunction(() => document.querySelectorAll('.react-flow__node').length === 40 && document.querySelectorAll('.react-flow__edge').length === 80);
+  await frames(page);
+  assert.equal(await page.locator(`.react-flow__edge[data-id="${relLate.relationshipId}"]`).count(), 0);
+
+  await useOutline(page, 'req.r21', 'Late Target Req 21');
+  await inspector(page).getByRole('button', { name: 'Feature 10 Feature' }).click();
+  await inspector(page).getByRole('heading', { name: 'Feature 10', exact: true }).waitFor();
+  await frames(page);
+  assert.equal(Object.keys(await positions(page)).length, 40);
+  assert.equal(await page.locator('.react-flow__edge').count(), 80);
+  assert.equal(await page.locator(`.react-flow__node[data-id="${req21Id}"]`).count(), 1);
+  assert.equal(await page.locator(`.react-flow__node[data-id="${feat10Id}"]`).count(), 1);
+  assert.equal(await page.locator(`.react-flow__edge[data-id="${relLate.relationshipId}"]`).count(), 1);
+
+  await useOutline(page, 'act.late', 'Late Action');
+  await inspector(page).getByRole('button', { name: 'Late Target Req 21 Requirement' }).click();
+  await inspector(page).getByRole('heading', { name: 'Late Target Req 21', exact: true }).waitFor();
+  await frames(page);
+  const actNode = page.locator(`.react-flow__node[data-id="${actLateId}"]`);
+  const actReqEdge = page.locator(`.react-flow__edge[data-id="${relActReq.relationshipId}"]`);
+  assert.equal(await actNode.count(), 1);
+  assert.equal(await actReqEdge.count(), 1);
+
+  await actReqEdge.focus();
+  await frames(page);
+  assert.equal(await page.locator('.kw-edge-caption').textContent(), 'Late Action · addresses requirement → Late Target Req 21');
+  await button(page, 'Fit map').click();
+  await frames(page);
+  assert.equal(await actNode.count(), 1);
+  assert.equal(await actReqEdge.count(), 1);
+
+  await actReqEdge.focus();
+  await frames(page);
+  await button(inspector(page), 'Explore connections').click();
+  await button(page, 'Back to prior map').waitFor();
+  await frames(page);
+  await button(page, 'Back to prior map').click();
+  await button(page, 'Back to prior map').waitFor({ state: 'detached' });
+  await frames(page);
+  assert.equal(await actNode.count(), 1);
+  assert.equal(await actReqEdge.count(), 1);
+
+  await button(inspector(page), 'Close record details').click();
+  await frames(page);
+  assert.equal(await actNode.count(), 0);
+  assert.equal(await actReqEdge.count(), 0);
+  assert.deepEqual(await snapshot(page, 'Map 80-edge focus fixture'), saved);
+});

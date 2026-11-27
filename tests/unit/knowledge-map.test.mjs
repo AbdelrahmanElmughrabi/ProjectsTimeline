@@ -104,3 +104,25 @@ test('the 80-edge cap really truncates eligible authored links and prioritizes t
   assert.equal(projected.links.every(l => visible.has(l.fromEntityId) && visible.has(l.toEntityId)), true);
   assert.deepEqual(projectKnowledgeMap(data, expanded, null, 3, priorities), projected);
 });
+
+test('stale or unexpanded expansion priority neither forces hidden nodes nor reduces the 80-edge budget', () => {
+  const nodes = [
+    ...Array.from({ length: 10 }, (_, i) => node(i + 1, 'component')),
+    ...Array.from({ length: 10 }, (_, i) => node(i + 11, 'feature')),
+    ...Array.from({ length: 30 }, (_, i) => node(i + 21, 'requirement')),
+    node(51, 'requirement'),
+    node(52, 'requirement'),
+  ];
+  const links = Array.from({ length: 10 }, (_, i) => link(i + 1, i + 11, i + 1, 'primary-component'));
+  for (let req = 21; req <= 50; req++) for (let feature = 11; feature <= 20; feature++)
+    links.push(link(links.length + 1, req, feature, 'applies-to-feature'));
+  links.push(link(999, 51, 52, 'addresses-requirement'));
+  const data = workspace(nodes, links);
+  const expanded = new Set(nodes.filter(n => n.kind !== 'component' && n.entityId <= 50).map(n => n.entityId));
+  const projected = projectKnowledgeMap(data, expanded, null, 3, { expandedEntityId: 51, newNeighborEntityId: 52 });
+  const visible = new Set(projected.nodes.map(n => n.entityId));
+  assert.equal(projected.nodes.length, 40);
+  assert.equal(visible.has(51) || visible.has(52), false);
+  assert.equal(projected.links.some(l => l.relationshipId === 999), false);
+  assert.equal(projected.links.length, 80);
+});

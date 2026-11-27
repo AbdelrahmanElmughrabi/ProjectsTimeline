@@ -17,5 +17,6 @@ jobs:
           node-version: '24.21.0'
           package-manager-cache: false
       - run: npm ci
+      - run: npm run typecheck
       - run: npm run build
-      - run: node --test tests/e2e/write-ack-uncertainty.test.mjs
+      - run: node --test tests/e2e/write-ack-uncertainty.test.mjs tests/e2e/resume.test.mjs tests/e2e/workspace.test.mjs

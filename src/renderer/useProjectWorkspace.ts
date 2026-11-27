@@ -200,7 +200,7 @@ export function useProjectWorkspace() {
           setNotice({ kind: 'warning', text: 'Saved, but could not refresh. Retry loading to read the saved data; the save will not be repeated.' });
         } else {
           const code = error && typeof error === 'object' && 'code' in error ? (error as { code?: unknown }).code : undefined;
-          if (mayAppend && (code === 'STORAGE' || code === undefined)) {
+          if (mayAppend && code !== 'VALIDATION' && code !== 'NOT_FOUND' && code !== 'FORBIDDEN') {
             setUncertainty({ kind: name as UncertainSave['kind'], checked: false });
             setStale(projectId !== null);
             homeRequest.current++;

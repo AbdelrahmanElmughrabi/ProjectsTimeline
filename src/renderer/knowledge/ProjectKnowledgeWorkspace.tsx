@@ -270,8 +270,8 @@ export function ProjectKnowledgeWorkspace({ data, active, hasResume, onProjectTo
       ariaLabel: `${byId.get(link.fromEntityId)?.title} · ${relationName[link.relation]} → ${byId.get(link.toEntityId)?.title}`,
       markerEnd: { type: MarkerType.ArrowClosed, color: '#bfb1f2', width: 16, height: 16 },
       domAttributes: {
-        onFocus: () => { setEdgeId(id); setFocusedRelationshipId(link.relationshipId); },
-        onBlur: () => { setEdgeId(current => current === id ? null : current); setFocusedRelationshipId(current => current === link.relationshipId ? null : current); },
+        onFocus: () => setEdgeId(id),
+        onBlur: () => setEdgeId(current => current === id ? null : current),
       },
     };
   }), [byId, projection.links]);
@@ -424,6 +424,7 @@ export function ProjectKnowledgeWorkspace({ data, active, hasResume, onProjectTo
     if (clearSelection) {
       interruptMovement();
       setSelectedId(null);
+      setFocusedRelationshipId(null);
     }
     setCompactDetail(false);
     if (returnFocus.current?.classList.contains('kw-outline-row')) setOutlineOpen(true);

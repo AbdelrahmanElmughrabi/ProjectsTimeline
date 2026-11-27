@@ -44,7 +44,7 @@ export function projectKnowledgeMap(
   if (focused) { visible.add(focused.fromEntityId); visible.add(focused.toEntityId); }
 
   // Preserve requested context first. Expansion reserves a new neighbor only through an authored link.
-  const connecting = priorities.expandedEntityId != null && priorities.newNeighborEntityId != null
+  const connecting = priorities.expandedEntityId != null && expanded.has(priorities.expandedEntityId) && priorities.newNeighborEntityId != null
     ? typed.find(link =>
       (link.fromEntityId === priorities.expandedEntityId && link.toEntityId === priorities.newNeighborEntityId) ||
       (link.toEntityId === priorities.expandedEntityId && link.fromEntityId === priorities.newNeighborEntityId))
@@ -68,7 +68,9 @@ export function projectKnowledgeMap(
   const boundedLinks = typed.filter(link => chosen.has(link.fromEntityId) && chosen.has(link.toEntityId));
   const chosenLinks = new Set<number>();
   const reserveLink = (link: KnowledgeLink | undefined) => {
-    if (link && chosenLinks.size < 80) chosenLinks.add(link.relationshipId);
+    if (link && chosen.has(link.fromEntityId) && chosen.has(link.toEntityId) && chosenLinks.size < 80) {
+      chosenLinks.add(link.relationshipId);
+    }
   };
   reserveLink(connecting);
   reserveLink(focused);

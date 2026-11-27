@@ -1,5 +1,11 @@
 # ProjectsTimeline — Verification record
 
+## Knowledge Map priority-cap correction, 2026-11-27 — draft, independent verification pending
+
+- **Starting main:** `1a7fcb9e207dd3c056090ca1144f3680cc99d900` (PR #5 merge). Scope: `MAP-01`, `MAP-EXP-01`, `MAP-ANCHOR-01`, `MAP-TEST-01`. Projection-only changes preserve the 40-node/80-native-edge hard caps, exact stored entity/relationship identities and current camera/history architecture.
+- **Regression-first isolated probe actually executed here:** Node 22.16.0 / TypeScript 5.8.3; an isolated projection build with type stubs used `tsc --target ES2022 --module commonjs --strict --skipLibCheck` and `node --test regression.mjs`. Five scenarios: old projection **2 passed / 3 failed / 0 skipped**; corrected projection **5 passed / 0 failed / 0 skipped**. The baseline fail cases specifically concern expansion at capacity, keeping neighborhood context and retaining a late authored relationship above 80 eligible links.
+- **Not yet executed:** the newly committed repository unit tests, Node 24 `npm run typecheck` / `npm test`, the new and existing Electron journeys, a rebuilt Windows package or manual dense-map inspection. The isolated probe does **not** constitute a full repository pass; independent Codex review and advisory GitHub CI will provide separate revision-specific evidence.
+
 ## V3a1a acceptance and workflow consolidation, 2026-11-09
 
 The owner accepted UX stabilization. Native picker, screen-reader behavior and dense-map polish remain open. The [stabilization report](v3a1a-stabilization-verification.md#manual-acceptance) records the feedback separately from automated evidence. The [documentation audit](documentation-audit.md) records the verified GitHub refs and limits of the read-only remote checks. This checkpoint updates documentation and local templates. It does not add V5a, migration 005 or an Actions workflow. No application tests were rerun for this checkpoint.

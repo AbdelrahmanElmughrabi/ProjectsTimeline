@@ -416,3 +416,40 @@ test('small and larger blueprints retain bounded, navigable canvas projections',
   assert.equal(Object.keys(await positions(page)).length, 2);
   assert.deepEqual(await snapshot(page, 'Stabilization scale fixture'), large);
 });
+
+test('full Knowledge Map Expand reveals an authored requirement and retains its selected feature', { timeout: 120000 }, async t => {
+  const { app, page, directory } = await openApp(t);
+  const project = 'proj.map-priority-cap';
+  const records = [
+    { kind: 'project', id: project, title: 'Map priority fixture' },
+    { kind: 'component', id: 'cmp.seed', title: 'Seed module', project },
+    { kind: 'feature', id: 'feat.seed', title: 'Seed feature', project, component: 'cmp.seed' },
+    ...Array.from({ length: 44 }, (_, i) => ({
+      kind: 'component', id: `cmp.context-${i}`, title: `Context module ${i}`, project,
+    })),
+    { kind: 'requirement', id: 'req.hidden', title: 'Hidden requirement', project,
+      type: 'functional', features: ['feat.seed'], acceptance: ['Source relationship remains visible'] },
+  ];
+  const file = join(directory, 'map-priority.md');
+  writeFileSync(file, records.map(record => '```ptb\n' + JSON.stringify({ ptb: '0.2', ...record }) + '\n```').join('\n\n'));
+  await form(app, page, file, 'Map priority fixture');
+  const saved = await snapshot(page, 'Map priority fixture');
+  const feature = saved.graph.nodes.find(node => node.externalId === 'feat.seed');
+  const requirement = saved.graph.nodes.find(node => node.externalId === 'req.hidden');
+  assert.ok(feature && requirement);
+  const nativeLink = saved.graph.links.find(link => link.fromEntityId === requirement.entityId && link.toEntityId === feature.entityId);
+  assert.ok(nativeLink, 'stored native requirement-to-feature relationship');
+  const before = await positions(page);
+  assert.equal(Object.keys(before).length, 40);
+  assert.equal(Object.hasOwn(before, String(requirement.entityId)), false);
+  await button(page, 'Feature: Seed feature').click();
+  await button(page, 'Expand Seed feature').click();
+  await page.waitForFunction(id => !!document.querySelector(`.react-flow__node[data-id="${id}"]`), String(requirement.entityId));
+  const after = await positions(page);
+  assert.equal(Object.keys(after).length, 40);
+  assert.equal(Object.hasOwn(after, String(feature.entityId)), true);
+  assert.equal(Object.hasOwn(after, String(requirement.entityId)), true);
+  assert.equal(await page.locator(`.react-flow__edge[data-id="${nativeLink.relationshipId}"]`).count(), 1);
+  await button(page, 'Collapse Seed feature').click();
+  assert.equal(Object.keys(await positions(page)).length, 40);
+});

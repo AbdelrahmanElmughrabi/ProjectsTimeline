@@ -13,7 +13,7 @@ test('Home preview connects actual records/source, preserves project drafts and 
   let application;
   const dir = temporaryDirectory(t, () => application?.close());
   const sourceFile = join(dir, 'project.md');
-  const source = '\uFEFF' + readFileSync('docs/design/examples/ptb-v0.2/small/project.md', 'utf8').replaceAll('\n', '\r\n');
+  const source = '\uFEFF' + readFileSync('docs/design/examples/ptb-v0.2/small/project.md', 'utf8').replace(/\r?\n/g, '\r\n');
   writeFileSync(sourceFile, source);
   application = await launchWorkspace(join(dir, 'profile'));
   const page = await application.firstWindow();

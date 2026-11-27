@@ -20,7 +20,7 @@ export default function App() {
   const preview = useBlueprintPreview();
   const previewNavigation = useRef(0);
   const previewHomeFocus = useRef(false);
-  const { projects, detail, selectedId, loading, listError, busy, notice, stale } = workspace;
+  const { projects, detail, selectedId, loading, listError, busy, notice, stale, uncertainSave } = workspace;
   const [projectName, setProjectName] = useState('');
   const [actionTitle, setActionTitle] = useState('');
   const [accomplished, setAccomplished] = useState('');
@@ -32,7 +32,7 @@ export default function App() {
   const toolsOpener = useRef<HTMLElement | null>(null);
   const menuButton = useRef<HTMLButtonElement>(null);
   const [formationBlocked, setFormationBlocked] = useState(false);
-  const disabled = busy !== null || library.busy || stale || view === 'preview';
+  const disabled = busy !== null || library.busy || stale || uncertainSave !== null || view === 'preview';
   const inKnowledgeProject = view === 'project' && workspace.knowledge !== null;
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function App() {
   }, [view]);
 
   async function navigate(next: 'home' | 'project' | 'workflows') {
-    if (formationBlocked) return;
+    if (formationBlocked || uncertainSave !== null) return;
     const token = ++previewNavigation.current;
     if (view === 'preview' && !await preview.cancel()) return;
     if (token !== previewNavigation.current) return;
@@ -73,7 +73,7 @@ export default function App() {
   }
 
   async function selectProject(id: number) {
-    if (formationBlocked) return;
+    if (formationBlocked || uncertainSave !== null) return;
     setProjectMenuOpen(false);
     setKnowledgeTools(false);
     const token = ++previewNavigation.current;
@@ -113,6 +113,14 @@ export default function App() {
     }
   }
 
+  function resolveUnknownSave(choice: 'discard' | 'retry') {
+    const kind = workspace.resolveUncertainSave(choice);
+    if (choice !== 'discard') return;
+    if (kind === 'create') setProjectName('');
+    if (kind === 'action') setActionTitle('');
+    if (kind === 'checkpoint') { setAccomplished(''); setNextSteps(''); }
+  }
+
   function openKnowledgeTools(opener: HTMLElement, destination: 'tools' | 'journal' | 'resume') {
     toolsOpener.current = opener;
     setKnowledgeTools(true);
@@ -150,7 +158,7 @@ export default function App() {
       </div>}
       <ProjectSidebar
         projects={projects} selectedId={selectedId} view={view} loading={loading} listError={listError}
-        navigationDisabled={formationBlocked || (busy !== null && busy !== 'open') || library.busy || loading || preview.state.phase === 'cancelling'}
+        navigationDisabled={formationBlocked || uncertainSave !== null || (busy !== null && busy !== 'open') || library.busy || loading || preview.state.phase === 'cancelling'}
         retryDisabled={loading || busy !== null || library.busy}
         onViewChange={next => void navigate(next)}
         onSelect={id => void selectProject(id)} onRetry={() => void workspace.retryLoading()}
@@ -174,7 +182,15 @@ export default function App() {
         {view === 'workflows' && <WorkflowLibrary {...library} onRetry={() => void library.refresh()} />}
         {view !== 'workflows' && view !== 'preview' && <>
         {notice && <div className={`notice ${notice.kind}`} role={notice.kind === 'success' ? 'status' : 'alert'}>{notice.text}</div>}
-        {(stale || notice?.kind === 'warning' || (selectedId !== null && !detail && busy === null)) && <div className="refresh-state"><p>Displayed information may be out of date. Reload saved data before making more changes.</p><button className="button button-primary" disabled={busy !== null} onClick={() => void workspace.retryLoading()}>Retry loading</button></div>}
+        {uncertainSave && <section className="refresh-state" role="group" aria-label="Uncertain save reconciliation">
+          <p><strong>Review the saved records before deciding whether to submit again.</strong> This write may have committed even though the reply was lost. Matching names or text cannot prove which submission created a record.</p>
+          <button type="button" className="button button-primary" disabled={busy !== null || loading} onClick={() => void workspace.retryLoading()}>Reload saved records</button>
+          {uncertainSave.checked && <>
+            <button type="button" className="button button-light" disabled={busy !== null} onClick={() => resolveUnknownSave('discard')}>Keep saved records; discard draft</button>
+            <button type="button" className="button" disabled={busy !== null} onClick={() => resolveUnknownSave('retry')}>Allow another save after review</button>
+          </>}
+        </section>}
+        {!uncertainSave && (stale || notice?.kind === 'warning' || (selectedId !== null && !detail && busy === null)) && <div className="refresh-state"><p>Displayed information may be out of date. Reload saved data before making more changes.</p><button className="button button-primary" disabled={busy !== null} onClick={() => void workspace.retryLoading()}>Retry loading</button></div>}
         </>}
         {view === 'home' && <ProjectHome projects={workspace.homeProjects} loading={workspace.homeLoading} error={workspace.homeError} stale={workspace.homeStale} disabled={disabled}
           onOpen={id => void openFromHome(id)} onRefresh={() => void workspace.refreshHome()} onCreate={() => document.getElementById('project-name')?.focus()} onPreview={() => void startPreview()} />}

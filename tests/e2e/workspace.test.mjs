@@ -105,7 +105,8 @@ test('actual failed checkpoint write preserves form input and allows retry', { t
     await page.getByLabel('What I accomplished', { exact: true }).fill('Keep this accomplishment');
     await page.getByLabel('What to do next', { exact: true }).fill('Retry this save');
     await page.getByRole('button', { name: 'Save checkpoint', exact: true }).click();
-    await page.getByRole('alert').waitFor();
+    await page.getByRole('alert').filter({ hasText: 'Save outcome is uncertain' }).waitFor();
+    assert.equal(await page.getByRole('button', { name: 'Save checkpoint', exact: true }).isDisabled(), true);
     assert.equal(await page.getByLabel('What I accomplished', { exact: true }).inputValue(), 'Keep this accomplishment');
     assert.equal(await page.getByLabel('What to do next', { exact: true }).inputValue(), 'Retry this save');
     assert.equal(await page.locator('.checkpoint-card').count(), 1);
@@ -116,6 +117,8 @@ test('actual failed checkpoint write preserves form input and allows retry', { t
     mkdirSync(resolve('artifacts'), { recursive: true });
     await page.screenshot({ path: resolve('artifacts/visual-write-error.png'), fullPage: true, animations: 'disabled' });
     raw.exec('DROP TRIGGER fail_checkpoint');
+    await page.getByRole('button', { name: 'Reload saved records', exact: true }).click();
+    await page.getByRole('button', { name: 'Allow another save after review', exact: true }).click();
     await page.getByRole('button', { name: 'Save checkpoint', exact: true }).click();
     await page.getByRole('status').filter({ hasText: 'Checkpoint saved.' }).waitFor();
     assert.equal(await page.locator('.checkpoint-card').count(), 2);
